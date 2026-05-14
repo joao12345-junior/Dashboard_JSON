@@ -1,7 +1,7 @@
 export const LogRepository = {
 	async fetchAll() {
-		const files = import.meta.glob("/src/data/Log/*.json");
-
+		const files = import.meta.glob("../data/Log/*.json");
+		console.log(files);
 		const rawLogs = await Promise.all(
 			Object.values(files).map(async (importFile) => {
 				const module = await importFile();

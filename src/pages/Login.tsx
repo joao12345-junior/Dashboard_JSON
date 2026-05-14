@@ -209,20 +209,6 @@ export function LoginPage() {
 						{isLoading ? "Autenticando..." : "Entrar"}
 					</button>
 				</div>
-
-				<div
-					style={{
-						marginTop: 24,
-						textAlign: "center",
-						fontSize: 11,
-						color: "var(--muted-foreground)",
-						padding: "10px 14px",
-						backgroundColor: "var(--muted)",
-						borderRadius: 6,
-					}}
-				>
-					Usuário: <strong>ADM</strong> · Senha: <strong>admin123</strong>
-				</div>
 			</div>
 		</div>
 	);
