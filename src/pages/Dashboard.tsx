@@ -21,7 +21,7 @@ export function Dashboard() {
 	const { filters, filteredLogs, stats, updateFilter, resetFilters } =
 		useLogFilters(logs);
 
-	const handleFileChange = useCallback((e) => {
+	const handleFileChange = useCallback((e: any) => {
 		const files = Array.from(e.target.files || []).filter((file) =>
 			file.name.endsWith(".json"),
 		);
@@ -167,7 +167,7 @@ export function Dashboard() {
 						</button>
 						{logFiles && (
 							<button
-								onClick={() => setLogFiles(null)}
+								onClick={() => setLogFiles([])}
 								title="Voltar para dados de exemplo"
 								style={{
 									padding: "8px 10px",

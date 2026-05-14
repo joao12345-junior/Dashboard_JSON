@@ -19,11 +19,11 @@ export const LogRepository = {
 		return rawLogs;
 	},
 
-	async fromFile(file) {
+	async fromFile(file: File) {
 		return new Promise((resolve, reject) => {
 			const reader = new FileReader();
 
-			reader.onload = (e) => {
+			reader.onload = (e: any) => {
 				try {
 					const parsed = JSON.parse(e.target.result);
 

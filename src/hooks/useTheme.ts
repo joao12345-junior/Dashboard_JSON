@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback, useContext } from "react";
+import React, { createContext, useState, useCallback, useContext } from "react";
 
 // ─── useTheme ────────────────────────────────────────────────────────────────
 // Gerencia o dark mode via classe CSS no elemento raiz do componente.
@@ -6,7 +6,7 @@ import { createContext, useState, useCallback, useContext } from "react";
 // do dark mode definidas no style.css (ex: --background muda de creme para escuro).
 const ThemeContext = createContext(null);
 
-export function ThemeProvider({ children }) {
+export function ThemeProvider( children: React.PropsWithChildren ) {
 	const [isDark, setIsDark] = useState(false);
 
 	const toggle = useCallback(() => {

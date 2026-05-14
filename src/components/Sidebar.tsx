@@ -1,8 +1,20 @@
 import { useAuth } from "../hooks/useAuth";
 import { ThemeToggleButton } from "./ThemeButton";
 
+interface SidebarInterface {
+	stats: object;
+	isOpen: boolean;
+	onClose: () => void;
+	isMobile: boolean;
+}
+
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
-export function Sidebar({ stats, isOpen, onClose, isMobile }) {
+export function Sidebar({
+	stats,
+	isOpen,
+	onClose,
+	isMobile,
+}: SidebarInterface) {
 	const { logout } = useAuth();
 
 	// Em mobile, a sidebar é um drawer por cima do conteúdo

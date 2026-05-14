@@ -1,7 +1,8 @@
+import { useAuth } from "./hooks/useAuth";
 import { Dashboard } from "./pages/Dashboard";
-import { ThemeProvider } from "./hooks/useTheme";
-import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { LoginPage } from "./pages/Login";
+import { ThemeProvider } from "./hooks/useTheme";
+import { AuthProvider } from "./hooks/useAuth";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MAPA DA ARQUITETURA

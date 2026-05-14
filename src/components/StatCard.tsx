@@ -1,5 +1,5 @@
 // ─── StatCard ─────────────────────────────────────────────────────────────────
-export function StatCard({ label, value, accentColor }) {
+export function StatCard(label: string, value: string, accentColor: string) {
 	return (
 		<div
 			style={{

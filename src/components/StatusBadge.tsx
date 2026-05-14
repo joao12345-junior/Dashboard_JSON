@@ -1,5 +1,5 @@
 // ─── StatusBadge ─────────────────────────────────────────────────────────────
-export function StatusBadge({ status }) {
+export function StatusBadge(status: number) {
 	const color =
 		status === 1
 			? "var(--primary)"
