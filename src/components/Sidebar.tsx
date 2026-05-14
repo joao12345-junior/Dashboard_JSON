@@ -1,11 +1,12 @@
+import React from "react";
 import { useAuth } from "../hooks/useAuth";
 import { ThemeToggleButton } from "./ThemeButton";
 
 type Stats = {
-	total: string;
-	active: string;
-	inactive: string;
-	erro: string;
+	total: number;
+	active: number;
+	inactive: number;
+	erro: number;
 };
 
 interface SidebarInterface {
@@ -25,7 +26,7 @@ export function Sidebar({
 	const { logout } = useAuth();
 
 	// Em mobile, a sidebar é um drawer por cima do conteúdo
-	const sidebarStyle = isMobile
+	const sidebarStyle: React.CSSProperties = isMobile
 		? {
 				position: "fixed",
 				top: 0,

@@ -1,3 +1,4 @@
+import React from "react";
 import { START_STATUS } from "../lib/Variables";
 
 interface LogFiltersProps {
@@ -14,7 +15,7 @@ export function LogFilters({
 	onReset,
 	isMobile,
 }: LogFiltersProps) {
-	const sharedInput = {
+	const sharedInput: React.CSSProperties = {
 		width: "100%",
 		padding: "8px 12px",
 		borderRadius: 6,
@@ -27,7 +28,7 @@ export function LogFilters({
 		boxSizing: "border-box",
 	};
 
-	const labelStyle = {
+	const labelStyle: React.CSSProperties = {
 		display: "block",
 		fontSize: 10,
 		fontWeight: 700,

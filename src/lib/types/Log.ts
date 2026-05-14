@@ -4,5 +4,4 @@ export interface Log {
 	date: string;
 	time: string; // ← estava faltando
 	status: number;
-	length?: number;
 }

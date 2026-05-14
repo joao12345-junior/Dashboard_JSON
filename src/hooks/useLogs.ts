@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { LogRepository } from "../lib/repository/LogRepository";
 import { LogMapper } from "../lib/data/LogMapper";
+import { Log } from "../lib/types/Log";
 
 // Aceita múltiplos arquivos
 export function useLogs(files = []) {
-	const [logs, setLogs] = useState([]);
+	const [logs, setLogs] = useState<Log[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
 
@@ -34,9 +35,11 @@ export function useLogs(files = []) {
 				if (!cancelled) {
 					setLogs(LogMapper.toLogList(raw));
 				}
-			} catch (err: unknown) {
+			} catch (err) {
 				if (!cancelled) {
-					setError(err ?? "Erro desconhecido.");
+					const message =
+						err instanceof Error ? err.message : "Erro desconhecido";
+					setError(message);
 				}
 			} finally {
 				if (!cancelled) {

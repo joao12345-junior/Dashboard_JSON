@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback } from "react";
 import { START_STATUS, INITIAL_FILTERS } from "../lib/Variables";
 import { RawLog } from "../lib/types/RawLog";
-import { Logs } from "../lib/types/Log";
+import { Log } from "../lib/types/Log";
 
 // ─── useLogFilters ────────────────────────────────────────────────────────────
-export function useLogFilters(logs: Logs[]) {
+export function useLogFilters(logs: Log[]) {
 	const [filters, setFilters] = useState({ ...INITIAL_FILTERS });
 
 	const filteredLogs = useMemo(() => {

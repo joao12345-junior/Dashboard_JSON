@@ -13,5 +13,5 @@ export const LogMapper = {
 		time: raw.Hora,
 		status: Number(raw.Start ?? 0),
 	}),
-	toLogList: (rawLogs: File[]) => rawLogs.map(LogMapper.toLog),
+	toLogList: (rawLogs: RawLog[]) => rawLogs.map(LogMapper.toLog),
 };

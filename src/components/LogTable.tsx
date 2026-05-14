@@ -1,14 +1,15 @@
+import React from "react";
 import { Log } from "../lib/types/Log";
 import { StatusBadge } from "./StatusBadge";
 
 interface logTableInterface {
-	logs: Log;
+	logs: Log[];
 	isMobile: boolean;
 }
 
 // ─── LogTable ─────────────────────────────────────────────────────────────────
 export function LogTable({ logs, isMobile }: logTableInterface) {
-	const thStyle = {
+	const thStyle: React.CSSProperties = {
 		padding: "10px 16px",
 		textAlign: "left",
 		fontSize: 10,
@@ -20,7 +21,7 @@ export function LogTable({ logs, isMobile }: logTableInterface) {
 		backgroundColor: "var(--muted)",
 		whiteSpace: "nowrap",
 	};
-	const tdStyle = {
+	const tdStyle: React.CSSProperties = {
 		padding: "11px 16px",
 		fontSize: 13,
 		color: "var(--foreground)",

@@ -1,5 +1,9 @@
+interface StatusBadgeInterface {
+	status: number;
+}
+
 // ─── StatusBadge ─────────────────────────────────────────────────────────────
-export function StatusBadge(status: number) {
+export function StatusBadge({ status }: StatusBadgeInterface) {
 	const color =
 		status === 1
 			? "var(--primary)"
