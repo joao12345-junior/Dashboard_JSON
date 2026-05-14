@@ -4,8 +4,8 @@ export function StatusBadge({ status }) {
 		status === 1
 			? "var(--primary)"
 			: status === 2
-				? "var(--status-error)"
-				: "var(--chart-5)";
+				? "var(--destructive)"
+				: "var(--chart-4)";
 	return (
 		<span
 			style={{

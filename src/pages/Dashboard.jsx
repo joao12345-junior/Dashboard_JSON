@@ -209,12 +209,12 @@ export function Dashboard() {
 							<StatCard
 								label="Finalizados"
 								value={stats.finished}
-								accentColor="var(--chart-5)"
+								accentColor="var(--chart-4)"
 							/>
 							<StatCard
 								label="Erros"
 								value={stats.erro}
-								accentColor="var(--status-error)"
+								accentColor="var(--destructive)"
 							/>
 						</div>
 
