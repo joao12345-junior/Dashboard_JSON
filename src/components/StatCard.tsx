@@ -1,5 +1,11 @@
+interface StatCardProps {
+	label: string;
+	value: number;
+	accentColor: string;
+}
+
 // ─── StatCard ─────────────────────────────────────────────────────────────────
-export function StatCard(label: string, value: string, accentColor: string) {
+export function StatCard({ label, value, accentColor }: StatCardProps) {
 	return (
 		<div
 			style={{

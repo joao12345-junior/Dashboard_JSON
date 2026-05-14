@@ -1,8 +1,10 @@
 import { useState, useMemo, useCallback } from "react";
 import { START_STATUS, INITIAL_FILTERS } from "../lib/Variables";
+import { RawLog } from "../lib/types/RawLog";
+import { Logs } from "../lib/types/Log";
 
 // ─── useLogFilters ────────────────────────────────────────────────────────────
-export function useLogFilters(logs) {
+export function useLogFilters(logs: Logs[]) {
 	const [filters, setFilters] = useState({ ...INITIAL_FILTERS });
 
 	const filteredLogs = useMemo(() => {
@@ -43,7 +45,8 @@ export function useLogFilters(logs) {
 	);
 
 	const updateFilter = useCallback(
-		(key, value) => setFilters((prev) => ({ ...prev, [key]: value })),
+		(key: number, value: string) =>
+			setFilters((prev) => ({ ...prev, [key]: value })),
 		[],
 	);
 

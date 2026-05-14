@@ -1,4 +1,8 @@
-export function ErrorState(message: string) {
+interface ErrorStateProps {
+	message: string;
+}
+
+export function ErrorState({ message }: ErrorStateProps) {
 	return (
 		<div
 			style={{

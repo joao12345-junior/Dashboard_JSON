@@ -1,10 +1,8 @@
 import { START_STATUS } from "../lib/Variables";
 
-type Filters = "Todos" | "Iniciados" | "Finalizados" | "Erros";
-
-interface logFiltersInterface {
-	filters: Filters;
-	onUpdate: () => ((e: string, i: string)) => void;
+interface LogFiltersProps {
+	filters: { message: string; date: string; start: string };
+	onUpdate: (key: string, value: string) => void;
 	onReset: () => void;
 	isMobile: boolean;
 }
@@ -15,7 +13,7 @@ export function LogFilters({
 	onUpdate,
 	onReset,
 	isMobile,
-}: logFiltersInterface) {
+}: LogFiltersProps) {
 	const sharedInput = {
 		width: "100%",
 		padding: "8px 12px",

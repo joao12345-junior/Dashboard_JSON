@@ -1,7 +1,8 @@
+import { Log } from "../lib/types/Log";
 import { StatusBadge } from "./StatusBadge";
 
 interface logTableInterface {
-	logs: File[];
+	logs: Log;
 	isMobile: boolean;
 }
 
@@ -73,7 +74,7 @@ export function LogTable({ logs, isMobile }: logTableInterface) {
 					</tr>
 				</thead>
 				<tbody>
-					{logs.map((log: File, i: number) => (
+					{logs.map((log: Log, i: number) => (
 						<tr
 							key={`${log.date}-${log.time}-${i}`}
 							onMouseEnter={(e) =>

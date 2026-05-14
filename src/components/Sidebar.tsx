@@ -1,8 +1,15 @@
 import { useAuth } from "../hooks/useAuth";
 import { ThemeToggleButton } from "./ThemeButton";
 
+type Stats = {
+	total: string;
+	active: string;
+	inactive: string;
+	erro: string;
+};
+
 interface SidebarInterface {
-	stats: object;
+	stats: Stats;
 	isOpen: boolean;
 	onClose: () => void;
 	isMobile: boolean;
@@ -181,8 +188,9 @@ export function Sidebar({
 						{
 							label: "Inativos",
 							value: stats.inactive,
-							color: "var(--status-error)",
+							color: "var(--chart-4)",
 						},
+						{ label: "Erros", value: stats.erro, color: "var(--destructive)" },
 					].map(({ label, value, color }) => (
 						<div
 							key={label}

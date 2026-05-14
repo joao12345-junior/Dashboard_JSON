@@ -1,12 +1,17 @@
 import React, { createContext, useState, useCallback, useContext } from "react";
 
+interface ThemeContextValue {
+	isDark: boolean;
+	toggle: () => void;
+}
+
 // ─── useTheme ────────────────────────────────────────────────────────────────
 // Gerencia o dark mode via classe CSS no elemento raiz do componente.
 // A variável `isDark` controla a classe `.dark` que ativa as CSS variables
 // do dark mode definidas no style.css (ex: --background muda de creme para escuro).
-const ThemeContext = createContext(null);
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-export function ThemeProvider( children: React.PropsWithChildren ) {
+export function ThemeProvider({ children }: React.PropsWithChildren) {
 	const [isDark, setIsDark] = useState(false);
 
 	const toggle = useCallback(() => {

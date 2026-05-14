@@ -34,9 +34,9 @@ export function useLogs(files = []) {
 				if (!cancelled) {
 					setLogs(LogMapper.toLogList(raw));
 				}
-			} catch (err) {
+			} catch (err: unknown) {
 				if (!cancelled) {
-					setError(err.message ?? "Erro desconhecido.");
+					setError(err ?? "Erro desconhecido.");
 				}
 			} finally {
 				if (!cancelled) {
