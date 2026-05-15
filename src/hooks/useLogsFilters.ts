@@ -16,7 +16,12 @@ export function useLogFilters(logs: Log[]) {
 				.toLowerCase()
 				.includes(filters.message.toLowerCase());
 
-			const matchDate = filters.date ? log.date === filters.date : true;
+			const logDate = new Date(log.date).toString();
+			const filterDate = new Date(filters.date).toString();
+			const matchDate = !filterDate || filterDate === logDate;
+			console.log("log:", logDate);
+			console.log("filter:", filterDate);
+			console.log("match:", matchDate);
 
 			const matchStart =
 				filters.start === START_STATUS.ALL
