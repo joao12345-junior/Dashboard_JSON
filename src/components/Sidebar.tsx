@@ -1,6 +1,8 @@
+// src/components/Sidebar.tsx
 import React from "react";
 import { useAuth } from "../hooks/useAuth";
 import { ThemeToggleButton } from "./ThemeButton";
+import type { Page } from "../App";
 
 type Stats = {
 	total: number;
@@ -9,23 +11,25 @@ type Stats = {
 	erro: number;
 };
 
-interface SidebarInterface {
+interface SidebarProps {
 	stats: Stats;
 	isOpen: boolean;
 	onClose: () => void;
 	isMobile: boolean;
+	currentPage: Page;
+	onNavigate: (page: Page) => void;
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
 export function Sidebar({
 	stats,
 	isOpen,
 	onClose,
 	isMobile,
-}: SidebarInterface) {
+	currentPage,
+	onNavigate,
+}: SidebarProps) {
 	const { logout } = useAuth();
 
-	// Em mobile, a sidebar é um drawer por cima do conteúdo
 	const sidebarStyle: React.CSSProperties = isMobile
 		? {
 				position: "fixed",
@@ -47,7 +51,6 @@ export function Sidebar({
 
 	return (
 		<>
-			{/* Overlay escuro em mobile quando sidebar está aberta */}
 			{isMobile && isOpen && (
 				<div
 					onClick={onClose}
@@ -69,6 +72,7 @@ export function Sidebar({
 					flexDirection: "column",
 				}}
 			>
+				{/* ── Header: logo + fechar (mobile) ── */}
 				<div
 					style={{
 						padding: "24px 20px 20px",
@@ -122,53 +126,79 @@ export function Sidebar({
 								</div>
 							</div>
 						</div>
-						<div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-							<ThemeToggleButton />
-							{/* Botão fechar drawer em mobile */}
-							{isMobile && (
-								<button
-									onClick={onClose}
-									style={{
-										width: 32,
-										height: 32,
-										borderRadius: 6,
-										border: "1px solid var(--border)",
-										backgroundColor: "transparent",
-										cursor: "pointer",
-										fontSize: 16,
-										color: "var(--muted-foreground)",
-									}}
-								>
-									✕
-								</button>
-							)}
-						</div>
+
+						{/* Botão fechar só aparece em mobile */}
+						{isMobile && (
+							<button
+								onClick={onClose}
+								style={{
+									width: 32,
+									height: 32,
+									borderRadius: 6,
+									border: "1px solid var(--border)",
+									backgroundColor: "transparent",
+									cursor: "pointer",
+									fontSize: 16,
+									color: "var(--muted-foreground)",
+								}}
+							>
+								✕
+							</button>
+						)}
 					</div>
 				</div>
 
-				<nav style={{ padding: "14px 10px", flex: 1 }}>
-					<div
-						style={{
-							display: "flex",
-							alignItems: "center",
-							gap: 9,
-							padding: "9px 12px",
-							borderRadius: 6,
-							backgroundColor: "var(--sidebar-accent)",
-							color: "var(--sidebar-foreground)",
-							fontSize: 13,
-							fontWeight: 600,
-						}}
-					>
-						<span>📋</span> Logs
-					</div>
+				{/* ── Navegação ── */}
+				<nav style={{ padding: "12px 12px 0" }}>
+					{(
+						[
+							{ page: "dashboard", label: "Dashboard", icon: "▦" },
+							{ page: "logs", label: "Logs", icon: "☰" },
+						] as { page: Page; label: string; icon: string }[]
+					).map(({ page, label, icon }) => (
+						<button
+							key={page}
+							onClick={() => {
+								onNavigate(page);
+								onClose();
+							}}
+							style={{
+								width: "100%",
+								padding: "8px 12px",
+								borderRadius: 6,
+								border: "none",
+								backgroundColor:
+									currentPage === page
+										? "color-mix(in oklch, var(--primary) 12%, transparent)"
+										: "transparent",
+								color:
+									currentPage === page
+										? "var(--primary)"
+										: "var(--muted-foreground)",
+								fontSize: 13,
+								fontWeight: currentPage === page ? 700 : 400,
+								cursor: "pointer",
+								fontFamily: "inherit",
+								display: "flex",
+								alignItems: "center",
+								gap: 8,
+								marginBottom: 2,
+								textAlign: "left",
+							}}
+						>
+							<span>{icon}</span>
+							{label}
+						</button>
+					))}
 				</nav>
 
+				{/* ── Visão geral (stats) ── */}
 				<div
 					style={{
 						padding: "16px 20px",
 						borderTop: "1px solid var(--border)",
 						borderBottom: "1px solid var(--border)",
+						marginTop: 8,
 					}}
 				>
 					<div
@@ -218,28 +248,34 @@ export function Sidebar({
 					))}
 				</div>
 
-				<div style={{ padding: "16px 20px" }}>
-					<div
-						style={{
-							display: "flex",
-							justifyContent: "space-between",
-							alignItems: "center",
-						}}
-					>
-						<div>
-							<div
-								style={{
-									fontSize: 12,
-									fontWeight: 700,
-									color: "var(--sidebar-foreground)",
-								}}
-							>
-								ADM
-							</div>
-							<div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
-								Administrador
-							</div>
+				{/* ── Rodapé: usuário + tema + logout ── */}
+				<div
+					style={{
+						marginTop: "auto", // empurra para o fundo da sidebar
+						padding: "16px 20px",
+						borderTop: "1px solid var(--border)",
+						display: "flex",
+						justifyContent: "space-between",
+						alignItems: "center",
+					}}
+				>
+					<div>
+						<div
+							style={{
+								fontSize: 12,
+								fontWeight: 700,
+								color: "var(--sidebar-foreground)",
+							}}
+						>
+							ADM
 						</div>
+						<div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
+							Administrador
+						</div>
+					</div>
+
+					<div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+						<ThemeToggleButton />
 						<button
 							onClick={logout}
 							style={{

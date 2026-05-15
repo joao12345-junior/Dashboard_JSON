@@ -1,37 +1,32 @@
+// src/App.tsx
 import { useAuth } from "./hooks/useAuth";
+import { Dashboard } from "./pages/Dashboard";
 import { LogsTable } from "./pages/LogsTable";
 import { LoginPage } from "./pages/Login";
 import { ThemeProvider } from "./hooks/useTheme";
 import { AuthProvider } from "./hooks/useAuth";
+import { useState } from "react";
 
-// ══════════════════════════════════════════════════════════════════════════════
-// MAPA DA ARQUITETURA
-//  Domain       → constantes puras (START_STATUS, ADMIN_CREDENTIALS…)
-//  Data         → LogMapper (Adapter) + LogRepository (Repository)
-//  Application  → hooks (useTheme, useAuth, useLogs, useLogFilters, useWindowSize)
-//  UI           → componentes React
-// ══════════════════════════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════
-// UI LAYER
-// ═══════════════════════════════════════
+export type Page = "dashboard" | "logs";
 
 function AppContent() {
 	const { isAuthenticated } = useAuth();
-	return isAuthenticated ? <LogsTable /> : <LoginPage />;
+	const [page, setPage] = useState<Page>("dashboard");
+
+	if (!isAuthenticated) return <LoginPage />;
+	return page === "dashboard" ? (
+		<Dashboard onNavigate={setPage} />
+	) : (
+		<LogsTable onNavigate={setPage} />
+	);
 }
 
-// ═══════════════════════════════════════
-// ROOT
-// ═══════════════════════════════════════
 export default function App() {
 	return (
-		<>
-			<ThemeProvider>
-				<AuthProvider>
-					<AppContent />
-				</AuthProvider>
-			</ThemeProvider>
-		</>
+		<ThemeProvider>
+			<AuthProvider>
+				<AppContent />
+			</AuthProvider>
+		</ThemeProvider>
 	);
 }

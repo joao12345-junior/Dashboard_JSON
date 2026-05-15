@@ -11,8 +11,13 @@ import { ErrorState } from "../components/Error";
 import { useWindowSize } from "../hooks/useWindowSize";
 import { ColumnDefinition } from "../lib/types/ColumnDefinition";
 import { getMapper } from "../lib/data/LogMapperRegistry";
+import type { Page } from "../App";
 
-export function LogsTable() {
+interface LogsTableProps {
+	onNavigate: (page: Page) => void;
+}
+
+export function LogsTable({ onNavigate }: LogsTableProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
 	const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -59,6 +64,8 @@ export function LogsTable() {
 				isOpen={sidebarOpen}
 				onClose={() => setSidebarOpen(false)}
 				isMobile={isMobile}
+				currentPage="logs" // ← fixo nessa página
+				onNavigate={onNavigate}
 			/>
 
 			<main
@@ -143,7 +150,6 @@ export function LogsTable() {
 							flexWrap: "wrap",
 						}}
 					>
-						{isMobile && <ThemeToggleButton />}
 						{/* Input de arquivo escondido — acionado pelo botão abaixo */}
 						<input
 							ref={fileInputRef}
