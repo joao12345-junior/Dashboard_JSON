@@ -1,6 +1,7 @@
 import React from "react";
 import { Log } from "../lib/types/Log";
 import { StatusBadge } from "./StatusBadge";
+import { normalizeDateToView } from "../lib/normalizeDateToView";
 
 interface logTableInterface {
 	logs: Log[];
@@ -114,7 +115,7 @@ export function LogTable({ logs, isMobile }: logTableInterface) {
 											fontFamily: "var(--font-mono)",
 										}}
 									>
-										{log.date} · {log.time}
+										{normalizeDateToView(log.date)} · {log.time}
 									</div>
 								)}
 							</td>
@@ -127,7 +128,7 @@ export function LogTable({ logs, isMobile }: logTableInterface) {
 										whiteSpace: "nowrap",
 									}}
 								>
-									{log.date}
+									{normalizeDateToView(log.date)}
 								</td>
 							)}
 							{!isMobile && (

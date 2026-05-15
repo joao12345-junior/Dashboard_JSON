@@ -136,9 +136,7 @@ export function Dashboard() {
 							ref={fileInputRef}
 							type="file"
 							multiple
-							{...({
-								webkitdirectory: "true",
-							} as React.InputHTMLAttributes<HTMLInputElement>)}
+							webkitdirectory="true"
 							onChange={handleFileChange}
 							style={{ display: "none" }}
 						/>

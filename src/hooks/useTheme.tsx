@@ -1,4 +1,10 @@
-import React, { createContext, useState, useCallback, useContext } from "react";
+import React, {
+	createContext,
+	useState,
+	useContext,
+	useEffect,
+	useCallback,
+} from "react";
 
 interface ThemeContextValue {
 	isDark: boolean;
@@ -11,25 +17,29 @@ interface ThemeContextValue {
 // do dark mode definidas no style.css (ex: --background muda de creme para escuro).
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+function resolveInitialTheme(): boolean {
+	const saved = localStorage.getItem("theme");
+	if (saved === "dark") return true;
+	if (saved == "light") return false;
+
+	return window.matchMedia("(prefers-color-schema: dark)").matches;
+}
+
 export function ThemeProvider({ children }: React.PropsWithChildren) {
-	const [isDark, setIsDark] = useState(false);
+	const [isDark, setIsDark] = useState<boolean>(resolveInitialTheme);
+
+	useEffect(() => {
+		document.documentElement.classList.toggle("dark", isDark);
+		localStorage.setItem("theme", isDark ? "dark" : "light");
+	}, [isDark]);
 
 	const toggle = useCallback(() => {
-		setIsDark((prev) => {
-			const next = !prev;
-			// Em Vite: document.documentElement.classList.toggle("dark", next)
-			// aplica o dark mode globalmente. Aqui, usamos um wrapper div.
-			// TODO: localStorage.setItem("theme", next ? "dark" : "light");
-			return next;
-		});
+		setIsDark((prev) => !prev);
 	}, []);
 
 	return (
 		<ThemeContext.Provider value={{ isDark, toggle }}>
-			{/* A classe "dark" aqui ativa as variáveis CSS do dark mode */}
-			<div className={isDark ? "dark" : ""} style={{ minHeight: "100vh" }}>
-				{children}
-			</div>
+			{children}
 		</ThemeContext.Provider>
 	);
 }

@@ -11,21 +11,29 @@ type AuthContextValue = {
 	logout: () => void;
 };
 
+const AUTH_SESSION_KEY = "log_dashboard_auth";
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+		() => sessionStorage.getItem(AUTH_SESSION_KEY) === "true",
+	);
 
 	const login = useCallback(({ username, password }: AuthCredentials) => {
 		const valid =
 			username === import.meta.env.VITE_ADMIN_CREDENTIALS_USER &&
 			password === import.meta.env.VITE_ADMIN_CREDENTIALS_PASSWORD;
 
-		if (valid) setIsAuthenticated(true);
+		if (valid) {
+			sessionStorage.setItem(AUTH_SESSION_KEY, "true");
+			setIsAuthenticated(true);
+		}
 		return valid;
 	}, []);
 
 	const logout = useCallback(() => {
+		sessionStorage.removeItem(AUTH_SESSION_KEY);
 		setIsAuthenticated(false);
 	}, []);
 

@@ -15,12 +15,20 @@ export const LogRepository = {
 	async fetchAll(): Promise<RawLog[]> {
 		const files = import.meta.glob("../data/Log/*.json");
 
+		const entries = Object.values(files);
+
+		// Falha explícita: sem arquivos de exemplo, não há nada para exibir.
+		// O ErrorState no Dashboard vai capturar e mostrar esta mensagem.
+		if (entries.length === 0) {
+			throw new Error(
+				"Nenhum arquivo de log encontrado em src/lib/data/Log/. Carregue um arquivo JSON ou adicione logs de exemplo.",
+			);
+		}
+
 		const rawLogs = await Promise.all(
-			Object.values(files).map(async (importFile) => {
-				// module é unknown → usamos "as" para informar o tipo esperado
+			entries.map(async (importFile) => {
 				const module = (await importFile()) as { default: RawLog };
 				const log = module.default;
-
 				return {
 					message: log.message ?? "",
 					Data: log.Data ?? "",
@@ -29,7 +37,6 @@ export const LogRepository = {
 				} satisfies RawLog;
 			}),
 		);
-
 		return rawLogs;
 	},
 
