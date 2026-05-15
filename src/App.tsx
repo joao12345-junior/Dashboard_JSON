@@ -1,5 +1,5 @@
 import { useAuth } from "./hooks/useAuth";
-import { Dashboard } from "./pages/Dashboard";
+import { LogsTable } from "./pages/LogsTable";
 import { LoginPage } from "./pages/Login";
 import { ThemeProvider } from "./hooks/useTheme";
 import { AuthProvider } from "./hooks/useAuth";
@@ -18,7 +18,7 @@ import { AuthProvider } from "./hooks/useAuth";
 
 function AppContent() {
 	const { isAuthenticated } = useAuth();
-	return isAuthenticated ? <Dashboard /> : <LoginPage />;
+	return isAuthenticated ? <LogsTable /> : <LoginPage />;
 }
 
 // ═══════════════════════════════════════

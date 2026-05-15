@@ -15,9 +15,6 @@ export function useLogFilters(logs: Log[]) {
 			const matchMessage = log.message
 				.toLowerCase()
 				.includes(filters.message.toLowerCase());
-
-			console.log(`Filtro: ${filters.date}`);
-			console.log(`Log: ${log.date}`);
 			const matchDate = filters.date ? log.date === filters.date : true;
 
 			const matchStart =
