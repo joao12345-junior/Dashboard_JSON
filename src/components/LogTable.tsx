@@ -1,15 +1,23 @@
-import React from "react";
+// src/components/LogTable.tsx
+import React, { useState } from "react";
 import { Log } from "../lib/types/Log";
 import { StatusBadge } from "./StatusBadge";
-import { normalizeDateToView } from "../lib/normalizeDateToView";
+import { ColumnDefinition } from "../lib/types/ColumnDefinition";
 
-interface logTableInterface {
+interface LogTableProps {
 	logs: Log[];
+	columns: ColumnDefinition[];
 	isMobile: boolean;
 }
 
-// ─── LogTable ─────────────────────────────────────────────────────────────────
-export function LogTable({ logs, isMobile }: logTableInterface) {
+export function LogTable({ logs, columns, isMobile }: LogTableProps) {
+	const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+	// Filtra as colunas que devem aparecer no contexto atual (mobile ou desktop)
+	const visibleColumns = columns.filter(
+		(col) => !col.hideOnMobile || !isMobile,
+	);
+
 	const thStyle: React.CSSProperties = {
 		padding: "10px 16px",
 		textAlign: "left",
@@ -22,6 +30,7 @@ export function LogTable({ logs, isMobile }: logTableInterface) {
 		backgroundColor: "var(--muted)",
 		whiteSpace: "nowrap",
 	};
+
 	const tdStyle: React.CSSProperties = {
 		padding: "11px 16px",
 		fontSize: 13,
@@ -49,7 +58,6 @@ export function LogTable({ logs, isMobile }: logTableInterface) {
 	}
 
 	return (
-		// overflow-x: auto → scroll horizontal em telas pequenas
 		<div
 			style={{
 				backgroundColor: "var(--card)",
@@ -68,85 +76,115 @@ export function LogTable({ logs, isMobile }: logTableInterface) {
 			>
 				<thead>
 					<tr>
+						{/* Coluna de índice — sempre fixa, não vem do mapper */}
 						<th style={{ ...thStyle, width: 48 }}>#</th>
-						<th style={thStyle}>Mensagem</th>
-						{!isMobile && <th style={{ ...thStyle, width: 120 }}>Data</th>}
-						{!isMobile && <th style={{ ...thStyle, width: 100 }}>Hora</th>}
+
+						{/* Colunas dinâmicas — vêm do mapper */}
+						{visibleColumns.map((col) => (
+							<th key={col.key} style={{ ...thStyle, width: col.width }}>
+								{col.label}
+							</th>
+						))}
+
+						{/* Coluna de status — sempre fixa, não vem do mapper */}
 						<th style={{ ...thStyle, width: 110 }}>Status</th>
 					</tr>
 				</thead>
+
 				<tbody>
 					{logs.map((log: Log, i: number) => (
-						<tr
-							key={`${log.date}-${log.time}-${i}`}
-							onMouseEnter={(e) =>
-								(e.currentTarget.style.backgroundColor = "var(--accent)")
-							}
-							onMouseLeave={(e) =>
-								(e.currentTarget.style.backgroundColor = "transparent")
-							}
-							style={{ transition: "background-color 0.12s" }}
-						>
-							<td
+						<React.Fragment key={`${log.date}-${log.time}-${i}`}>
+							<tr
+								onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
 								style={{
-									...tdStyle,
-									color: "var(--muted-foreground)",
-									fontSize: 11,
-									fontVariantNumeric: "tabular-nums",
+									cursor: "pointer",
+									transition: "background-color 0.12s",
 								}}
+								onMouseEnter={(e) =>
+									(e.currentTarget.style.backgroundColor = "var(--accent)")
+								}
+								onMouseLeave={(e) =>
+									(e.currentTarget.style.backgroundColor = "transparent")
+								}
 							>
-								{String(i + 1).padStart(2, "0")}
-							</td>
-							<td
-								style={{
-									...tdStyle,
-									fontFamily: "var(--font-mono)",
-									fontSize: 12,
-								}}
-							>
-								{log.message}
-								{/* Em mobile, mostra data/hora inline na mensagem */}
-								{isMobile && (
-									<div
+								{/* Célula de índice — fixa */}
+								<td
+									style={{
+										...tdStyle,
+										color: "var(--muted-foreground)",
+										fontSize: 11,
+										fontVariantNumeric: "tabular-nums",
+									}}
+								>
+									{String(i + 1).padStart(2, "0")}
+								</td>
+
+								{/* Células dinâmicas — geradas a partir das colunas visíveis */}
+								{visibleColumns.map((col) => (
+									<td
+										key={col.key}
 										style={{
-											fontSize: 10,
-											color: "var(--muted-foreground)",
-											marginTop: 4,
-											fontFamily: "var(--font-mono)",
+											...tdStyle,
+											fontFamily: col.mono ? "var(--font-mono)" : "inherit",
+											fontSize: col.mono ? 12 : 13,
+											color: col.muted
+												? "var(--muted-foreground)"
+												: "var(--foreground)",
+											whiteSpace: col.noWrap ? "nowrap" : "normal",
+											fontVariantNumeric: col.numeric
+												? "tabular-nums"
+												: "normal",
 										}}
 									>
-										{normalizeDateToView(log.date)} · {log.time}
-									</div>
-								)}
-							</td>
-							{!isMobile && (
-								<td
-									style={{
-										...tdStyle,
-										color: "var(--muted-foreground)",
-										fontVariantNumeric: "tabular-nums",
-										whiteSpace: "nowrap",
-									}}
-								>
-									{normalizeDateToView(log.date)}
+										{col.render(log)}
+									</td>
+								))}
+
+								{/* Célula de status — fixa */}
+								<td style={tdStyle}>
+									<StatusBadge status={log.status} />
 								</td>
+							</tr>
+
+							{/* Linha expandida — só aparece ao clicar e quando há payload */}
+							{expandedIndex === i && Object.keys(log.payload).length > 0 && (
+								<tr>
+									<td
+										colSpan={visibleColumns.length + 2} // +2 = índice e status fixos
+										style={{
+											padding: "8px 16px 12px",
+											backgroundColor: "var(--muted)",
+											borderBottom: "1px solid var(--border)",
+										}}
+									>
+										<div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+											{Object.entries(log.payload).map(([key, value]) => (
+												<div key={key} style={{ fontSize: 11 }}>
+													<span
+														style={{
+															color: "var(--muted-foreground)",
+															textTransform: "uppercase",
+															letterSpacing: "0.08em",
+														}}
+													>
+														{key}
+													</span>
+													<span
+														style={{
+															marginLeft: 6,
+															color: "var(--foreground)",
+															fontFamily: "var(--font-mono)",
+														}}
+													>
+														{String(value)}
+													</span>
+												</div>
+											))}
+										</div>
+									</td>
+								</tr>
 							)}
-							{!isMobile && (
-								<td
-									style={{
-										...tdStyle,
-										fontFamily: "var(--font-mono)",
-										color: "var(--muted-foreground)",
-										whiteSpace: "nowrap",
-									}}
-								>
-									{log.time}
-								</td>
-							)}
-							<td style={tdStyle}>
-								<StatusBadge status={log.status} />
-							</td>
-						</tr>
+						</React.Fragment>
 					))}
 				</tbody>
 			</table>

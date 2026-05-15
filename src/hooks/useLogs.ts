@@ -1,14 +1,10 @@
-// src/hooks/useLogs.ts
 import { useState, useEffect } from "react";
 import { LogRepository } from "../lib/repository/LogRepository";
-import { LogMapper } from "../lib/data/LogMapper";
 import { Log } from "../lib/types/Log";
-import { RawLog } from "../lib/types/RawLog";
 
 export function useLogs(files: File[] = []) {
 	const [logs, setLogs] = useState<Log[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
-	// ✅ string | null — aceita tanto null quanto mensagem de erro
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -19,30 +15,20 @@ export function useLogs(files: File[] = []) {
 				setIsLoading(true);
 				setError(null);
 
-				let raw: RawLog[] = [];
+				// O repositório agora retorna Log[] diretamente
+				// O mapeamento acontece dentro do repositório via registry
+				const result: Log[] =
+					files.length === 0
+						? await LogRepository.fetchAll()
+						: (await Promise.all(files.map(LogRepository.fromFile))).flat();
 
-				if (!files || files.length === 0) {
-					raw = await LogRepository.fetchAll();
-				} else {
-					const results = await Promise.all(
-						files.map((file) => LogRepository.fromFile(file)),
-					);
-					raw = results.flat();
-				}
-
-				if (!cancelled) {
-					setLogs(LogMapper.toLogList(raw));
-				}
+				if (!cancelled) setLogs(result);
 			} catch (err) {
 				if (!cancelled) {
-					const message =
-						err instanceof Error ? err.message : "Erro desconhecido";
-					setError(message); // ✅ agora aceita string
+					setError(err instanceof Error ? err.message : "Erro desconhecido");
 				}
 			} finally {
-				if (!cancelled) {
-					setIsLoading(false);
-				}
+				if (!cancelled) setIsLoading(false);
 			}
 		}
 
