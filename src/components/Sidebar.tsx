@@ -4,8 +4,8 @@ import { ThemeToggleButton } from "./ThemeButton";
 
 type Stats = {
 	total: number;
-	active: number;
-	inactive: number;
+	started: number;
+	finished: number;
 	erro: number;
 };
 
@@ -185,10 +185,10 @@ export function Sidebar({
 					</div>
 					{[
 						{ label: "Total", value: stats.total, color: "var(--foreground)" },
-						{ label: "Ativos", value: stats.active, color: "var(--primary)" },
+						{ label: "Ativos", value: stats.started, color: "var(--primary)" },
 						{
 							label: "Inativos",
-							value: stats.inactive,
+							value: stats.finished,
 							color: "var(--chart-4)",
 						},
 						{ label: "Erros", value: stats.erro, color: "var(--destructive)" },

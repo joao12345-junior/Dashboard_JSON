@@ -14,22 +14,24 @@ export function Dashboard() {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
 	const [sidebarOpen, setSidebarOpen] = useState(false);
-	const [logFiles, setLogFiles] = useState([]);
-	const fileInputRef = useRef(null);
+	const [logFiles, setLogFiles] = useState<File[]>([]);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const { logs, isLoading, error } = useLogs(logFiles);
 	const { filters, filteredLogs, stats, updateFilter, resetFilters } =
 		useLogFilters(logs);
 
-	const handleFileChange = useCallback((e: any) => {
-		const files = Array.from(e.target.files || []).filter((file) =>
-			file.name.endsWith(".json"),
-		);
+	const handleFileChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const files = Array.from(e.target.files ?? []).filter((file) =>
+				file.name.endsWith(".json"),
+			) as File[];
 
-		if (files.length) setLogFiles(files);
-
-		e.target.value = "";
-	}, []);
+			if (files.length) setLogFiles(files);
+			e.target.value = "";
+		},
+		[],
+	);
 
 	return (
 		<div
@@ -134,8 +136,9 @@ export function Dashboard() {
 							ref={fileInputRef}
 							type="file"
 							multiple
-							webkitdirectory="true" // Permite selecionar a pasta
-							directory="true"
+							{...({
+								webkitdirectory: "true",
+							} as React.InputHTMLAttributes<HTMLInputElement>)}
 							onChange={handleFileChange}
 							style={{ display: "none" }}
 						/>
@@ -165,7 +168,7 @@ export function Dashboard() {
 						>
 							📂 {"Carregar JSON"}
 						</button>
-						{logFiles && (
+						{logFiles.length !== 0 && (
 							<button
 								onClick={() => setLogFiles([])}
 								title="Voltar para dados de exemplo"

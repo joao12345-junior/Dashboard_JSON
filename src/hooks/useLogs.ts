@@ -1,13 +1,15 @@
+// src/hooks/useLogs.ts
 import { useState, useEffect } from "react";
 import { LogRepository } from "../lib/repository/LogRepository";
 import { LogMapper } from "../lib/data/LogMapper";
 import { Log } from "../lib/types/Log";
+import { RawLog } from "../lib/types/RawLog";
 
-// Aceita múltiplos arquivos
-export function useLogs(files = []) {
+export function useLogs(files: File[] = []) {
 	const [logs, setLogs] = useState<Log[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
-	const [error, setError] = useState(null);
+	// ✅ string | null — aceita tanto null quanto mensagem de erro
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -17,18 +19,14 @@ export function useLogs(files = []) {
 				setIsLoading(true);
 				setError(null);
 
-				let raw = [];
+				let raw: RawLog[] = [];
 
-				// Sem arquivos → mock/API
 				if (!files || files.length === 0) {
 					raw = await LogRepository.fetchAll();
 				} else {
-					// Lê todos os JSONs da pasta
 					const results = await Promise.all(
 						files.map((file) => LogRepository.fromFile(file)),
 					);
-
-					// Junta tudo em um array único
 					raw = results.flat();
 				}
 
@@ -39,7 +37,7 @@ export function useLogs(files = []) {
 				if (!cancelled) {
 					const message =
 						err instanceof Error ? err.message : "Erro desconhecido";
-					setError(message);
+					setError(message); // ✅ agora aceita string
 				}
 			} finally {
 				if (!cancelled) {
@@ -49,7 +47,6 @@ export function useLogs(files = []) {
 		}
 
 		load();
-
 		return () => {
 			cancelled = true;
 		};

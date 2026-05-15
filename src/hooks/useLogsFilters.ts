@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
 import { START_STATUS, INITIAL_FILTERS } from "../lib/Variables";
-import { RawLog } from "../lib/types/RawLog";
 import { Log } from "../lib/types/Log";
 
 // ─── useLogFilters ────────────────────────────────────────────────────────────
@@ -44,9 +43,12 @@ export function useLogFilters(logs: Log[]) {
 		[logs],
 	);
 
+	// src/hooks/useLogsFilters.ts
 	const updateFilter = useCallback(
-		(key: number, value: string) =>
-			setFilters((prev) => ({ ...prev, [key]: value })),
+		(
+			key: string,
+			value: string, // ✅ era number
+		) => setFilters((prev) => ({ ...prev, [key]: value })),
 		[],
 	);
 
