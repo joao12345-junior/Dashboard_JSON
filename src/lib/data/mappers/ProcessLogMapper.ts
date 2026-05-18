@@ -2,6 +2,7 @@
 import { Log } from "../../types/Log";
 import { ColumnDefinition } from "../../types/ColumnDefinition";
 import { normalizeDateToView } from "../../normalizeDateToView";
+import { ProcessLog } from "../../types/Log";
 
 type RawProcessLog = {
 	message: string;
@@ -24,7 +25,7 @@ function parseStatus(value: unknown): number {
 
 export const ProcessLogMapper = {
 	// Parâmetro agora é Record<string, unknown> para satisfazer o LogMapperContract
-	toLog: (raw: Record<string, unknown>): Log => {
+	toLog: (raw: Record<string, unknown>): ProcessLog => {
 		// Cast interno seguro — detectLogType já confirmou que os campos existem
 		const typed = raw as RawProcessLog;
 		return {
@@ -37,7 +38,7 @@ export const ProcessLogMapper = {
 		};
 	},
 
-	toLogList: (raws: Record<string, unknown>[]): Log[] =>
+	toLogList: (raws: Record<string, unknown>[]): ProcessLog[] =>
 		raws.map(ProcessLogMapper.toLog),
 
 	columns: [

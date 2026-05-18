@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Log } from "../lib/types/Log";
 import { StatusBadge } from "./StatusBadge";
+import { CriticalityBadge } from "./CriticalityBadge";
 import { ColumnDefinition } from "../lib/types/ColumnDefinition";
 
 interface LogTableProps {
@@ -13,7 +14,6 @@ interface LogTableProps {
 export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 	const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
-	// Filtra as colunas que devem aparecer no contexto atual (mobile ou desktop)
 	const visibleColumns = columns.filter(
 		(col) => !col.hideOnMobile || !isMobile,
 	);
@@ -57,6 +57,85 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 		);
 	}
 
+	// ── Função auxiliar: decide qual badge renderizar ──────────────────────
+	// Aqui a união discriminada trabalha a nosso favor:
+	// dentro de cada branch, o TypeScript sabe exatamente qual tipo é o log
+	function renderBadge(log: Log): React.ReactNode {
+		if (log.logType === "windows-event") {
+			// TypeScript sabe: log é WindowsEventLog aqui
+			// log.criticality e log.levelLabel existem com certeza
+			return (
+				<CriticalityBadge
+					criticality={log.criticality}
+					levelLabel={log.levelLabel}
+				/>
+			);
+		}
+		// TypeScript sabe: log é ProcessLog aqui
+		// log.status existe com certeza
+		return <StatusBadge status={log.status} />;
+	}
+
+	// ── Função auxiliar: decide o que mostrar na linha expandida ──────────
+	// ProcessLog tem payload com campos extras
+	// WindowsEventLog expõe campos técnicos do System do Windows
+	function renderExpandedRow(log: Log, colSpan: number): React.ReactNode {
+		// Dados a exibir — diferentes por tipo
+		const entries: [string, string][] =
+			log.logType === "windows-event"
+				? [
+						["Provider", log.provider],
+						["Event ID", log.eventId],
+						["Record ID", log.recordId],
+						["Computer", log.computer],
+						["Channel", log.channel],
+						["Fonte", log.source],
+					]
+				: Object.entries(log.payload).map(([k, v]) => [k, String(v)]);
+
+		// WindowsEventLog sempre tem entradas para mostrar
+		// ProcessLog só expande se tiver payload
+		if (entries.length === 0) return null;
+
+		return (
+			<tr>
+				<td
+					colSpan={colSpan}
+					style={{
+						padding: "8px 16px 12px",
+						backgroundColor: "var(--muted)",
+						borderBottom: "1px solid var(--border)",
+					}}
+				>
+					<div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+						{entries.map(([key, value]) => (
+							<div key={key} style={{ fontSize: 11 }}>
+								<span
+									style={{
+										color: "var(--muted-foreground)",
+										textTransform: "uppercase",
+										letterSpacing: "0.08em",
+									}}
+								>
+									{key}
+								</span>
+								<span
+									style={{
+										marginLeft: 6,
+										color: "var(--foreground)",
+										fontFamily: "var(--font-mono)",
+									}}
+								>
+									{value}
+								</span>
+							</div>
+						))}
+					</div>
+				</td>
+			</tr>
+		);
+	}
+
 	return (
 		<div
 			style={{
@@ -76,23 +155,21 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 			>
 				<thead>
 					<tr>
-						{/* Coluna de índice — sempre fixa, não vem do mapper */}
 						<th style={{ ...thStyle, width: 48 }}>#</th>
-
-						{/* Colunas dinâmicas — vêm do mapper */}
 						{visibleColumns.map((col) => (
 							<th key={col.key} style={{ ...thStyle, width: col.width }}>
 								{col.label}
 							</th>
 						))}
-
-						{/* Coluna de status — sempre fixa, não vem do mapper */}
-						<th style={{ ...thStyle, width: 110 }}>Status</th>
+						{/* Cabeçalho da última coluna muda conforme o tipo de log */}
+						<th style={{ ...thStyle, width: 120 }}>
+							{logs[0]?.logType === "windows-event" ? "Criticidade" : "Status"}
+						</th>
 					</tr>
 				</thead>
 
 				<tbody>
-					{logs.map((log: Log, i: number) => (
+					{logs.map((log, i) => (
 						<React.Fragment key={`${log.date}-${log.time}-${i}`}>
 							<tr
 								onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
@@ -107,7 +184,7 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 									(e.currentTarget.style.backgroundColor = "transparent")
 								}
 							>
-								{/* Célula de índice — fixa */}
+								{/* Índice */}
 								<td
 									style={{
 										...tdStyle,
@@ -119,7 +196,7 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 									{String(i + 1).padStart(2, "0")}
 								</td>
 
-								{/* Células dinâmicas — geradas a partir das colunas visíveis */}
+								{/* Colunas dinâmicas do mapper */}
 								{visibleColumns.map((col) => (
 									<td
 										key={col.key}
@@ -140,50 +217,13 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 									</td>
 								))}
 
-								{/* Célula de status — fixa */}
-								<td style={tdStyle}>
-									<StatusBadge status={log.status} />
-								</td>
+								{/* Badge — renderBadge decide qual usar */}
+								<td style={tdStyle}>{renderBadge(log)}</td>
 							</tr>
 
-							{/* Linha expandida — só aparece ao clicar e quando há payload */}
-							{expandedIndex === i && Object.keys(log.payload).length > 0 && (
-								<tr>
-									<td
-										colSpan={visibleColumns.length + 2} // +2 = índice e status fixos
-										style={{
-											padding: "8px 16px 12px",
-											backgroundColor: "var(--muted)",
-											borderBottom: "1px solid var(--border)",
-										}}
-									>
-										<div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-											{Object.entries(log.payload).map(([key, value]) => (
-												<div key={key} style={{ fontSize: 11 }}>
-													<span
-														style={{
-															color: "var(--muted-foreground)",
-															textTransform: "uppercase",
-															letterSpacing: "0.08em",
-														}}
-													>
-														{key}
-													</span>
-													<span
-														style={{
-															marginLeft: 6,
-															color: "var(--foreground)",
-															fontFamily: "var(--font-mono)",
-														}}
-													>
-														{String(value)}
-													</span>
-												</div>
-											))}
-										</div>
-									</td>
-								</tr>
-							)}
+							{/* Linha expandida — clique na linha para abrir */}
+							{expandedIndex === i &&
+								renderExpandedRow(log, visibleColumns.length + 2)}
 						</React.Fragment>
 					))}
 				</tbody>

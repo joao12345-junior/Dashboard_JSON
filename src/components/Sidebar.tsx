@@ -1,18 +1,7 @@
 // src/components/Sidebar.tsx
-import React from "react";
-import { useAuth } from "../hooks/useAuth";
-import { ThemeToggleButton } from "./ThemeButton";
-import type { Page } from "../App";
-
-type Stats = {
-	total: number;
-	started: number;
-	finished: number;
-	erro: number;
-};
+import { Page } from "../App";
 
 interface SidebarProps {
-	stats: Stats;
 	isOpen: boolean;
 	onClose: () => void;
 	isMobile: boolean;
@@ -20,16 +9,42 @@ interface SidebarProps {
 	onNavigate: (page: Page) => void;
 }
 
+/**
+ * Estrutura de navegação declarativa.
+ *
+ * Cada seção agrupa páginas de um mesmo domínio.
+ * Para adicionar um novo tipo de log no futuro:
+ *   1. Adicione uma nova seção aqui
+ *   2. Nenhum outro arquivo da Sidebar precisa mudar
+ */
+const NAV_SECTIONS = [
+	{
+		label: "Geral",
+		items: [{ page: "home" as Page, label: "Home", icon: "⬡" }],
+	},
+	{
+		label: "Logs de Processo",
+		items: [
+			{ page: "process-dashboard" as Page, label: "Dashboard", icon: "▦" },
+			{ page: "process-list" as Page, label: "Registros", icon: "☰" },
+		],
+	},
+	{
+		label: "Windows Event Log",
+		items: [
+			{ page: "windows-dashboard" as Page, label: "Dashboard", icon: "▦" },
+			{ page: "windows-list" as Page, label: "Registros", icon: "☰" },
+		],
+	},
+] as const;
+
 export function Sidebar({
-	stats,
 	isOpen,
 	onClose,
 	isMobile,
 	currentPage,
 	onNavigate,
 }: SidebarProps) {
-	const { logout } = useAuth();
-
 	const sidebarStyle: React.CSSProperties = isMobile
 		? {
 				position: "fixed",
@@ -51,6 +66,7 @@ export function Sidebar({
 
 	return (
 		<>
+			{/* Overlay escuro no mobile */}
 			{isMobile && isOpen && (
 				<div
 					onClick={onClose}
@@ -72,7 +88,7 @@ export function Sidebar({
 					flexDirection: "column",
 				}}
 			>
-				{/* ── Header: logo + fechar (mobile) ── */}
+				{/* ── Header ── */}
 				<div
 					style={{
 						padding: "24px 20px 20px",
@@ -122,12 +138,11 @@ export function Sidebar({
 										letterSpacing: "0.1em",
 									}}
 								>
-									v2.0.0
+									v3.0.0
 								</div>
 							</div>
 						</div>
 
-						{/* Botão fechar só aparece em mobile */}
 						{isMobile && (
 							<button
 								onClick={onClose}
@@ -148,151 +163,65 @@ export function Sidebar({
 					</div>
 				</div>
 
-				{/* ── Navegação ── */}
-				<nav style={{ padding: "12px 12px 0" }}>
-					{(
-						[
-							{ page: "dashboard", label: "Dashboard", icon: "▦" },
-							{ page: "logs", label: "Logs", icon: "☰" },
-						] as { page: Page; label: string; icon: string }[]
-					).map(({ page, label, icon }) => (
-						<button
-							key={page}
-							onClick={() => {
-								onNavigate(page);
-								onClose();
-							}}
-							style={{
-								width: "100%",
-								padding: "8px 12px",
-								borderRadius: 6,
-								border: "none",
-								backgroundColor:
-									currentPage === page
-										? "color-mix(in oklch, var(--primary) 12%, transparent)"
-										: "transparent",
-								color:
-									currentPage === page
-										? "var(--primary)"
-										: "var(--muted-foreground)",
-								fontSize: 13,
-								fontWeight: currentPage === page ? 700 : 400,
-								cursor: "pointer",
-								fontFamily: "inherit",
-								display: "flex",
-								alignItems: "center",
-								gap: 8,
-								marginBottom: 2,
-								textAlign: "left",
-							}}
-						>
-							<span>{icon}</span>
-							{label}
-						</button>
-					))}
-				</nav>
-
-				{/* ── Visão geral (stats) ── */}
-				<div
-					style={{
-						padding: "16px 20px",
-						borderTop: "1px solid var(--border)",
-						borderBottom: "1px solid var(--border)",
-						marginTop: 8,
-					}}
-				>
-					<div
-						style={{
-							fontSize: 10,
-							fontWeight: 700,
-							color: "var(--muted-foreground)",
-							textTransform: "uppercase",
-							letterSpacing: "0.1em",
-							marginBottom: 12,
-						}}
-					>
-						Visão Geral
-					</div>
-					{[
-						{ label: "Total", value: stats.total, color: "var(--foreground)" },
-						{ label: "Ativos", value: stats.started, color: "var(--primary)" },
-						{
-							label: "Inativos",
-							value: stats.finished,
-							color: "var(--chart-4)",
-						},
-						{ label: "Erros", value: stats.erro, color: "var(--destructive)" },
-					].map(({ label, value, color }) => (
-						<div
-							key={label}
-							style={{
-								display: "flex",
-								justifyContent: "space-between",
-								marginBottom: 8,
-							}}
-						>
-							<span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
-								{label}
-							</span>
-							<span
+				{/* ── Navegação por seções ── */}
+				<nav style={{ padding: "12px 12px 0", flex: 1, overflowY: "auto" }}>
+					{NAV_SECTIONS.map((section) => (
+						<div key={section.label} style={{ marginBottom: 24 }}>
+							{/* Label da seção */}
+							<div
 								style={{
-									fontSize: 14,
+									fontSize: 10,
 									fontWeight: 700,
-									color,
-									fontVariantNumeric: "tabular-nums",
+									color: "var(--muted-foreground)",
+									textTransform: "uppercase",
+									letterSpacing: "0.12em",
+									padding: "0 12px",
+									marginBottom: 6,
 								}}
 							>
-								{value}
-							</span>
+								{section.label}
+							</div>
+
+							{/* Itens da seção */}
+							{section.items.map(({ page, label, icon }) => {
+								const isActive = currentPage === page;
+								return (
+									<button
+										key={page}
+										onClick={() => {
+											onNavigate(page);
+											onClose();
+										}}
+										style={{
+											width: "100%",
+											padding: "8px 12px",
+											borderRadius: 6,
+											border: "none",
+											backgroundColor: isActive
+												? "color-mix(in oklch, var(--primary) 12%, transparent)"
+												: "transparent",
+											color: isActive
+												? "var(--primary)"
+												: "var(--sidebar-foreground)",
+											display: "flex",
+											alignItems: "center",
+											gap: 10,
+											cursor: "pointer",
+											fontSize: 13,
+											fontWeight: isActive ? 600 : 400,
+											textAlign: "left",
+											marginBottom: 2,
+											transition: "background-color 0.15s",
+										}}
+									>
+										<span style={{ fontSize: 14, opacity: 0.8 }}>{icon}</span>
+										{label}
+									</button>
+								);
+							})}
 						</div>
 					))}
-				</div>
-
-				{/* ── Rodapé: usuário + tema + logout ── */}
-				<div
-					style={{
-						marginTop: "auto", // empurra para o fundo da sidebar
-						padding: "16px 20px",
-						borderTop: "1px solid var(--border)",
-						display: "flex",
-						justifyContent: "space-between",
-						alignItems: "center",
-					}}
-				>
-					<div>
-						<div
-							style={{
-								fontSize: 12,
-								fontWeight: 700,
-								color: "var(--sidebar-foreground)",
-							}}
-						>
-							ADM
-						</div>
-						<div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
-							Administrador
-						</div>
-					</div>
-
-					<div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-						<ThemeToggleButton />
-						<button
-							onClick={logout}
-							style={{
-								padding: "5px 10px",
-								borderRadius: 6,
-								border: "1px solid var(--border)",
-								backgroundColor: "transparent",
-								color: "var(--muted-foreground)",
-								fontSize: 11,
-								cursor: "pointer",
-								fontFamily: "inherit",
-							}}
-						>
-							Sair
-						</button>
-					</div>
-				</div>
+				</nav>
 			</aside>
 		</>
 	);
