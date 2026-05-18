@@ -1,5 +1,13 @@
 // src/components/Sidebar.tsx
 import { Page } from "../App";
+import { StatRow } from "./StatRow";
+
+interface SidebarStats {
+	total: number;
+	started: number;
+	finished: number;
+	erro: number;
+}
 
 interface SidebarProps {
 	isOpen: boolean;
@@ -7,8 +15,8 @@ interface SidebarProps {
 	isMobile: boolean;
 	currentPage: Page;
 	onNavigate: (page: Page) => void;
+	stats?: SidebarStats; // ← opcional com "?" — contrato honesto
 }
-
 /**
  * Estrutura de navegação declarativa.
  *
@@ -44,6 +52,7 @@ export function Sidebar({
 	isMobile,
 	currentPage,
 	onNavigate,
+	stats,
 }: SidebarProps) {
 	const sidebarStyle: React.CSSProperties = isMobile
 		? {
@@ -222,6 +231,19 @@ export function Sidebar({
 						</div>
 					))}
 				</nav>
+				{stats && (
+					<div
+						style={{
+							padding: "12px 16px",
+							borderTop: "1px solid var(--border)",
+						}}
+					>
+						<StatRow label="Total" value={stats.total} />
+						<StatRow label="Iniciados" value={stats.started} />
+						<StatRow label="Finalizados" value={stats.finished} />
+						<StatRow label="Erros" value={stats.erro} />
+					</div>
+				)}
 			</aside>
 		</>
 	);

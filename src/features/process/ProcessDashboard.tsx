@@ -11,6 +11,7 @@ import { ProcessKpiCards } from "./components/ProcessKpiCards";
 import { DailyBarChart } from "../../components/charts/DailyBarChart";
 import { ProcessLog } from "../../lib/types/Log";
 import type { Page } from "../../App";
+import { useFileUpload } from "../../hooks/useFileUpload";
 
 interface ProcessDashboardProps {
 	onNavigate: (page: Page) => void;
@@ -20,10 +21,14 @@ export function ProcessDashboard({ onNavigate }: ProcessDashboardProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
 
-	const [sidebarOpen, setSidebarOpen] = useState(false);
-	const [logFiles, setLogFiles] = useState<File[]>([]);
-	const fileInputRef = useRef<HTMLInputElement>(null);
+	const {
+		files: logFiles,
+		inputRef: fileInputRef,
+		handleChange,
+		openPicker,
+	} = useFileUpload();
 
+	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const { logs, isLoading, error } = useLogs(logFiles);
 
 	// Filtra apenas ProcessLog antes de passar para o hook de métricas
@@ -32,17 +37,6 @@ export function ProcessDashboard({ onNavigate }: ProcessDashboardProps) {
 		(l): l is ProcessLog => l.logType === "process",
 	);
 	const stats = useProcessStats(processLogs);
-
-	const handleFileChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const files = Array.from(e.target.files ?? []).filter((f) =>
-				f.name.endsWith(".json"),
-			) as File[];
-			if (files.length) setLogFiles(files);
-			e.target.value = "";
-		},
-		[],
-	);
 
 	return (
 		<div
@@ -105,10 +99,10 @@ export function ProcessDashboard({ onNavigate }: ProcessDashboardProps) {
 							accept=".json"
 							multiple
 							style={{ display: "none" }}
-							onChange={handleFileChange}
+							onChange={handleChange}
 						/>
 						<button
-							onClick={() => fileInputRef.current?.click()}
+							onClick={openPicker}
 							style={{
 								padding: "8px 16px",
 								borderRadius: 8,

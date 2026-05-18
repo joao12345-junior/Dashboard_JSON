@@ -1,22 +1,24 @@
+// src/hooks/useLogsFilters.ts — versão corrigida
+
 import { useState, useMemo, useCallback } from "react";
 import { START_STATUS, INITIAL_FILTERS } from "../lib/Variables";
-import { Log } from "../lib/types/Log";
+import { ProcessLog } from "../lib/types/Log";
 
-// ─── useLogFilters ────────────────────────────────────────────────────────────
-export function useLogFilters(logs: Log[]) {
-	const [filters, setFilters] = useState({ ...INITIAL_FILTERS });
+// Exportar o tipo dos filtros permite que outros arquivos o reusem
+export type LogFilterState = typeof INITIAL_FILTERS;
+
+export function useLogFilters(logs: ProcessLog[]) {
+	const [filters, setFilters] = useState<LogFilterState>({
+		...INITIAL_FILTERS,
+	});
 
 	const filteredLogs = useMemo(() => {
-		const sorted = [...logs].sort((a, b) =>
-			`${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`),
-		);
-
-		return sorted.filter((log) => {
+		// Filtra PRIMEIRO — descarta os inválidos antes de ordenar
+		const filtered = logs.filter((log) => {
 			const matchMessage = log.message
 				.toLowerCase()
 				.includes(filters.message.toLowerCase());
 			const matchDate = filters.date ? log.date === filters.date : true;
-
 			const matchStart =
 				filters.start === START_STATUS.ALL
 					? true
@@ -30,6 +32,11 @@ export function useLogFilters(logs: Log[]) {
 
 			return matchMessage && matchDate && matchStart;
 		});
+
+		// Ordena DEPOIS — só os registros que sobreviveram ao filtro
+		return filtered.sort((a, b) =>
+			`${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`),
+		);
 	}, [logs, filters]);
 
 	const stats = useMemo(
@@ -42,12 +49,11 @@ export function useLogFilters(logs: Log[]) {
 		[logs],
 	);
 
-	// src/hooks/useLogsFilters.ts
+	// keyof LogFilterState: se você chamar updateFilter("typo", "x"),
+	// o TypeScript vai reclamar em tempo de compilação — não em runtime
 	const updateFilter = useCallback(
-		(
-			key: string,
-			value: string, // ✅ era number
-		) => setFilters((prev) => ({ ...prev, [key]: value })),
+		(key: keyof LogFilterState, value: string) =>
+			setFilters((prev) => ({ ...prev, [key]: value })),
 		[],
 	);
 

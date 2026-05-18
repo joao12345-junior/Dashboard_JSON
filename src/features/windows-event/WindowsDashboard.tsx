@@ -7,7 +7,7 @@ import { ThemeToggleButton } from "../../components/ThemeButton";
 import { LoadingState } from "../../components/Loading";
 import { ErrorState } from "../../components/Error";
 import { useWindowSize } from "../../hooks/useWindowSize";
-import { KpiCard } from "../../components/charts/KpyCard";
+import { KpiCard } from "../../components/charts/KpiCard";
 import { WindowsEventLog } from "../../lib/types/Log";
 import type { Page } from "../../App";
 import { CriticalityDistribution } from "./components/CriticalityDistribution";

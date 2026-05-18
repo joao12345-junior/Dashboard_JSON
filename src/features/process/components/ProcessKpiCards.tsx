@@ -1,5 +1,5 @@
 // src/features/process/components/ProcessKpiCards.tsx
-import { KpiCard } from "../../../components/charts/KpyCard";
+import { KpiCard } from "../../../components/charts/KpiCard";
 import { ProcessStats } from "../useProcessStats";
 
 interface ProcessKpiCardsProps {
