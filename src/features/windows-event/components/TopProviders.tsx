@@ -1,6 +1,6 @@
 // src/features/windows-event/components/TopProviders.tsx
 import { WindowsStats } from "../useWindowsStats";
-
+import FormatProviderName from "../../../lib/utils/formatProviderName";
 interface TopProvidersProps {
 	providers: WindowsStats["topProviders"];
 	total: number;
@@ -85,7 +85,7 @@ export function TopProviders({ providers, total }: TopProvidersProps) {
 									}}
 								>
 									{/* Remove o prefixo "Microsoft-Windows-" para economizar espaço */}
-									{provider.name.replace("Microsoft-Windows-", "") || "—"}
+									{FormatProviderName(provider.name)}
 								</span>
 								<span
 									style={{

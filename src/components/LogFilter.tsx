@@ -1,6 +1,7 @@
 import React from "react";
 import { START_STATUS } from "../lib/Variables";
 import { LogFilterState } from "../hooks/useLogsFilters";
+import { inputStyle } from "../lib/styles/inputStyles";
 
 interface LogFiltersProps {
 	filters: { message: string; date: string; start: string };
@@ -16,19 +17,6 @@ export function LogFilters({
 	onReset,
 	isMobile,
 }: LogFiltersProps) {
-	const sharedInput: React.CSSProperties = {
-		width: "100%",
-		padding: "8px 12px",
-		borderRadius: 6,
-		border: "1px solid var(--border)",
-		backgroundColor: "var(--background)",
-		color: "var(--foreground)",
-		fontSize: 13,
-		fontFamily: "inherit",
-		outline: "none",
-		boxSizing: "border-box",
-	};
-
 	const labelStyle: React.CSSProperties = {
 		display: "block",
 		fontSize: 10,
@@ -60,7 +48,7 @@ export function LogFilters({
 					placeholder="Filtrar por mensagem..."
 					value={filters.message}
 					onChange={(e) => onUpdate("message", e.target.value)}
-					style={sharedInput}
+					style={inputStyle}
 				/>
 			</div>
 
@@ -70,7 +58,7 @@ export function LogFilters({
 					type="date"
 					value={filters.date}
 					onChange={(e) => onUpdate("date", e.target.value)}
-					style={sharedInput}
+					style={inputStyle}
 				/>
 			</div>
 
@@ -79,7 +67,7 @@ export function LogFilters({
 				<select
 					value={filters.start}
 					onChange={(e) => onUpdate("start", e.target.value)}
-					style={{ ...sharedInput, cursor: "pointer" }}
+					style={{ ...inputStyle, cursor: "pointer" }}
 				>
 					<option value={START_STATUS.ALL}>Todos</option>
 					<option value={START_STATUS.STARTED}>Iniciados</option>

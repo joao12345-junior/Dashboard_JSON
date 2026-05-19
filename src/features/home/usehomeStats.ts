@@ -2,41 +2,48 @@
 import { useMemo } from "react";
 import { Log, ProcessLog, WindowsEventLog } from "../../lib/types/Log";
 
-// src/features/home/useHomeStats.ts
-
 export interface HomeStats {
-	// ── Totais globais ──────────────────────────────────────────
-	totalErrors: number; // status === 2 em qualquer tipo
-	totalWarnings: number; // status === 0 em WindowsEventLog com level "3"
 	totalLogs: number;
+	totalErrors: number;
+	totalWarnings: number;
 
-	// ── Por tipo de log ─────────────────────────────────────────
 	byType: {
-		process: {
-			errors: number;
-			warnings: number;
-			total: number;
-		};
-		windowsEvent: {
-			high: number; // criticality === "High"
-			medium: number; // criticality === "Medium"
-			total: number;
-		};
+		process: { errors: number; warnings: number; total: number };
+		windowsEvent: { high: number; medium: number; total: number };
 	};
 
-	// ── Feed de eventos críticos recentes ───────────────────────
-	// Os últimos N eventos que precisam de atenção imediata,
-	// independente do tipo — a Home só precisa renderizá-los
-	recentCritical: Log[];
+	criticalEvents: Log[];
+
+	/**
+	 * mediumCriticalEvents agora inclui TODOS os avisos de ambas as fontes.
+	 *
+	 * O feed na Home precisa exibir o conjunto completo com um botão de
+	 * filtro por fonte — portanto o hook entrega tudo e o componente filtra.
+	 * Separar aqui (process vs windows) quebraria esse contrato.
+	 */
+	mediumCriticalEvents: Log[];
 }
 
-const RECENT_CRITICAL_LIMIT = 10;
+function isCritical(log: Log): boolean {
+	if (log.logType === "windows-event") return log.criticality === "High";
+	return log.status === 2;
+}
+
+/**
+ * Aviso = qualquer evento que merece atenção mas não é crítico.
+ * - ProcessLog:     status 0  (finalizado com aviso de backup)
+ * - WindowsEventLog: criticality "Medium" (nível 3 = Warning do Windows)
+ */
+function isMediumCritical(log: Log): boolean {
+	if (log.logType === "windows-event") return log.criticality === "Medium";
+	return log.status === 0;
+}
+
+const byDateTimeDesc = (a: Log, b: Log): number =>
+	`${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`);
 
 export function useHomeStats(logs: Log[]): HomeStats {
 	return useMemo(() => {
-		// ── Separação por tipo ───────────────────────────────────────────
-		// A união discriminada garante que dentro de cada branch
-		// o TypeScript conhece os campos disponíveis com certeza.
 		const processLogs = logs.filter(
 			(l): l is ProcessLog => l.logType === "process",
 		);
@@ -44,11 +51,8 @@ export function useHomeStats(logs: Log[]): HomeStats {
 			(l): l is WindowsEventLog => l.logType === "windows-event",
 		);
 
-		// ── Métricas de ProcessLog ───────────────────────────────────────
 		const processErrors = processLogs.filter((l) => l.status === 2).length;
 		const processWarnings = processLogs.filter((l) => l.status === 0).length;
-
-		// ── Métricas de WindowsEventLog ──────────────────────────────────
 		const windowsHigh = windowsLogs.filter(
 			(l) => l.criticality === "High",
 		).length;
@@ -56,30 +60,16 @@ export function useHomeStats(logs: Log[]): HomeStats {
 			(l) => l.criticality === "Medium",
 		).length;
 
-		// ── Totais globais ───────────────────────────────────────────────
-		// "Erro" no contexto da Home = qualquer coisa que precisa de atenção
-		const totalErrors = processErrors + windowsHigh;
-		const totalWarnings = processWarnings + windowsMedium;
-
-		// ── Feed de eventos críticos recentes ────────────────────────────
-		// Ordena por data+hora desc e pega os N mais recentes
-		// que representam problemas — status 2 ou criticality High/Medium
-		const critical = logs
-			.filter(
-				(l) =>
-					l.status === 2 ||
-					(l.logType === "windows-event" &&
-						(l.criticality === "High" || l.criticality === "Medium")),
-			)
-			.sort((a, b) =>
-				`${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`),
-			)
-			.slice(0, RECENT_CRITICAL_LIMIT);
+		// Sem .slice() — retorna todos. Paginação é responsabilidade do componente.
+		const criticalEvents = logs.filter(isCritical).sort(byDateTimeDesc);
+		const mediumCriticalEvents = logs
+			.filter(isMediumCritical)
+			.sort(byDateTimeDesc);
 
 		return {
-			totalErrors,
-			totalWarnings,
 			totalLogs: logs.length,
+			totalErrors: processErrors + windowsHigh,
+			totalWarnings: processWarnings + windowsMedium,
 			byType: {
 				process: {
 					errors: processErrors,
@@ -92,7 +82,8 @@ export function useHomeStats(logs: Log[]): HomeStats {
 					total: windowsLogs.length,
 				},
 			},
-			recentCritical: critical,
+			criticalEvents,
+			mediumCriticalEvents,
 		};
 	}, [logs]);
 }

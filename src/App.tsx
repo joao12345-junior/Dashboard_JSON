@@ -16,7 +16,7 @@ import { WindowsList } from "./features/windows-event/WindowsList";
 
 import type { LoadProgress, DebugInfo } from "./hooks/useProgressiveLogs";
 import type { Log } from "./lib/types/Log";
-import { START_STATUS, INITIAL_FILTERS } from "./lib/Variables";
+import { START_STATUS } from "./lib/Variables";
 
 export type Page =
 	| "home"
@@ -44,6 +44,7 @@ export interface WindowsFilterState {
 	date: string;
 	criticality: "all" | "High" | "Medium" | "Low";
 	provider: string;
+	levelLabel: string;
 }
 
 /**
@@ -92,6 +93,7 @@ const INITIAL_WINDOWS_FILTERS: WindowsFilterState = {
 	date: "",
 	criticality: "all",
 	provider: "",
+	levelLabel: "",
 };
 
 function AppContent() {

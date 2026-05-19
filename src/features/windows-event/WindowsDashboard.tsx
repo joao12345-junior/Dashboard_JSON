@@ -38,7 +38,8 @@ export function WindowsDashboard({
 		<div
 			style={{
 				display: "flex",
-				minHeight: "100vh",
+				height: "100vh",
+				overflow: "hidden",
 				backgroundColor: "var(--background)",
 			}}
 		>
@@ -57,6 +58,7 @@ export function WindowsDashboard({
 					overflowY: "auto",
 				}}
 			>
+				{/* Cabeçalho */}
 				<div
 					style={{
 						display: "flex",
@@ -120,40 +122,63 @@ export function WindowsDashboard({
 
 				{!progress.error && (
 					<div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+						{/* KPIs */}
 						<div
 							style={{
 								display: "grid",
 								gridTemplateColumns: isMobile
-									? "repeat(2,1fr)"
-									: "repeat(4,1fr)",
+									? "repeat(2, 1fr)"
+									: "repeat(4, 1fr)",
 								gap: 16,
 							}}
 						>
 							<KpiCard
 								label="Total"
-								value={stats.total}
+								value={stats.total.toLocaleString("pt-BR")}
 								accentColor="var(--primary)"
 							/>
 							<KpiCard
-								label="Alta"
-								value={stats.high}
+								label="Alta Criticidade"
+								value={stats.high.toLocaleString("pt-BR")}
 								accentColor="var(--destructive)"
+								subtitle={
+									stats.total > 0
+										? `${Math.round((stats.high / stats.total) * 100)}% do total`
+										: undefined
+								}
 							/>
 							<KpiCard
-								label="Média"
-								value={stats.medium}
+								label="Média Criticidade"
+								value={stats.medium.toLocaleString("pt-BR")}
 								accentColor="var(--chart-5)"
+								subtitle={
+									stats.total > 0
+										? `${Math.round((stats.medium / stats.total) * 100)}% do total`
+										: undefined
+								}
 							/>
 							<KpiCard
-								label="Baixa"
-								value={stats.low}
+								label="Baixa Criticidade"
+								value={stats.low.toLocaleString("pt-BR")}
 								accentColor="var(--chart-4)"
+								subtitle={
+									stats.total > 0
+										? `${Math.round((stats.low / stats.total) * 100)}% do total`
+										: undefined
+								}
 							/>
 						</div>
+
+						{/*
+							Layout: gráfico de barras ocupa 2/3 da largura,
+							TopProviders ocupa 1/3.
+							O donut anterior era 1/2 + 1/2 — proporção errada para
+							um gráfico de barras que precisa de espaço horizontal.
+						*/}
 						<div
 							style={{
 								display: "grid",
-								gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+								gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr",
 								gap: 16,
 							}}
 						>

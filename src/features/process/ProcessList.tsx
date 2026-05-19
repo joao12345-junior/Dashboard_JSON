@@ -34,11 +34,6 @@ export function ProcessList({
 		[logs],
 	);
 
-	/**
-	 * Filtros vêm do App agora — não são estado local.
-	 * Isso garante que ao voltar para esta página, o operador
-	 * encontra exatamente o que deixou.
-	 */
 	const filteredLogs = useMemo(() => {
 		return processLogs
 			.filter((log) => {
@@ -68,10 +63,19 @@ export function ProcessList({
 	const columns = useMemo(() => getMapper("process").columns ?? [], []);
 
 	return (
+		/*
+			Container raiz: height 100vh + overflow hidden.
+
+			Isso fixa a altura exatamente na viewport — o body nunca cresce
+			além da tela, independente do volume de dados na tabela.
+			Sem isso, o LogTable cresce, a página cresce, e o scroll acontece
+			no body inteiro em vez de dentro da tabela.
+		*/
 		<div
 			style={{
 				display: "flex",
-				minHeight: "100vh",
+				height: "100vh",
+				overflow: "hidden",
 				backgroundColor: "var(--background)",
 			}}
 		>
@@ -83,19 +87,34 @@ export function ProcessList({
 				onNavigate={onNavigate}
 			/>
 
+			{/*
+				A main é um flex column.
+				Isso cria uma "pilha vertical" com três camadas:
+				  1. Cabeçalho (flexShrink: 0 — nunca encolhe)
+				  2. Filtros    (flexShrink: 0 — nunca encolhe)
+				  3. LogTable   (flex: 1 — preenche TODO o espaço restante)
+
+				O scroll acontece DENTRO do LogTable, não na main.
+				A main em si não tem overflow — ela tem altura fixa pela viewport.
+			*/}
 			<main
 				style={{
 					flex: 1,
 					padding: isMobile ? "16px" : "32px",
-					overflowY: "auto",
+					display: "flex",
+					flexDirection: "column",
+					gap: 16,
+					minHeight: 0, // necessário para que flex: 1 funcione corretamente
+					overflow: "hidden",
 				}}
 			>
+				{/* Cabeçalho — altura fixa, não encolhe */}
 				<div
 					style={{
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "space-between",
-						marginBottom: 32,
+						flexShrink: 0,
 					}}
 				>
 					<div>
@@ -117,8 +136,8 @@ export function ProcessList({
 							}}
 						>
 							{progress.isLoading
-								? `Carregando… ${progress.percentComplete}%`
-								: `${filteredLogs.length} de ${processLogs.length} registros`}
+								? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
+								: `${filteredLogs.length.toLocaleString("pt-BR")} de ${processLogs.length.toLocaleString("pt-BR")} registros`}
 						</p>
 					</div>
 					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -141,24 +160,33 @@ export function ProcessList({
 				</div>
 
 				{progress.isLoading && (
-					<ProgressBar percent={progress.percentComplete} />
+					<ProgressBar percent={progress.percentComplete} marginBottom={0} />
 				)}
 				{progress.error && <ErrorState message={progress.error} />}
 
 				{!progress.error && (
-					<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-						<LogFilters
-							filters={processFilters}
-							onUpdate={onProcessFilterUpdate}
-							onReset={onProcessFilterReset}
-							isMobile={isMobile}
-						/>
+					<>
+						{/* Filtros — altura fixa, não encolhe */}
+						<div style={{ flexShrink: 0 }}>
+							<LogFilters
+								filters={processFilters}
+								onUpdate={onProcessFilterUpdate}
+								onReset={onProcessFilterReset}
+								isMobile={isMobile}
+							/>
+						</div>
+
+						{/*
+							LogTable sem maxBodyHeight → usa flex: 1 internamente.
+							Ele preenche todo o espaço que sobrou depois do cabeçalho
+							e dos filtros. O scroll é interno — a página não scrolla.
+						*/}
 						<LogTable
 							logs={filteredLogs}
 							columns={columns}
 							isMobile={isMobile}
 						/>
-					</div>
+					</>
 				)}
 			</main>
 		</div>

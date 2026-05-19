@@ -32,7 +32,11 @@ export function HomePage({
 		<div
 			style={{
 				display: "flex",
-				minHeight: "100vh",
+				// height: 100vh + overflow: hidden no container raiz.
+				// Isso fixa a altura na viewport — o body nunca cresce além da tela.
+				// Cada região com conteúdo variável precisa de overflow: auto próprio.
+				height: "100vh",
+				overflow: "hidden",
 				backgroundColor: "var(--background)",
 			}}
 		>
@@ -44,19 +48,29 @@ export function HomePage({
 				onNavigate={onNavigate}
 			/>
 
+			{/*
+				A main tem overflow-y: auto.
+				Ela pode scrollar se o conteúdo total (KPIs + dois feeds)
+				não couber na viewport — o que pode acontecer em telas pequenas.
+				Em telas grandes, os feeds têm altura fixa e a main não scrolla.
+			*/}
 			<main
 				style={{
 					flex: 1,
-					padding: isMobile ? "16px" : "32px",
+					padding: isMobile ? "16px" : "24px 32px",
 					overflowY: "auto",
+					display: "flex",
+					flexDirection: "column",
+					gap: 20,
 				}}
 			>
+				{/* Cabeçalho */}
 				<div
 					style={{
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "space-between",
-						marginBottom: 32,
+						flexShrink: 0,
 					}}
 				>
 					<div>
@@ -107,7 +121,8 @@ export function HomePage({
 				{progress.error && <ErrorState message={progress.error} />}
 
 				{!progress.error && (
-					<div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+					<>
+						{/* KPIs */}
 						<GlobalKpiRow
 							totalErrors={stats.totalErrors}
 							totalWarnings={stats.totalWarnings}
@@ -115,11 +130,47 @@ export function HomePage({
 							byType={stats.byType}
 							onNavigate={onNavigate}
 						/>
-						<CriticalEventsFeed
-							events={stats.recentCritical}
-							onNavigate={onNavigate}
-						/>
-					</div>
+
+						{/*
+							Dois feeds lado a lado no desktop, empilhados no mobile.
+							Cada feed tem altura fixa (tableHeight) — o scroll é interno.
+							flex: 1 nos dois faz os feeds dividirem o espaço restante igualmente.
+						*/}
+						<div
+							style={{
+								display: "grid",
+								gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+								gap: 20,
+								// minHeight: 0 é essencial para que filhos com flex
+								// funcionem corretamente dentro de um flex container.
+								// Sem isso, o grid pode crescer além da viewport.
+								minHeight: 0,
+							}}
+						>
+							{/* Feed 1 — Críticos */}
+							<CriticalEventsFeed
+								events={stats.criticalEvents}
+								title="Eventos Críticos"
+								subtitle="Alta criticidade — ação imediata"
+								accentColor="var(--destructive)"
+								tableHeight={380}
+								onNavigate={onNavigate}
+							/>
+
+							{/* Feed 2 — Avisos (Médio-Críticos)
+								showSourceFilter=true exibe os botões Todos / Backup / Windows
+							*/}
+							<CriticalEventsFeed
+								events={stats.mediumCriticalEvents}
+								title="Avisos"
+								subtitle="Criticidade média — requer atenção"
+								accentColor="var(--chart-5)"
+								tableHeight={380}
+								showSourceFilter={true}
+								onNavigate={onNavigate}
+							/>
+						</div>
+					</>
 				)}
 			</main>
 		</div>

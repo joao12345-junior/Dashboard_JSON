@@ -8,6 +8,7 @@ import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { getMapper } from "../../lib/data/LogMapperRegistry";
 import { WindowsEventLog } from "../../lib/types/Log";
+import { inputStyle } from "../../lib/styles/inputStyles";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { SharedPageProps } from "../../App";
 
@@ -33,11 +34,6 @@ export function WindowsList({
 		[logs],
 	);
 
-	/**
-	 * Filtros vêm do App — preservados ao navegar.
-	 * O operador pode alternar entre WindowsList e WindowsDashboard
-	 * sem perder o contexto da investigação.
-	 */
 	const filteredLogs = useMemo(() => {
 		return windowsLogs
 			.filter((l) => {
@@ -56,7 +52,18 @@ export function WindowsList({
 							.toLowerCase()
 							.includes(windowsFilters.provider.toLowerCase())
 					: true;
-				return matchMessage && matchDate && matchCriticality && matchProvider;
+				const matchLevelLabel = windowsFilters.levelLabel
+					? l.levelLabel
+							.toLowerCase()
+							.includes(windowsFilters.levelLabel.toLowerCase())
+					: true;
+				return (
+					matchMessage &&
+					matchDate &&
+					matchCriticality &&
+					matchProvider &&
+					matchLevelLabel
+				);
 			})
 			.sort((a, b) =>
 				`${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`),
@@ -69,7 +76,8 @@ export function WindowsList({
 		<div
 			style={{
 				display: "flex",
-				minHeight: "100vh",
+				height: "100vh",
+				overflow: "hidden",
 				backgroundColor: "var(--background)",
 			}}
 		>
@@ -85,15 +93,20 @@ export function WindowsList({
 				style={{
 					flex: 1,
 					padding: isMobile ? "16px" : "32px",
-					overflowY: "auto",
+					display: "flex",
+					flexDirection: "column",
+					gap: 16,
+					minHeight: 0,
+					overflow: "hidden",
 				}}
 			>
+				{/* Cabeçalho */}
 				<div
 					style={{
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "space-between",
-						marginBottom: 24,
+						flexShrink: 0,
 					}}
 				>
 					<div>
@@ -116,7 +129,7 @@ export function WindowsList({
 						>
 							{progress.isLoading
 								? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
-								: `${filteredLogs.length} de ${windowsLogs.length} eventos`}
+								: `${filteredLogs.length.toLocaleString("pt-BR")} de ${windowsLogs.length.toLocaleString("pt-BR")} eventos`}
 						</p>
 					</div>
 					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -139,20 +152,22 @@ export function WindowsList({
 				</div>
 
 				{progress.isLoading && (
-					<ProgressBar percent={progress.percentComplete} />
+					<ProgressBar percent={progress.percentComplete} marginBottom={0} />
 				)}
 
-				{/* Filtros inline — específicos desta página */}
+				{/* Filtros */}
 				<div
 					style={{
 						display: "grid",
-						gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr 1fr auto",
+						gridTemplateColumns: isMobile
+							? "1fr"
+							: "1fr 160px 160px 1fr 1fr auto",
 						gap: 10,
-						marginBottom: 20,
-						padding: "16px 20px",
+						padding: "14px 18px",
 						backgroundColor: "var(--card)",
 						border: "1px solid var(--border)",
 						borderRadius: 8,
+						flexShrink: 0,
 					}}
 				>
 					<input
@@ -173,7 +188,7 @@ export function WindowsList({
 						onChange={(e) =>
 							onWindowsFilterUpdate("criticality", e.target.value)
 						}
-						style={inputStyle}
+						style={{ ...inputStyle, cursor: "pointer" }}
 					>
 						<option value="all">Todas as criticidades</option>
 						<option value="High">Alta</option>
@@ -187,6 +202,15 @@ export function WindowsList({
 						onChange={(e) => onWindowsFilterUpdate("provider", e.target.value)}
 						style={inputStyle}
 					/>
+					<input
+						type="text"
+						placeholder="Filtrar por levelLabel..."
+						value={windowsFilters.levelLabel}
+						onChange={(e) =>
+							onWindowsFilterUpdate("levelLabel", e.target.value)
+						}
+						style={inputStyle}
+					/>
 					<button
 						onClick={onWindowsFilterReset}
 						style={{
@@ -197,6 +221,8 @@ export function WindowsList({
 							color: "var(--muted-foreground)",
 							fontSize: 12,
 							cursor: "pointer",
+							fontFamily: "inherit",
+							whiteSpace: "nowrap",
 						}}
 					>
 						Limpar
@@ -204,6 +230,7 @@ export function WindowsList({
 				</div>
 
 				{progress.error && <ErrorState message={progress.error} />}
+
 				{!progress.error && (
 					<LogTable logs={filteredLogs} columns={columns} isMobile={isMobile} />
 				)}
@@ -211,14 +238,3 @@ export function WindowsList({
 		</div>
 	);
 }
-
-const inputStyle: React.CSSProperties = {
-	padding: "8px 12px",
-	borderRadius: 6,
-	border: "1px solid var(--border)",
-	backgroundColor: "var(--background)",
-	color: "var(--foreground)",
-	fontSize: 13,
-	outline: "none",
-	width: "100%",
-};

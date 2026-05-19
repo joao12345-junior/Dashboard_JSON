@@ -1,5 +1,5 @@
 // src/components/LogTable.tsx
-import React, { useState, useRef } from "react";
+import React, { useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Log } from "../lib/types/Log";
 import { StatusBadge } from "./StatusBadge";
@@ -10,12 +10,36 @@ interface LogTableProps {
 	logs: Log[];
 	columns: ColumnDefinition[];
 	isMobile: boolean;
+	/**
+	 * Altura máxima do corpo da tabela em pixels.
+	 *
+	 * Por que um prop e não hardcoded?
+	 * O LogTable é usado em duas situações diferentes:
+	 *   - ProcessList / WindowsList: deve preencher o espaço restante da tela
+	 *     (sem altura máxima — usa flex: 1 no container pai)
+	 *   - CriticalEventsFeed na Home: altura fixa definida pelo layout do card
+	 *
+	 * Quando maxBodyHeight não é passado, o corpo cresce livremente
+	 * e o scroll vem do container pai (a <main> da página).
+	 */
+	maxBodyHeight?: number;
 }
 
 const ROW_HEIGHT = 48;
 
-export function LogTable({ logs, columns, isMobile }: LogTableProps) {
-	const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+/** Extrai valor de texto puro de um ReactNode para uso no atributo title */
+function extractTextValue(value: React.ReactNode): string {
+	if (typeof value === "string") return value;
+	if (typeof value === "number") return String(value);
+	return "";
+}
+
+export function LogTable({
+	logs,
+	columns,
+	isMobile,
+	maxBodyHeight,
+}: LogTableProps) {
 	const parentRef = useRef<HTMLDivElement>(null);
 
 	const visibleColumns = columns.filter(
@@ -39,6 +63,15 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 		letterSpacing: "0.1em",
 		borderBottom: "1px solid var(--border)",
 		backgroundColor: "var(--muted)",
+		whiteSpace: "nowrap",
+	};
+
+	const tdBaseStyle: React.CSSProperties = {
+		padding: "0 16px",
+		height: ROW_HEIGHT,
+		verticalAlign: "middle",
+		overflow: "hidden",
+		textOverflow: "ellipsis",
 		whiteSpace: "nowrap",
 	};
 
@@ -78,11 +111,35 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 				backgroundColor: "var(--card)",
 				border: "1px solid var(--border)",
 				borderRadius: 8,
+				// overflow: hidden aqui garante que o borderRadius apareça
+				// mesmo com a scrollbar presente
 				overflow: "hidden",
+				display: "flex",
+				flexDirection: "column",
+				// Quando maxBodyHeight não é definido, o componente preenche
+				// o espaço disponível do pai (precisa que o pai tenha flex)
+				flex: maxBodyHeight ? "none" : 1,
+				minHeight: 0,
 			}}
 		>
-			{/* ── Cabeçalho fixo ── */}
-			<div style={{ overflowX: "auto" }}>
+			{/*
+				── Cabeçalho fixo ──────────────────────────────────────────────
+				O cabeçalho está em um container com overflow: hidden
+				(não "auto") para que NUNCA apareça uma scrollbar horizontal nele.
+
+				Por que isso funciona?
+				O corpo da tabela abaixo compartilha o mesmo scroll horizontal
+				(ambos usam o mesmo wrapper com overflowX: auto).
+				Mas o cabeçalho não precisa de scroll próprio — ele sempre
+				tem a mesma largura que o corpo, então nunca transborda.
+				"hidden" garante que nenhuma scrollbar apareça aqui.
+			*/}
+			<div
+				style={{
+					overflowX: "hidden",
+					flexShrink: 0,
+				}}
+			>
 				<table
 					style={{
 						width: "100%",
@@ -107,134 +164,146 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 			</div>
 
 			{/*
-        Container com scroll — o virtualizador observa este elemento.
-        O fundo sólido aqui é importante: impede que linhas absolutas
-        "apareçam" fora dos limites do container durante o scroll.
-      */}
+				── Corpo virtualizado com scroll ────────────────────────────────
+				Container com scroll — o virtualizador observa este elemento.
+
+				maxBodyHeight:
+				  - Definido → altura fixa (ex: na Home, dentro de um card)
+				  - Não definido → flex: 1, preenche o espaço restante da página
+			*/}
 			<div
 				ref={parentRef}
-				style={{
-					height: Math.min(logs.length * ROW_HEIGHT, 600),
-					overflowY: "auto",
-					overflowX: "auto",
-					backgroundColor: "var(--card)",
-				}}
+				style={
+					maxBodyHeight
+						? {
+								height: maxBodyHeight,
+								overflowY: "auto",
+								overflowX: "auto",
+								backgroundColor: "var(--card)",
+							}
+						: {
+								flex: 1,
+								minHeight: 0,
+								overflowY: "auto",
+								overflowX: "auto",
+								backgroundColor: "var(--card)",
+							}
+				}
 			>
 				{/*
-          Este div representa a altura total de TODOS os itens.
-          O scroll tem o tamanho correto mesmo que a maioria das
-          linhas não exista no DOM — é uma ilusão de completude.
-        */}
+					Este div representa a altura TOTAL de todos os itens virtualizados.
+					O virtualizador calcula getTotalSize() = count * ROW_HEIGHT.
+					O scroll funciona como se todos os itens estivessem no DOM,
+					mas apenas os visíveis são renderizados — isso é a virtualização.
+				*/}
 				<div
-					style={{ height: virtualizer.getTotalSize(), position: "relative" }}
+					style={{
+						height: virtualizer.getTotalSize(),
+						width: "100%",
+						position: "relative",
+					}}
 				>
-					{virtualizer.getVirtualItems().map((virtualRow) => {
-						const log = logs[virtualRow.index];
-						const isExpanded = expandedIndex === virtualRow.index;
+					<table
+						style={{
+							width: "100%",
+							borderCollapse: "collapse",
+							tableLayout: "fixed",
+							position: "absolute",
+							top: 0,
+							left: 0,
+						}}
+					>
+						<tbody>
+							{virtualizer.getVirtualItems().map((virtualRow) => {
+								const log = logs[virtualRow.index];
+								const isEven = virtualRow.index % 2 === 0;
 
-						return (
-							/*
-                O div pai de cada linha controla o z-index.
-                backgroundColor sólido aqui é essencial — sem ele,
-                o hover de uma linha "vaza" visualmente sobre as vizinhas
-                porque position:absolute não tem fronteiras naturais.
-              */
-							<div
-								key={virtualRow.key}
-								style={{
-									position: "absolute",
-									top: virtualRow.start,
-									left: 0,
-									right: 0,
-									height: ROW_HEIGHT,
-									zIndex: isExpanded ? 2 : 1,
-									backgroundColor: isExpanded ? "var(--accent)" : "var(--card)",
-								}}
-								onMouseEnter={(e) => {
-									// Eleva o z-index durante hover para garantir que
-									// este elemento fique acima dos vizinhos
-									(e.currentTarget as HTMLDivElement).style.zIndex = "3";
-									if (!isExpanded) {
-										(e.currentTarget as HTMLDivElement).style.backgroundColor =
-											"var(--muted)";
-									}
-								}}
-								onMouseLeave={(e) => {
-									(e.currentTarget as HTMLDivElement).style.zIndex = isExpanded
-										? "2"
-										: "1";
-									if (!isExpanded) {
-										(e.currentTarget as HTMLDivElement).style.backgroundColor =
-											"var(--card)";
-									}
-								}}
-								onClick={() =>
-									setExpandedIndex(isExpanded ? null : virtualRow.index)
-								}
-							>
-								<table
-									style={{
-										width: "100%",
-										borderCollapse: "collapse",
-										tableLayout: "fixed",
-										cursor: "pointer",
-									}}
-								>
-									<tbody>
-										<tr>
-											{visibleColumns.map((col) => (
+								return (
+									<tr
+										key={virtualRow.key}
+										style={{
+											position: "absolute",
+											top: 0,
+											left: 0,
+											width: "100%",
+											transform: `translateY(${virtualRow.start}px)`,
+											height: ROW_HEIGHT,
+											backgroundColor: isEven
+												? "var(--card)"
+												: "color-mix(in oklch, var(--muted) 40%, var(--card))",
+											borderBottom: "1px solid var(--border)",
+											display: "table",
+											tableLayout: "fixed",
+										}}
+										onMouseEnter={(e) =>
+											(e.currentTarget.style.backgroundColor = "var(--accent)")
+										}
+										onMouseLeave={(e) =>
+											(e.currentTarget.style.backgroundColor = isEven
+												? "var(--card)"
+												: "color-mix(in oklch, var(--muted) 40%, var(--card))")
+										}
+									>
+										{visibleColumns.map((col) => {
+											const rendered = col.render(log);
+											const titleValue = extractTextValue(rendered);
+
+											return (
 												<td
 													key={col.key}
+													title={titleValue}
 													style={{
-														padding: "0 16px", // ← retira padding vertical — altura controlada pelo div pai
-														fontSize: 13,
+														...tdBaseStyle,
+														width: col.width ?? "auto",
+														fontSize: col.mono ? 12 : 13,
+														fontFamily: col.mono
+															? "var(--font-mono)"
+															: "inherit",
 														color: col.muted
 															? "var(--muted-foreground)"
 															: "var(--foreground)",
-														borderBottom: "1px solid var(--border)",
-														verticalAlign: "middle",
-														whiteSpace: "nowrap", // ← sempre nowrap — nunca deixa quebrar
-														fontFamily: col.mono ? "monospace" : "inherit",
-														textAlign: col.numeric ? "right" : "left",
-														width: col.width ?? "auto",
-														maxWidth: col.width ?? 300,
-														overflow: "hidden",
-														textOverflow: "ellipsis",
-														height: ROW_HEIGHT, // ← altura explícita igual ao virtualizer
+														fontVariantNumeric: col.numeric
+															? "tabular-nums"
+															: undefined,
 													}}
 												>
-													{col.render(log)}
+													{rendered}
 												</td>
-											))}
-											<td
-												style={{
-													padding: "11px 16px",
-													borderBottom: "1px solid var(--border)",
-													verticalAlign: "middle",
-													width: 140,
-													minWidth: 140,
-													whiteSpace: "nowrap",
-												}}
-											>
-												{renderBadge(log)}
-											</td>
-										</tr>
-									</tbody>
-								</table>
-							</div>
-						);
-					})}
+											);
+										})}
+
+										<td
+											title={
+												log.logType === "windows-event"
+													? `${log.criticality} · ${log.levelLabel}`
+													: String(log.status)
+											}
+											style={{
+												...tdBaseStyle,
+												width: 140,
+												overflow: "visible",
+											}}
+										>
+											{renderBadge(log)}
+										</td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
 				</div>
 			</div>
 
-			{/* Rodapé com contagem total */}
+			{/* Rodapé com contagem */}
 			<div
 				style={{
 					padding: "8px 16px",
 					borderTop: "1px solid var(--border)",
 					fontSize: 11,
 					color: "var(--muted-foreground)",
+					textAlign: "right",
 					backgroundColor: "var(--muted)",
+					flexShrink: 0,
 				}}
 			>
 				{logs.length.toLocaleString("pt-BR")} registros

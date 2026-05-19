@@ -1,5 +1,4 @@
 import { Log } from "./Log";
-import { ReactNode } from "react";
 
 /**
  * Define como uma coluna deve ser exibida na tabela.

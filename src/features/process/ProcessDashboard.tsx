@@ -36,7 +36,8 @@ export function ProcessDashboard({
 		<div
 			style={{
 				display: "flex",
-				minHeight: "100vh",
+				height: "100vh",
+				overflow: "hidden",
 				backgroundColor: "var(--background)",
 			}}
 		>

@@ -5,30 +5,18 @@ import { detectLogType, getMapper } from "../data/LogMapperRegistry";
 
 // ── Tipos públicos ────────────────────────────────────────────────────────────
 
-/** Metadados de um arquivo individual, vindos do index.json */
 export interface FileIndexEntry {
 	name: string;
 	size_bytes: number;
 	size_mb: number;
 }
 
-/** Estrutura completa do index.json gerado pelo Python */
 export interface LogIndex {
 	generated_at: string;
 	total_files: number;
 	files: FileIndexEntry[];
 }
 
-/**
- * Resultado do carregamento de um arquivo individual.
- * Usado pelo painel de debug e pelo hook de progresso.
- *
- * O campo `status` usa união discriminada — o mesmo padrão do Log.ts.
- * Isso permite ao TypeScript saber exatamente quais campos estão
- * disponíveis em cada branch:
- *   if (result.status === "error") → result.error existe com certeza
- *   if (result.status === "success") → result.recordCount existe com certeza
- */
 export type FileLoadResult =
 	| {
 			status: "success";
@@ -51,7 +39,6 @@ export type FileLoadResult =
 			size_mb: number;
 	  };
 
-/** Callback chamado a cada lote carregado — alimenta o hook de progresso */
 export type BatchCallback = (params: {
 	logs: Log[];
 	results: FileLoadResult[];
@@ -61,10 +48,6 @@ export type BatchCallback = (params: {
 
 // ── Funções internas ──────────────────────────────────────────────────────────
 
-/**
- * Converte um item bruto do JSON em Log usando o mapper correto.
- * Idêntico ao original — não muda porque a lógica de detecção é sólida.
- */
 function mapRawToLog(raw: Record<string, unknown>): Log {
 	const logType = detectLogType(raw);
 	const mapper = getMapper(logType);
@@ -72,22 +55,42 @@ function mapRawToLog(raw: Record<string, unknown>): Log {
 }
 
 /**
- * Carrega e processa um único arquivo JSON via fetch.
+ * Verifica se uma resposta HTTP realmente contém JSON.
  *
- * Por que retornar FileLoadResult em vez de lançar exceção?
- * Porque queremos que um arquivo corrompido não derrube os outros.
- * O caller (fetchProgressively) decide o que fazer com o resultado.
- * Este é o padrão "Railway Oriented Programming" — o fluxo sempre
- * continua, seja no trilho de sucesso ou no trilho de erro.
+ * Por que isso é necessário?
+ * O Vite (e qualquer SPA com historyApiFallback) devolve o index.html
+ * para rotas não encontradas, em vez de um 404 limpo.
+ * Esse HTML tem status 200 e começa com "<!doctype", o que quebra
+ * o JSON.parse com o erro "Unexpected token '<'".
+ *
+ * A verificação do Content-Type detecta isso antes do parse,
+ * permitindo uma mensagem de erro útil para o operador.
  */
+function assertJsonResponse(response: Response, url: string): void {
+	const contentType = response.headers.get("Content-Type") ?? "";
+	const isJson =
+		contentType.includes("application/json") ||
+		contentType.includes("text/plain"); // alguns servidores servem JSON como text/plain
+
+	if (!isJson) {
+		// Se o Content-Type não é JSON, o servidor provavelmente devolveu HTML.
+		// Isso acontece quando o arquivo não existe e o servidor usa fallback.
+		throw new Error(
+			`Servidor devolveu "${contentType}" em vez de JSON para: ${url}\n` +
+				`Verifique se o arquivo existe em public/data/ e se o generate_index.py foi executado.`,
+		);
+	}
+}
+
 async function fetchSingleFile(
 	entry: FileIndexEntry,
 	basePath: string,
 ): Promise<{ logs: Log[]; result: FileLoadResult }> {
 	const start = performance.now();
+	const url = `${basePath}/${entry.name}`;
 
 	try {
-		const response = await fetch(`${basePath}/${entry.name}`);
+		const response = await fetch(url);
 
 		if (!response.ok) {
 			return {
@@ -102,9 +105,12 @@ async function fetchSingleFile(
 			};
 		}
 
+		// Valida Content-Type antes de tentar o parse —
+		// evita o "Unexpected token '<'" quando o servidor devolve HTML
+		assertJsonResponse(response, url);
+
 		const parsed = await response.json();
 
-		// Arquivo vazio — não é erro, mas também não tem dados
 		if (!parsed || (Array.isArray(parsed) && parsed.length === 0)) {
 			return {
 				logs: [],
@@ -155,33 +161,31 @@ async function fetchSingleFile(
 export const LogRepository = {
 	/**
 	 * Busca o índice de arquivos disponíveis.
-	 * Lançar exceção aqui é intencional — sem índice, não há nada a fazer.
+	 *
+	 * Ordem de verificações:
+	 * 1. response.ok — garante que o HTTP não deu erro (404, 500, etc.)
+	 * 2. assertJsonResponse — garante que o corpo é JSON, não HTML de fallback
+	 * 3. response.json() — só chega aqui se as duas condições anteriores passaram
 	 */
 	async fetchIndex(basePath = "/data"): Promise<LogIndex> {
-		const response = await fetch(`${basePath}/index.json`);
+		const url = `${basePath}/index.json`;
+		const response = await fetch(url);
+
 		if (!response.ok) {
 			throw new Error(
-				`Índice não encontrado em ${basePath}/index.json. ` +
-					"Execute o script Python para gerar os arquivos.",
+				`index.json não encontrado (HTTP ${response.status}).\n` +
+					`Execute: python generate_index.py\n` +
+					`Caminho esperado: public/data/index.json`,
 			);
 		}
+
+		// Segunda linha de defesa: o arquivo pode existir mas o servidor
+		// ainda pode devolver HTML por questões de configuração/cache
+		assertJsonResponse(response, url);
+
 		return response.json();
 	},
 
-	/**
-	 * Carrega todos os arquivos do índice em lotes, chamando onBatch
-	 * a cada lote concluído.
-	 *
-	 * Por que lotes e não um arquivo por vez?
-	 * Um arquivo por vez seria lento (600 requisições sequenciais).
-	 * Todos de uma vez esgota memória (o que causou o Out of Memory).
-	 * Lotes de 10 equilibra velocidade e consumo de memória.
-	 *
-	 * BATCH_SIZE = 10 significa:
-	 * - 10 fetches em paralelo por rodada (Promise.all)
-	 * - UI atualiza a cada 10 arquivos — progresso visível
-	 * - Memória nunca acumula mais de ~10 arquivos simultaneamente
-	 */
 	async fetchProgressively(
 		onBatch: BatchCallback,
 		basePath = "/data",
@@ -191,14 +195,9 @@ export const LogRepository = {
 		const { files } = index;
 		let loadedFiles = 0;
 
-		// Divide o array de arquivos em grupos de batchSize
-		// Exemplo com batchSize=3 e 7 arquivos:
-		// [[a,b,c], [d,e,f], [g]]
 		for (let i = 0; i < files.length; i += batchSize) {
 			const batch = files.slice(i, i + batchSize);
 
-			// Promise.all processa o lote em paralelo
-			// Se um falhar, fetchSingleFile já trata o erro internamente
 			const batchResults = await Promise.all(
 				batch.map((entry) => fetchSingleFile(entry, basePath)),
 			);
@@ -207,7 +206,6 @@ export const LogRepository = {
 			const batchFileResults = batchResults.map((r) => r.result);
 			loadedFiles += batch.length;
 
-			// Notifica a UI com os logs deste lote
 			onBatch({
 				logs: batchLogs,
 				results: batchFileResults,
@@ -217,11 +215,6 @@ export const LogRepository = {
 		}
 	},
 
-	/**
-	 * Carrega arquivos passados manualmente (botão "Carregar Logs").
-	 * Usa FileReader — sem fetch, sem índice.
-	 * Mantém o mesmo padrão de callback para consistência com fetchProgressively.
-	 */
 	async fromFiles(
 		files: File[],
 		onBatch: BatchCallback,
@@ -250,11 +243,8 @@ export const LogRepository = {
 	},
 };
 
-/**
- * Lê um File local via FileReader e retorna logs + resultado de debug.
- * Separado do repositório porque é uma operação de I/O diferente (disco local
- * vs rede), mas produz o mesmo tipo de resultado — FileLoadResult.
- */
+// ── Leitura de arquivos locais (upload manual) ────────────────────────────────
+
 async function readLocalFile(
 	file: File,
 ): Promise<{ logs: Log[]; result: FileLoadResult }> {

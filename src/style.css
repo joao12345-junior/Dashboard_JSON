@@ -206,3 +206,63 @@ body {
 		@apply bg-background text-foreground;
 	}
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SCROLLBAR CUSTOMIZADA
+   Aplica a todos os elementos com scroll no projeto.
+
+   Por que duas abordagens (::-webkit-scrollbar e scrollbar-color)?
+   Navegadores baseados em Chromium (Chrome, Edge, Brave) usam a API
+   ::-webkit-scrollbar (prefixo webkit — herdado do Safari).
+   Firefox usa a API moderna do W3C: scrollbar-color + scrollbar-width.
+   São APIs completamente separadas — precisamos das duas para cobertura total.
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Firefox (API padrão W3C) ──────────────────────────────────────────────── */
+* {
+	/* thumb = a parte que você arrasta | track = o trilho de fundo */
+	scrollbar-color: var(--muted-foreground) transparent;
+	/* "thin" = scrollbar fina (aprox. 8px) — menos invasiva visualmente */
+	scrollbar-width: thin;
+}
+
+/* ── Chromium: trilho (fundo da scrollbar) ─────────────────────────────────── */
+::-webkit-scrollbar {
+	width: 6px; /* scrollbar vertical */
+	height: 6px; /* scrollbar horizontal */
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+/* ── Chromium: thumb (a parte arrastável) ───────────────────────────────────── */
+::-webkit-scrollbar-thumb {
+	background-color: var(--border);
+	border-radius: 9999px;
+	/* border transparente cria um padding visual em volta do thumb */
+	border: 1px solid transparent;
+	background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: var(--muted-foreground);
+}
+
+/* ── Chromium: canto onde scrollbars vertical e horizontal se encontram ──────── */
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
+/* ── Dark mode: thumb ligeiramente mais claro para contrastar com o fundo escuro */
+.dark ::-webkit-scrollbar-thumb {
+	background-color: oklch(0.35 0 0);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+	background-color: oklch(0.5 0 0);
+}
+
+.dark * {
+	scrollbar-color: oklch(0.35 0 0) transparent;
+}
