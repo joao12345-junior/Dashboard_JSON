@@ -1,5 +1,6 @@
 // src/components/LogTable.tsx
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Log } from "../lib/types/Log";
 import { StatusBadge } from "./StatusBadge";
 import { CriticalityBadge } from "./CriticalityBadge";
@@ -11,12 +12,22 @@ interface LogTableProps {
 	isMobile: boolean;
 }
 
+const ROW_HEIGHT = 48;
+
 export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 	const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+	const parentRef = useRef<HTMLDivElement>(null);
 
 	const visibleColumns = columns.filter(
 		(col) => !col.hideOnMobile || !isMobile,
 	);
+
+	const virtualizer = useVirtualizer({
+		count: logs.length,
+		getScrollElement: () => parentRef.current,
+		estimateSize: () => ROW_HEIGHT,
+		overscan: 10,
+	});
 
 	const thStyle: React.CSSProperties = {
 		padding: "10px 16px",
@@ -29,14 +40,6 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 		borderBottom: "1px solid var(--border)",
 		backgroundColor: "var(--muted)",
 		whiteSpace: "nowrap",
-	};
-
-	const tdStyle: React.CSSProperties = {
-		padding: "11px 16px",
-		fontSize: 13,
-		color: "var(--foreground)",
-		borderBottom: "1px solid var(--border)",
-		verticalAlign: "middle",
 	};
 
 	if (logs.length === 0) {
@@ -57,13 +60,8 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 		);
 	}
 
-	// ── Função auxiliar: decide qual badge renderizar ──────────────────────
-	// Aqui a união discriminada trabalha a nosso favor:
-	// dentro de cada branch, o TypeScript sabe exatamente qual tipo é o log
 	function renderBadge(log: Log): React.ReactNode {
 		if (log.logType === "windows-event") {
-			// TypeScript sabe: log é WindowsEventLog aqui
-			// log.criticality e log.levelLabel existem com certeza
 			return (
 				<CriticalityBadge
 					criticality={log.criticality}
@@ -71,69 +69,7 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 				/>
 			);
 		}
-		// TypeScript sabe: log é ProcessLog aqui
-		// log.status existe com certeza
 		return <StatusBadge status={log.status} />;
-	}
-
-	// ── Função auxiliar: decide o que mostrar na linha expandida ──────────
-	// ProcessLog tem payload com campos extras
-	// WindowsEventLog expõe campos técnicos do System do Windows
-	function renderExpandedRow(log: Log, colSpan: number): React.ReactNode {
-		// Dados a exibir — diferentes por tipo
-		const entries: [string, string][] =
-			log.logType === "windows-event"
-				? [
-						["Provider", log.provider],
-						["Event ID", log.eventId],
-						["Record ID", log.recordId],
-						["Computer", log.computer],
-						["Channel", log.channel],
-						["Fonte", log.source],
-					]
-				: Object.entries(log.payload).map(([k, v]) => [k, String(v)]);
-
-		// WindowsEventLog sempre tem entradas para mostrar
-		// ProcessLog só expande se tiver payload
-		if (entries.length === 0) return null;
-
-		return (
-			<tr>
-				<td
-					colSpan={colSpan}
-					style={{
-						padding: "8px 16px 12px",
-						backgroundColor: "var(--muted)",
-						borderBottom: "1px solid var(--border)",
-					}}
-				>
-					<div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-						{entries.map(([key, value]) => (
-							<div key={key} style={{ fontSize: 11 }}>
-								<span
-									style={{
-										color: "var(--muted-foreground)",
-										textTransform: "uppercase",
-										letterSpacing: "0.08em",
-									}}
-								>
-									{key}
-								</span>
-								<span
-									style={{
-										marginLeft: 6,
-										color: "var(--foreground)",
-										fontFamily: "var(--font-mono)",
-									}}
-								>
-									{value}
-								</span>
-							</div>
-						))}
-					</div>
-				</td>
-			</tr>
-		);
 	}
 
 	return (
@@ -143,91 +79,166 @@ export function LogTable({ logs, columns, isMobile }: LogTableProps) {
 				border: "1px solid var(--border)",
 				borderRadius: 8,
 				overflow: "hidden",
-				overflowX: "auto",
 			}}
 		>
-			<table
+			{/* ── Cabeçalho fixo ── */}
+			<div style={{ overflowX: "auto" }}>
+				<table
+					style={{
+						width: "100%",
+						borderCollapse: "collapse",
+						tableLayout: "fixed",
+					}}
+				>
+					<thead>
+						<tr>
+							{visibleColumns.map((col) => (
+								<th
+									key={col.key}
+									style={{ ...thStyle, width: col.width ?? "auto" }}
+								>
+									{col.label}
+								</th>
+							))}
+							<th style={{ ...thStyle, width: 140 }}>Status</th>
+						</tr>
+					</thead>
+				</table>
+			</div>
+
+			{/*
+        Container com scroll — o virtualizador observa este elemento.
+        O fundo sólido aqui é importante: impede que linhas absolutas
+        "apareçam" fora dos limites do container durante o scroll.
+      */}
+			<div
+				ref={parentRef}
 				style={{
-					width: "100%",
-					borderCollapse: "collapse",
-					minWidth: isMobile ? 600 : "auto",
+					height: Math.min(logs.length * ROW_HEIGHT, 600),
+					overflowY: "auto",
+					overflowX: "auto",
+					backgroundColor: "var(--card)",
 				}}
 			>
-				<thead>
-					<tr>
-						<th style={{ ...thStyle, width: 48 }}>#</th>
-						{visibleColumns.map((col) => (
-							<th key={col.key} style={{ ...thStyle, width: col.width }}>
-								{col.label}
-							</th>
-						))}
-						{/* Cabeçalho da última coluna muda conforme o tipo de log */}
-						<th style={{ ...thStyle, width: 120 }}>
-							{logs[0]?.logType === "windows-event" ? "Criticidade" : "Status"}
-						</th>
-					</tr>
-				</thead>
+				{/*
+          Este div representa a altura total de TODOS os itens.
+          O scroll tem o tamanho correto mesmo que a maioria das
+          linhas não exista no DOM — é uma ilusão de completude.
+        */}
+				<div
+					style={{ height: virtualizer.getTotalSize(), position: "relative" }}
+				>
+					{virtualizer.getVirtualItems().map((virtualRow) => {
+						const log = logs[virtualRow.index];
+						const isExpanded = expandedIndex === virtualRow.index;
 
-				<tbody>
-					{logs.map((log, i) => (
-						<React.Fragment key={`${log.date}-${log.time}-${i}`}>
-							<tr
-								onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
+						return (
+							/*
+                O div pai de cada linha controla o z-index.
+                backgroundColor sólido aqui é essencial — sem ele,
+                o hover de uma linha "vaza" visualmente sobre as vizinhas
+                porque position:absolute não tem fronteiras naturais.
+              */
+							<div
+								key={virtualRow.key}
 								style={{
-									cursor: "pointer",
-									transition: "background-color 0.12s",
+									position: "absolute",
+									top: virtualRow.start,
+									left: 0,
+									right: 0,
+									height: ROW_HEIGHT,
+									zIndex: isExpanded ? 2 : 1,
+									backgroundColor: isExpanded ? "var(--accent)" : "var(--card)",
 								}}
-								onMouseEnter={(e) =>
-									(e.currentTarget.style.backgroundColor = "var(--accent)")
-								}
-								onMouseLeave={(e) =>
-									(e.currentTarget.style.backgroundColor = "transparent")
+								onMouseEnter={(e) => {
+									// Eleva o z-index durante hover para garantir que
+									// este elemento fique acima dos vizinhos
+									(e.currentTarget as HTMLDivElement).style.zIndex = "3";
+									if (!isExpanded) {
+										(e.currentTarget as HTMLDivElement).style.backgroundColor =
+											"var(--muted)";
+									}
+								}}
+								onMouseLeave={(e) => {
+									(e.currentTarget as HTMLDivElement).style.zIndex = isExpanded
+										? "2"
+										: "1";
+									if (!isExpanded) {
+										(e.currentTarget as HTMLDivElement).style.backgroundColor =
+											"var(--card)";
+									}
+								}}
+								onClick={() =>
+									setExpandedIndex(isExpanded ? null : virtualRow.index)
 								}
 							>
-								{/* Índice */}
-								<td
+								<table
 									style={{
-										...tdStyle,
-										color: "var(--muted-foreground)",
-										fontSize: 11,
-										fontVariantNumeric: "tabular-nums",
+										width: "100%",
+										borderCollapse: "collapse",
+										tableLayout: "fixed",
+										cursor: "pointer",
 									}}
 								>
-									{String(i + 1).padStart(2, "0")}
-								</td>
+									<tbody>
+										<tr>
+											{visibleColumns.map((col) => (
+												<td
+													key={col.key}
+													style={{
+														padding: "0 16px", // ← retira padding vertical — altura controlada pelo div pai
+														fontSize: 13,
+														color: col.muted
+															? "var(--muted-foreground)"
+															: "var(--foreground)",
+														borderBottom: "1px solid var(--border)",
+														verticalAlign: "middle",
+														whiteSpace: "nowrap", // ← sempre nowrap — nunca deixa quebrar
+														fontFamily: col.mono ? "monospace" : "inherit",
+														textAlign: col.numeric ? "right" : "left",
+														width: col.width ?? "auto",
+														maxWidth: col.width ?? 300,
+														overflow: "hidden",
+														textOverflow: "ellipsis",
+														height: ROW_HEIGHT, // ← altura explícita igual ao virtualizer
+													}}
+												>
+													{col.render(log)}
+												</td>
+											))}
+											<td
+												style={{
+													padding: "11px 16px",
+													borderBottom: "1px solid var(--border)",
+													verticalAlign: "middle",
+													width: 140,
+													minWidth: 140,
+													whiteSpace: "nowrap",
+												}}
+											>
+												{renderBadge(log)}
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						);
+					})}
+				</div>
+			</div>
 
-								{/* Colunas dinâmicas do mapper */}
-								{visibleColumns.map((col) => (
-									<td
-										key={col.key}
-										style={{
-											...tdStyle,
-											fontFamily: col.mono ? "var(--font-mono)" : "inherit",
-											fontSize: col.mono ? 12 : 13,
-											color: col.muted
-												? "var(--muted-foreground)"
-												: "var(--foreground)",
-											whiteSpace: col.noWrap ? "nowrap" : "normal",
-											fontVariantNumeric: col.numeric
-												? "tabular-nums"
-												: "normal",
-										}}
-									>
-										{col.render(log)}
-									</td>
-								))}
-
-								{/* Badge — renderBadge decide qual usar */}
-								<td style={tdStyle}>{renderBadge(log)}</td>
-							</tr>
-
-							{/* Linha expandida — clique na linha para abrir */}
-							{expandedIndex === i &&
-								renderExpandedRow(log, visibleColumns.length + 2)}
-						</React.Fragment>
-					))}
-				</tbody>
-			</table>
+			{/* Rodapé com contagem total */}
+			<div
+				style={{
+					padding: "8px 16px",
+					borderTop: "1px solid var(--border)",
+					fontSize: 11,
+					color: "var(--muted-foreground)",
+					backgroundColor: "var(--muted)",
+				}}
+			>
+				{logs.length.toLocaleString("pt-BR")} registros
+			</div>
 		</div>
 	);
 }

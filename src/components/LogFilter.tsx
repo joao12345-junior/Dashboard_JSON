@@ -1,9 +1,10 @@
 import React from "react";
 import { START_STATUS } from "../lib/Variables";
+import { LogFilterState } from "../hooks/useLogsFilters";
 
 interface LogFiltersProps {
 	filters: { message: string; date: string; start: string };
-	onUpdate: (key: string, value: string) => void;
+	onUpdate: (key: keyof LogFilterState, value: string) => void;
 	onReset: () => void;
 	isMobile: boolean;
 }

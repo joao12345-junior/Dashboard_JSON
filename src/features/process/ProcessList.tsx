@@ -1,56 +1,71 @@
 // src/features/process/ProcessList.tsx
-import { useState, useRef, useCallback, useMemo } from "react";
-import { useLogs } from "../../hooks/useLogs";
-import { useLogFilters } from "../../hooks/useLogsFilters";
+import { useMemo, useState } from "react";
 import { Sidebar } from "../../components/Sidebar";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { LogFilters } from "../../components/LogFilter";
 import { LogTable } from "../../components/LogTable";
-import { LoadingState } from "../../components/Loading";
 import { ErrorState } from "../../components/Error";
+import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { getMapper } from "../../lib/data/LogMapperRegistry";
 import { ProcessLog } from "../../lib/types/Log";
-import type { Page } from "../../App";
+import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
+import { START_STATUS } from "../../lib/Variables";
+import type { SharedPageProps } from "../../App";
 
-interface ProcessListProps {
-	onNavigate: (page: Page) => void;
-}
-
-export function ProcessList({ onNavigate }: ProcessListProps) {
+export function ProcessList({
+	logs,
+	progress,
+	reload,
+	fileInputRef,
+	handleChange,
+	openPicker,
+	onNavigate,
+	processFilters,
+	onProcessFilterUpdate,
+	onProcessFilterReset,
+}: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-
 	const [sidebarOpen, setSidebarOpen] = useState(false);
-	const [logFiles, setLogFiles] = useState<File[]>([]);
-	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	const { logs, isLoading, error } = useLogs(logFiles);
-
-	// Filtra apenas ProcessLog para esta página
 	const processLogs = useMemo(
 		() => logs.filter((l): l is ProcessLog => l.logType === "process"),
 		[logs],
 	);
 
-	const { filters, filteredLogs, stats, updateFilter, resetFilters } =
-		useLogFilters(processLogs);
+	/**
+	 * Filtros vêm do App agora — não são estado local.
+	 * Isso garante que ao voltar para esta página, o operador
+	 * encontra exatamente o que deixou.
+	 */
+	const filteredLogs = useMemo(() => {
+		return processLogs
+			.filter((log) => {
+				const matchMessage = log.message
+					.toLowerCase()
+					.includes(processFilters.message.toLowerCase());
+				const matchDate = processFilters.date
+					? log.date === processFilters.date
+					: true;
+				const matchStart =
+					processFilters.start === START_STATUS.ALL
+						? true
+						: processFilters.start === START_STATUS.STARTED
+							? log.status === 1
+							: processFilters.start === START_STATUS.FINISHED
+								? log.status === 0
+								: processFilters.start === START_STATUS.ERRO
+									? log.status === 2
+									: true;
+				return matchMessage && matchDate && matchStart;
+			})
+			.sort((a, b) =>
+				`${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`),
+			);
+	}, [processLogs, processFilters]);
 
-	const columns = useMemo(() => {
-		if (processLogs.length === 0) return [];
-		return getMapper("process").columns ?? [];
-	}, [processLogs]);
-
-	const handleFileChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const files = Array.from(e.target.files ?? []).filter((f) =>
-				f.name.endsWith(".json"),
-			) as File[];
-			if (files.length) setLogFiles(files);
-			e.target.value = "";
-		},
-		[],
-	);
+	const columns = useMemo(() => getMapper("process").columns ?? [], []);
 
 	return (
 		<div
@@ -101,7 +116,9 @@ export function ProcessList({ onNavigate }: ProcessListProps) {
 								margin: "4px 0 0",
 							}}
 						>
-							{filteredLogs.length} registros encontrados
+							{progress.isLoading
+								? `Carregando… ${progress.percentComplete}%`
+								: `${filteredLogs.length} de ${processLogs.length} registros`}
 						</p>
 					</div>
 					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -112,37 +129,29 @@ export function ProcessList({ onNavigate }: ProcessListProps) {
 							accept=".json"
 							multiple
 							style={{ display: "none" }}
-							onChange={handleFileChange}
+							onChange={handleChange}
 						/>
-						<button
-							onClick={() => fileInputRef.current?.click()}
-							style={{
-								padding: "8px 16px",
-								borderRadius: 8,
-								border: "1px solid var(--border)",
-								backgroundColor: "var(--primary)",
-								color: "var(--primary-foreground)",
-								fontSize: 13,
-								fontWeight: 600,
-								cursor: "pointer",
-							}}
-						>
+						<button onClick={openPicker} style={btnPrimary}>
 							+ Carregar Logs
+						</button>
+						<button onClick={reload} style={btnSecondary}>
+							↺ Recarregar
 						</button>
 					</div>
 				</div>
 
-				{isLoading && <LoadingState />}
-				{error && <ErrorState message={error} />}
+				{progress.isLoading && (
+					<ProgressBar percent={progress.percentComplete} />
+				)}
+				{progress.error && <ErrorState message={progress.error} />}
 
-				{!isLoading && !error && (
+				{!progress.error && (
 					<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 						<LogFilters
-							filters={filters}
-							onUpdate={updateFilter}
-							onReset={resetFilters}
-							isMobile={isMobile} // ← adiciona isso
-							// stats={stats}      ← remove isso
+							filters={processFilters}
+							onUpdate={onProcessFilterUpdate}
+							onReset={onProcessFilterReset}
+							isMobile={isMobile}
 						/>
 						<LogTable
 							logs={filteredLogs}

@@ -15,7 +15,9 @@ function normalizeDate(raw: string): string {
 	const parts = raw.split("/");
 	if (parts.length !== 3) return raw;
 	const [day, month, year] = parts;
-	return `20${year}-${month}-${day}`;
+	// Se o ano já tem 4 dígitos, usa direto
+	const fullYear = year.length === 4 ? year : `20${year}`;
+	return `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
 
 function parseStatus(value: unknown): number {
@@ -46,6 +48,7 @@ export const ProcessLogMapper = {
 			key: "message",
 			label: "Mensagem",
 			mono: true,
+			noWrap: true,
 			render: (log: Log) => log.message,
 		},
 		{

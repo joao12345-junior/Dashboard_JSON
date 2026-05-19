@@ -9,19 +9,34 @@ import { useState, useRef, useCallback } from "react";
  * Qualquer mudança de comportamento (validação de tamanho, múltiplos formatos)
  * acontece aqui — e todas as páginas herdam automaticamente.
  */
-export function useFileUpload() {
+// src/hooks/useFileUpload.ts
+interface UseFileUploadOptions {
+	mode?: "replace" | "accumulate"; // padrão: replace
+}
+
+export function useFileUpload({ mode = "replace" }: UseFileUploadOptions = {}) {
 	const [files, setFiles] = useState<File[]>([]);
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	// useCallback garante referência estável — não recria a função a cada render
-	const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-		const selected = Array.from(e.target.files ?? []).filter((f) =>
-			f.name.endsWith(".json"),
-		);
-		if (selected.length) setFiles(selected);
-		// Limpa o input para permitir recarregar o mesmo arquivo
-		e.target.value = "";
-	}, []);
+	const handleChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const selected = Array.from(e.target.files ?? []).filter((f) =>
+				f.name.endsWith(".json"),
+			);
+
+			if (selected.length) {
+				// Aqui está a decisão consciente: substitui ou acumula
+				if (mode === "accumulate") {
+					setFiles((prev) => [...prev, ...selected]);
+				} else {
+					setFiles(selected);
+				}
+			}
+
+			e.target.value = "";
+		},
+		[mode],
+	);
 
 	const openPicker = useCallback(() => {
 		inputRef.current?.click();

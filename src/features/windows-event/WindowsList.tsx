@@ -1,45 +1,31 @@
 // src/features/windows-event/WindowsList.tsx
-import { useState, useRef, useCallback, useMemo } from "react";
-import { useLogs } from "../../hooks/useLogs";
+import { useState, useMemo } from "react";
 import { Sidebar } from "../../components/Sidebar";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { LogTable } from "../../components/LogTable";
-import { LoadingState } from "../../components/Loading";
 import { ErrorState } from "../../components/Error";
+import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { getMapper } from "../../lib/data/LogMapperRegistry";
 import { WindowsEventLog } from "../../lib/types/Log";
-import type { Page } from "../../App";
+import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
+import type { SharedPageProps } from "../../App";
 
-// Filtros específicos para Event Logs — diferentes dos filtros de ProcessLog
-interface WindowsFilters {
-	message: string;
-	date: string;
-	criticality: "all" | "High" | "Medium" | "Low";
-	provider: string;
-}
-
-const INITIAL_FILTERS: WindowsFilters = {
-	message: "",
-	date: "",
-	criticality: "all",
-	provider: "",
-};
-
-interface WindowsListProps {
-	onNavigate: (page: Page) => void;
-}
-
-export function WindowsList({ onNavigate }: WindowsListProps) {
+export function WindowsList({
+	logs,
+	progress,
+	reload,
+	fileInputRef,
+	handleChange,
+	openPicker,
+	onNavigate,
+	windowsFilters,
+	onWindowsFilterUpdate,
+	onWindowsFilterReset,
+}: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-
 	const [sidebarOpen, setSidebarOpen] = useState(false);
-	const [logFiles, setLogFiles] = useState<File[]>([]);
-	const [filters, setFilters] = useState<WindowsFilters>(INITIAL_FILTERS);
-	const fileInputRef = useRef<HTMLInputElement>(null);
-
-	const { logs, isLoading, error } = useLogs(logFiles);
 
 	const windowsLogs = useMemo(
 		() =>
@@ -47,40 +33,37 @@ export function WindowsList({ onNavigate }: WindowsListProps) {
 		[logs],
 	);
 
-	// Filtros específicos de Windows Event Log — useMemo evita recalcular a cada render
+	/**
+	 * Filtros vêm do App — preservados ao navegar.
+	 * O operador pode alternar entre WindowsList e WindowsDashboard
+	 * sem perder o contexto da investigação.
+	 */
 	const filteredLogs = useMemo(() => {
 		return windowsLogs
 			.filter((l) => {
 				const matchMessage = l.message
 					.toLowerCase()
-					.includes(filters.message.toLowerCase());
-				const matchDate = filters.date ? l.date === filters.date : true;
+					.includes(windowsFilters.message.toLowerCase());
+				const matchDate = windowsFilters.date
+					? l.date === windowsFilters.date
+					: true;
 				const matchCriticality =
-					filters.criticality !== "all"
-						? l.criticality === filters.criticality
+					windowsFilters.criticality !== "all"
+						? l.criticality === windowsFilters.criticality
 						: true;
-				const matchProvider = filters.provider
-					? l.provider.toLowerCase().includes(filters.provider.toLowerCase())
+				const matchProvider = windowsFilters.provider
+					? l.provider
+							.toLowerCase()
+							.includes(windowsFilters.provider.toLowerCase())
 					: true;
 				return matchMessage && matchDate && matchCriticality && matchProvider;
 			})
 			.sort((a, b) =>
 				`${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`),
 			);
-	}, [windowsLogs, filters]);
+	}, [windowsLogs, windowsFilters]);
 
 	const columns = useMemo(() => getMapper("windows-event").columns ?? [], []);
-
-	const handleFileChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const files = Array.from(e.target.files ?? []).filter((f) =>
-				f.name.endsWith(".json"),
-			) as File[];
-			if (files.length) setLogFiles(files);
-			e.target.value = "";
-		},
-		[],
-	);
 
 	return (
 		<div
@@ -131,7 +114,9 @@ export function WindowsList({ onNavigate }: WindowsListProps) {
 								margin: "4px 0 0",
 							}}
 						>
-							{filteredLogs.length} de {windowsLogs.length} eventos
+							{progress.isLoading
+								? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
+								: `${filteredLogs.length} de ${windowsLogs.length} eventos`}
 						</p>
 					</div>
 					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -142,27 +127,22 @@ export function WindowsList({ onNavigate }: WindowsListProps) {
 							accept=".json"
 							multiple
 							style={{ display: "none" }}
-							onChange={handleFileChange}
+							onChange={handleChange}
 						/>
-						<button
-							onClick={() => fileInputRef.current?.click()}
-							style={{
-								padding: "8px 16px",
-								borderRadius: 8,
-								border: "1px solid var(--border)",
-								backgroundColor: "var(--primary)",
-								color: "var(--primary-foreground)",
-								fontSize: 13,
-								fontWeight: 600,
-								cursor: "pointer",
-							}}
-						>
+						<button onClick={openPicker} style={btnPrimary}>
 							+ Carregar Logs
+						</button>
+						<button onClick={reload} style={btnSecondary}>
+							↺ Recarregar
 						</button>
 					</div>
 				</div>
 
-				{/* Filtros específicos para Event Logs */}
+				{progress.isLoading && (
+					<ProgressBar percent={progress.percentComplete} />
+				)}
+
+				{/* Filtros inline — específicos desta página */}
 				<div
 					style={{
 						display: "grid",
@@ -178,27 +158,20 @@ export function WindowsList({ onNavigate }: WindowsListProps) {
 					<input
 						type="text"
 						placeholder="Filtrar por descrição..."
-						value={filters.message}
-						onChange={(e) =>
-							setFilters((f) => ({ ...f, message: e.target.value }))
-						}
+						value={windowsFilters.message}
+						onChange={(e) => onWindowsFilterUpdate("message", e.target.value)}
 						style={inputStyle}
 					/>
 					<input
 						type="date"
-						value={filters.date}
-						onChange={(e) =>
-							setFilters((f) => ({ ...f, date: e.target.value }))
-						}
+						value={windowsFilters.date}
+						onChange={(e) => onWindowsFilterUpdate("date", e.target.value)}
 						style={inputStyle}
 					/>
 					<select
-						value={filters.criticality}
+						value={windowsFilters.criticality}
 						onChange={(e) =>
-							setFilters((f) => ({
-								...f,
-								criticality: e.target.value as WindowsFilters["criticality"],
-							}))
+							onWindowsFilterUpdate("criticality", e.target.value)
 						}
 						style={inputStyle}
 					>
@@ -210,14 +183,12 @@ export function WindowsList({ onNavigate }: WindowsListProps) {
 					<input
 						type="text"
 						placeholder="Filtrar por provider..."
-						value={filters.provider}
-						onChange={(e) =>
-							setFilters((f) => ({ ...f, provider: e.target.value }))
-						}
+						value={windowsFilters.provider}
+						onChange={(e) => onWindowsFilterUpdate("provider", e.target.value)}
 						style={inputStyle}
 					/>
 					<button
-						onClick={() => setFilters(INITIAL_FILTERS)}
+						onClick={onWindowsFilterReset}
 						style={{
 							padding: "8px 14px",
 							borderRadius: 6,
@@ -232,10 +203,8 @@ export function WindowsList({ onNavigate }: WindowsListProps) {
 					</button>
 				</div>
 
-				{isLoading && <LoadingState />}
-				{error && <ErrorState message={error} />}
-
-				{!isLoading && !error && (
+				{progress.error && <ErrorState message={progress.error} />}
+				{!progress.error && (
 					<LogTable logs={filteredLogs} columns={columns} isMobile={isMobile} />
 				)}
 			</main>
@@ -243,7 +212,6 @@ export function WindowsList({ onNavigate }: WindowsListProps) {
 	);
 }
 
-// Estilo compartilhado dos inputs de filtro
 const inputStyle: React.CSSProperties = {
 	padding: "8px 12px",
 	borderRadius: 6,

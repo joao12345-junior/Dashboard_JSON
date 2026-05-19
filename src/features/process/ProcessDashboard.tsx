@@ -1,41 +1,35 @@
 // src/features/process/ProcessDashboard.tsx
-import { useState, useRef, useCallback } from "react";
-import { useLogs } from "../../hooks/useLogs";
+import { useState, useMemo } from "react";
 import { useProcessStats } from "./useProcessStats";
 import { Sidebar } from "../../components/Sidebar";
 import { ThemeToggleButton } from "../../components/ThemeButton";
-import { LoadingState } from "../../components/Loading";
 import { ErrorState } from "../../components/Error";
+import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { ProcessKpiCards } from "./components/ProcessKpiCards";
 import { DailyBarChart } from "../../components/charts/DailyBarChart";
 import { ProcessLog } from "../../lib/types/Log";
-import type { Page } from "../../App";
-import { useFileUpload } from "../../hooks/useFileUpload";
+import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
+import type { SharedPageProps } from "../../App";
 
-interface ProcessDashboardProps {
-	onNavigate: (page: Page) => void;
-}
-
-export function ProcessDashboard({ onNavigate }: ProcessDashboardProps) {
+export function ProcessDashboard({
+	logs,
+	progress,
+	reload,
+	fileInputRef,
+	handleChange,
+	openPicker,
+	onNavigate,
+}: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-
-	const {
-		files: logFiles,
-		inputRef: fileInputRef,
-		handleChange,
-		openPicker,
-	} = useFileUpload();
-
 	const [sidebarOpen, setSidebarOpen] = useState(false);
-	const { logs, isLoading, error } = useLogs(logFiles);
 
-	// Filtra apenas ProcessLog antes de passar para o hook de métricas
-	// O type predicate garante que processLogs é ProcessLog[] tipado
-	const processLogs = logs.filter(
-		(l): l is ProcessLog => l.logType === "process",
+	const processLogs = useMemo(
+		() => logs.filter((l): l is ProcessLog => l.logType === "process"),
+		[logs],
 	);
+
 	const stats = useProcessStats(processLogs);
 
 	return (
@@ -61,7 +55,6 @@ export function ProcessDashboard({ onNavigate }: ProcessDashboardProps) {
 					overflowY: "auto",
 				}}
 			>
-				{/* ── Header ── */}
 				<div
 					style={{
 						display: "flex",
@@ -88,7 +81,9 @@ export function ProcessDashboard({ onNavigate }: ProcessDashboardProps) {
 								margin: "4px 0 0",
 							}}
 						>
-							Métricas de backups e rotinas internas
+							{progress.isLoading
+								? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
+								: `${processLogs.length.toLocaleString("pt-BR")} logs de processo`}
 						</p>
 					</div>
 					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -101,56 +96,29 @@ export function ProcessDashboard({ onNavigate }: ProcessDashboardProps) {
 							style={{ display: "none" }}
 							onChange={handleChange}
 						/>
-						<button
-							onClick={openPicker}
-							style={{
-								padding: "8px 16px",
-								borderRadius: 8,
-								border: "1px solid var(--border)",
-								backgroundColor: "var(--primary)",
-								color: "var(--primary-foreground)",
-								fontSize: 13,
-								fontWeight: 600,
-								cursor: "pointer",
-							}}
-						>
+						<button onClick={openPicker} style={btnPrimary}>
 							+ Carregar Logs
+						</button>
+						<button onClick={reload} style={btnSecondary}>
+							↺ Recarregar
 						</button>
 						<button
 							onClick={() => onNavigate("process-list")}
-							style={{
-								padding: "8px 16px",
-								borderRadius: 8,
-								border: "1px solid var(--border)",
-								backgroundColor: "transparent",
-								color: "var(--foreground)",
-								fontSize: 13,
-								fontWeight: 600,
-								cursor: "pointer",
-							}}
+							style={btnSecondary}
 						>
 							Ver Registros →
 						</button>
 					</div>
 				</div>
 
-				{isLoading && <LoadingState />}
-				{error && <ErrorState message={error} />}
+				{progress.isLoading && (
+					<ProgressBar percent={progress.percentComplete} />
+				)}
+				{progress.error && <ErrorState message={progress.error} />}
 
-				{!isLoading && !error && (
+				{!progress.error && (
 					<div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-						{/* KPIs */}
-						<div
-							style={{
-								display: "grid",
-								gridTemplateColumns: "repeat(4, 1fr)",
-								gap: 16,
-							}}
-						>
-							<ProcessKpiCards stats={stats} isMobile={isMobile} />
-						</div>
-
-						{/* Gráfico de histórico diário */}
+						<ProcessKpiCards stats={stats} isMobile={isMobile} />
 						{stats.dailyStats.length > 0 && (
 							<DailyBarChart data={stats.dailyStats} />
 						)}

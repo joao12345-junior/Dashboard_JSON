@@ -3,59 +3,68 @@ import { WindowsEventLog } from "../lib/types/Log";
 
 interface CriticalityBadgeProps {
 	criticality: WindowsEventLog["criticality"];
-	levelLabel: WindowsEventLog["levelLabel"];
+	levelLabel: string;
 }
 
-// Configuração visual por nível de criticidade.
-// Separar dados de apresentação da lógica de renderização é
-// o Single Responsibility Principle aplicado a componentes.
-const CRITICALITY_CONFIG: Record<
-	WindowsEventLog["criticality"],
-	{ color: string; icon: string; label: string }
-> = {
-	High: { color: "var(--destructive)", icon: "▲", label: "Alto" },
-	Medium: { color: "var(--chart-5)", icon: "●", label: "Médio" },
-	Low: { color: "var(--chart-4)", icon: "▼", label: "Baixo" },
-	Unknown: { color: "var(--muted-foreground)", icon: "?", label: "?" },
-};
-
+/**
+ * Badge de criticidade para Windows Event Logs.
+ *
+ * Exibe dois elementos em coluna:
+ * - O nível de criticidade com cor semântica (ALTO / MÉDIO / BAIXO)
+ * - O label técnico do Windows (Crítico / Erro / Aviso)
+ *
+ * Por que flexDirection: column e não row?
+ * A coluna de status tem largura limitada (140px).
+ * Em coluna, os dois elementos sempre cabem sem truncar.
+ */
 export function CriticalityBadge({
 	criticality,
 	levelLabel,
 }: CriticalityBadgeProps) {
-	const config = CRITICALITY_CONFIG[criticality];
+	const color =
+		criticality === "High"
+			? "var(--destructive)"
+			: criticality === "Medium"
+				? "var(--chart-5)"
+				: "var(--chart-4)";
+
+	const label =
+		criticality === "High"
+			? "ALTO"
+			: criticality === "Medium"
+				? "MÉDIO"
+				: "BAIXO";
 
 	return (
-		<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-			{/* Badge de criticidade — vem da classificação da Microsoft */}
+		<div
+			style={{
+				display: "inline-flex",
+				flexDirection: "column",
+				alignItems: "flex-start",
+				gap: 2,
+			}}
+		>
 			<span
 				style={{
 					display: "inline-flex",
 					alignItems: "center",
-					gap: 5,
-					padding: "3px 10px",
-					borderRadius: 9999,
-					fontSize: 11,
+					gap: 4,
+					padding: "2px 8px",
+					borderRadius: 4,
+					backgroundColor: `color-mix(in oklch, ${color} 15%, transparent)`,
+					color,
+					fontSize: 10,
 					fontWeight: 700,
-					letterSpacing: "0.06em",
-					textTransform: "uppercase",
-					backgroundColor: `color-mix(in oklch, ${config.color} 12%, transparent)`,
-					color: config.color,
-					border: `1px solid color-mix(in oklch, ${config.color} 28%, transparent)`,
-					width: "fit-content",
+					whiteSpace: "nowrap",
 				}}
 			>
-				<span style={{ fontSize: 9 }}>{config.icon}</span>
-				{config.label}
+				▲ {label}
 			</span>
-
-			{/* Label do level técnico do Windows — contexto adicional */}
 			<span
 				style={{
 					fontSize: 10,
 					color: "var(--muted-foreground)",
 					paddingLeft: 2,
-					letterSpacing: "0.03em",
 				}}
 			>
 				{levelLabel}

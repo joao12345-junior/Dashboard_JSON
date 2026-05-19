@@ -97,6 +97,7 @@ export const WindowsEventLogMapper = {
 			key: "message",
 			label: "Descrição",
 			mono: true,
+			noWrap: true,
 			render: (log) => log.message,
 		},
 		{

@@ -39,16 +39,6 @@ export function useLogFilters(logs: ProcessLog[]) {
 		);
 	}, [logs, filters]);
 
-	const stats = useMemo(
-		() => ({
-			total: logs.length,
-			started: logs.filter((l) => l.status === 1).length,
-			finished: logs.filter((l) => l.status === 0).length,
-			erro: logs.filter((l) => l.status === 2).length,
-		}),
-		[logs],
-	);
-
 	// keyof LogFilterState: se você chamar updateFilter("typo", "x"),
 	// o TypeScript vai reclamar em tempo de compilação — não em runtime
 	const updateFilter = useCallback(
@@ -60,6 +50,16 @@ export function useLogFilters(logs: ProcessLog[]) {
 	const resetFilters = useCallback(
 		() => setFilters({ ...INITIAL_FILTERS }),
 		[],
+	);
+
+	const stats = useMemo(
+		() => ({
+			total: logs.length,
+			started: logs.filter((l) => l.status === 1).length,
+			finished: logs.filter((l) => l.status === 0).length,
+			erro: logs.filter((l) => l.status === 2).length,
+		}),
+		[logs],
 	);
 
 	return { filters, filteredLogs, stats, updateFilter, resetFilters };

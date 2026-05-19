@@ -1,41 +1,32 @@
 // src/features/home/HomePage.tsx
-import { useState, useRef, useCallback } from "react";
-import { useLogs } from "../../hooks/useLogs";
+import { useState } from "react";
 import { useHomeStats } from "./usehomeStats";
 import { Sidebar } from "../../components/Sidebar";
 import { ThemeToggleButton } from "../../components/ThemeButton";
-import { LoadingState } from "../../components/Loading";
 import { ErrorState } from "../../components/Error";
+import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { CriticalEventsFeed } from "./components/CriticalEventsFeed";
 import { GlobalKpiRow } from "./components/GlobalKpiRow";
-import type { Page } from "../../App";
+import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
+import type { SharedPageProps } from "../../App";
 
-interface HomePageProps {
-	onNavigate: (page: Page) => void;
-}
-
-export function HomePage({ onNavigate }: HomePageProps) {
+export function HomePage({
+	logs,
+	staticLogs,
+	manualLogs,
+	progress,
+	reload,
+	fileInputRef,
+	handleChange,
+	openPicker,
+	onNavigate,
+}: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-
 	const [sidebarOpen, setSidebarOpen] = useState(false);
-	const [logFiles, setLogFiles] = useState<File[]>([]);
-	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	const { logs, isLoading, error } = useLogs(logFiles);
 	const stats = useHomeStats(logs);
-
-	const handleFileChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const files = Array.from(e.target.files ?? []).filter((f) =>
-				f.name.endsWith(".json"),
-			) as File[];
-			if (files.length) setLogFiles((prev) => [...prev, ...files]);
-			e.target.value = "";
-		},
-		[],
-	);
 
 	return (
 		<div
@@ -60,7 +51,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
 					overflowY: "auto",
 				}}
 			>
-				{/* ── Header ── */}
 				<div
 					style={{
 						display: "flex",
@@ -87,7 +77,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
 								margin: "4px 0 0",
 							}}
 						>
-							Visão consolidada de todos os logs do servidor
+							{progress.isLoading
+								? `Carregando… ${progress.percentComplete}%`
+								: `${staticLogs.length.toLocaleString("pt-BR")} do servidor · ${manualLogs.length.toLocaleString("pt-BR")} manuais`}
 						</p>
 					</div>
 					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -98,43 +90,31 @@ export function HomePage({ onNavigate }: HomePageProps) {
 							accept=".json"
 							multiple
 							style={{ display: "none" }}
-							onChange={handleFileChange}
+							onChange={handleChange}
 						/>
-						<button
-							onClick={() => fileInputRef.current?.click()}
-							style={{
-								padding: "8px 16px",
-								borderRadius: 8,
-								border: "1px solid var(--border)",
-								backgroundColor: "var(--primary)",
-								color: "var(--primary-foreground)",
-								fontSize: 13,
-								fontWeight: 600,
-								cursor: "pointer",
-							}}
-						>
+						<button onClick={openPicker} style={btnPrimary}>
 							+ Carregar Logs
+						</button>
+						<button onClick={reload} style={btnSecondary}>
+							↺ Recarregar
 						</button>
 					</div>
 				</div>
 
-				{/* ── Estados de loading/erro ── */}
-				{isLoading && <LoadingState />}
-				{error && <ErrorState message={error} />}
+				{progress.isLoading && (
+					<ProgressBar percent={progress.percentComplete} />
+				)}
+				{progress.error && <ErrorState message={progress.error} />}
 
-				{/* ── Conteúdo principal ── */}
-				{!isLoading && !error && (
+				{!progress.error && (
 					<div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-						{/* KPIs globais — números que importam imediatamente */}
 						<GlobalKpiRow
 							totalErrors={stats.totalErrors}
 							totalWarnings={stats.totalWarnings}
-							totalLogs={stats.totalLogs} // ← adiciona aqui
+							totalLogs={stats.totalLogs}
 							byType={stats.byType}
 							onNavigate={onNavigate}
 						/>
-
-						{/* Feed de eventos críticos recentes */}
 						<CriticalEventsFeed
 							events={stats.recentCritical}
 							onNavigate={onNavigate}
