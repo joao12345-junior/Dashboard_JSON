@@ -54,4 +54,8 @@ function generateIndexPlugin() {
 
 export default defineConfig({
 	plugins: [react(), generateIndexPlugin()],
+	server: {
+		host: true,
+		port: 5173,
+	},
 });

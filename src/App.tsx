@@ -13,6 +13,7 @@ import { ProcessDashboard } from "./features/process/ProcessDashboard";
 import { ProcessList } from "./features/process/ProcessList";
 import { WindowsDashboard } from "./features/windows-event/WindowsDashboard";
 import { WindowsList } from "./features/windows-event/WindowsList";
+import { Settings } from "./features/settings/settingsPage";
 
 import type { LoadProgress, DebugInfo } from "./hooks/useProgressiveLogs";
 import type { Log } from "./lib/types/Log";
@@ -23,7 +24,8 @@ export type Page =
 	| "process-dashboard"
 	| "process-list"
 	| "windows-dashboard"
-	| "windows-list";
+	| "windows-list"
+	| "settings";
 
 /**
  * Filtros de ProcessList — elevados para o App para sobreviver à navegação.
@@ -169,6 +171,8 @@ function AppContent() {
 				return <WindowsDashboard {...sharedProps} />;
 			case "windows-list":
 				return <WindowsList {...sharedProps} />;
+			case "settings":
+				return <Settings {...sharedProps} />;
 		}
 	}
 

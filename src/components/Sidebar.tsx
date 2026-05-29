@@ -44,6 +44,10 @@ const NAV_SECTIONS = [
 			{ page: "windows-list" as Page, label: "Registros", icon: "☰" },
 		],
 	},
+	{
+		label: "Configurações",
+		items: [{ page: "settings" as Page, label: "Ajustes", icon: "⚙" }],
+	},
 ] as const;
 
 export function Sidebar({
