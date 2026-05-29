@@ -8,13 +8,13 @@ pnpm-debug.log*
 lerna-debug.log*
 
 public/data
-
+*.ps1
 node_modules
 dist
 dist-ssr
 *.local
 .env
-logdash.rar
+*.rar
 
 # Editor directories and files
 .vscode/*
