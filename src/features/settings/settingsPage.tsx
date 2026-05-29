@@ -1,14 +1,13 @@
-// src/features/windows-event/WindowsDashboard.tsx
-import { useState, useMemo } from "react";
+// src/features/settings/SettingsPage.tsx
+import { useState, useMemo, useEffect } from "react";
 import { Sidebar } from "../../components/Sidebar";
-import { ThemeToggleButton } from "../../components/ThemeButton";
-import { ErrorState } from "../../components/Error";
-import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { WindowsEventLog } from "../../lib/types/Log";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { SharedPageProps } from "../../App";
 import { MenuLocationPastas } from "./menuLocationPastas";
+import { loadLogPaths, saveLogPaths } from "../../lib/storage/logPaths";
+import { ThemeToggleButton } from "../../components/ThemeButton";
 
 export function Settings({
 	logs,
@@ -28,6 +27,22 @@ export function Settings({
 			logs.filter((l): l is WindowsEventLog => l.logType === "windows-event"),
 		[logs],
 	);
+
+	// caminhos das pastas
+	const [paths, setPaths] = useState<string[]>(() => loadLogPaths());
+
+	useEffect(() => {
+		// sincroniza localStorage sempre que paths mudar
+		saveLogPaths(paths);
+	}, [paths]);
+
+	function handleAddPaths(next: string[]) {
+		setPaths(next);
+	}
+
+	function handleRemovePath(pathToRemove: string) {
+		setPaths((prev) => prev.filter((p) => p !== pathToRemove));
+	}
 
 	return (
 		<div
@@ -108,12 +123,73 @@ export function Settings({
 				<div>
 					<div>
 						<header style={{ display: "flex", alignItems: "center", gap: 16 }}>
-							<h3>Caminhos das Pastas</h3>
-							<MenuLocationPastas id={1} onClick={() => {}} />
+							<h3 style={{ margin: 0 }}>Caminhos das Pastas</h3>
+							<MenuLocationPastas
+								existingPaths={paths}
+								onSave={handleAddPaths}
+								onRemove={handleRemovePath}
+							/>
 						</header>
 						<p style={{ color: "var(--muted-foreground)" }}>
 							Configure os caminhos das pastas onde os logs estão armazenados.
 						</p>
+
+						{/* Lista visível na página de settings */}
+						<div style={{ marginTop: 12 }}>
+							{paths.length === 0 ? (
+								<p style={{ color: "var(--muted-foreground)" }}>
+									Nenhum caminho salvo.
+								</p>
+							) : (
+								<ul
+									style={{
+										padding: 0,
+										margin: 0,
+										listStyle: "none",
+										display: "grid",
+										gap: 8,
+									}}
+								>
+									{paths.map((p) => (
+										<li
+											key={p}
+											style={{
+												display: "flex",
+												alignItems: "center",
+												justifyContent: "space-between",
+												gap: 8,
+												padding: "8px",
+												borderRadius: 6,
+												background: "var(--color-card, var(--card))",
+												color:
+													"var(--color-card-foreground, var(--card-foreground))",
+												border: "1px solid var(--color-border, var(--border))",
+											}}
+										>
+											<span
+												style={{
+													overflow: "hidden",
+													textOverflow: "ellipsis",
+													whiteSpace: "nowrap",
+													flex: 1,
+												}}
+											>
+												{p}
+											</span>
+											<div style={{ display: "flex", gap: 8 }}>
+												<button
+													onClick={() => handleRemovePath(p)}
+													title="Remover caminho"
+													style={btnSecondary}
+												>
+													Remover
+												</button>
+											</div>
+										</li>
+									))}
+								</ul>
+							)}
+						</div>
 					</div>
 				</div>
 			</main>
