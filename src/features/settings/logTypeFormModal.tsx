@@ -26,7 +26,7 @@ export function LogTypeFormModal({
 		existingLogType ?? availableTypes[0]?.key ?? DEFAULT_LOG_TYPE,
 	);
 	const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
-	const firstInputRef = useRef<HTMLSelectElement>(null);
+	const firstInputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
 		if (isOpen) {
@@ -105,8 +105,9 @@ export function LogTypeFormModal({
 
 			<label style={fieldStyle}>
 				Tipo de log
-				<select
+				<input
 					ref={firstInputRef}
+					list="log-types"
 					value={logType}
 					onChange={(e) => {
 						setLogType(e.target.value);
@@ -118,13 +119,14 @@ export function LogTypeFormModal({
 							? "var(--destructive)"
 							: "var(--border)",
 					}}
-				>
+				/>
+				<datalist id="log-types">
 					{availableTypes.map((type) => (
 						<option key={type.key} value={type.key}>
 							{type.label}
 						</option>
 					))}
-				</select>
+				</datalist>
 				{errors.logType && <span style={errorStyle}>{errors.logType}</span>}
 				{availableTypes.find((t) => t.key === logType)?.description && (
 					<span style={hintStyle}>

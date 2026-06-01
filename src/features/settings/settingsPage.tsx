@@ -1,5 +1,5 @@
 // src/features/settings/settingsPage.tsx
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Sidebar } from "../../components/Sidebar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
@@ -9,9 +9,12 @@ import {
 	loadLogSources,
 	saveLogSources,
 	resetLogSources,
+	loadLogTypes,
+	saveLogTypes,
 } from "../../lib/storage/logPaths";
 import type { LogSource } from "../../lib/storage/logPaths";
 import { getRegisteredTypes } from "../../lib/data/LogMapperRegistry";
+import type { LogTypeDescriptor } from "../../lib/data/LogMapperRegistry";
 import {
 	getAllPlugins,
 	registerPlugin,
@@ -50,19 +53,40 @@ export function Settings({
 		null,
 	);
 
-	// Tipos Logs
-	const [logTypes, setLogTypes] = useState<string[]>(() => {
+	// Tipos salvos pelo usuário, persistidos no localStorage
+	const [customLogTypes, setCustomLogTypes] = useState<string[]>(() =>
+		loadLogTypes(),
+	);
+	const [logTypesModalOpen, setLogTypesModalOpen] = useState(false);
+	const [editingLogType, setEditingLogType] = useState<string | null>(null);
+
+	const logTypes = useMemo(() => {
 		const typesFromSources = sources
 			.filter((s) => s.enabled)
 			.map((s) => s.logType);
-		return [...new Set(typesFromSources)];
-	});
-	const [logTypesModalOpen, setLogTypesModalOpen] = useState(false);
-	const [editingLogType, setEditingLogType] = useState<string | null>(null);
+		return [...new Set([...typesFromSources, ...customLogTypes])];
+	}, [sources, customLogTypes]);
 
 	// Tipos disponíveis para o select de fonte — vem do LogMapperRegistry
 	// useEffect garante que a lista atualiza quando plugins são adicionados
 	const [availableTypes, setAvailableTypes] = useState(getRegisteredTypes);
+
+	const sourceAvailableTypes = [
+		...availableTypes,
+		...logTypes
+			.filter(
+				(type) => !availableTypes.some((registered) => registered.key === type),
+			)
+			.map(
+				(key) =>
+					({
+						key,
+						label: key,
+						description: "Tipo de log personalizado",
+						builtIn: false,
+					}) as LogTypeDescriptor,
+			),
+	];
 
 	function refreshPluginState() {
 		setPlugins(getAllPlugins());
@@ -116,13 +140,19 @@ export function Settings({
 	// ── Handlers: Tipos de Log ───────────────────────────────────────────────
 
 	function handleSaveLogType(logType: string) {
-		if (!logTypes.includes(logType)) {
-			setLogTypes([...logTypes, logType]);
+		if (!customLogTypes.includes(logType)) {
+			const next = [...customLogTypes, logType];
+			setCustomLogTypes(next);
+			saveLogTypes(next);
 		}
+		setLogTypesModalOpen(false);
+		setEditingLogType(null);
 	}
 
 	function handleDeleteLogType(logType: string) {
-		setLogTypes(logTypes.filter((t) => t !== logType));
+		const next = customLogTypes.filter((t) => t !== logType);
+		setCustomLogTypes(next);
+		saveLogTypes(next);
 	}
 
 	return (
@@ -290,19 +320,32 @@ export function Settings({
 						</button>
 					}
 				>
-					{plugins.map((plugin) => (
-						<PluginCard
-							key={plugin.id}
-							plugin={plugin}
-							onEdit={() => {
-								setEditingPlugin(plugin);
+					{plugins.length === 0 ? (
+						<EmptyState
+							message="Nenhum conversor registrado."
+							actionLabel="Adicionar um conversor"
+							onAction={() => {
+								setEditingPlugin(null);
 								setConverterModalOpen(true);
 							}}
-							onDelete={
-								plugin.builtIn ? undefined : () => handleDeletePlugin(plugin.id)
-							}
 						/>
-					))}
+					) : (
+						plugins.map((plugin) => (
+							<PluginCard
+								key={plugin.id}
+								plugin={plugin}
+								onEdit={() => {
+									setEditingPlugin(plugin);
+									setConverterModalOpen(true);
+								}}
+								onDelete={
+									plugin.builtIn
+										? undefined
+										: () => handleDeletePlugin(plugin.id)
+								}
+							/>
+						))
+					)}
 				</SettingsSection>
 				<SettingsSection
 					title="Tipos de Logs Registrados"
@@ -356,7 +399,7 @@ export function Settings({
 				existingAliases={sources
 					.filter((s) => s.alias !== editingSource?.alias)
 					.map((s) => s.alias)}
-				availableTypes={availableTypes}
+				availableTypes={sourceAvailableTypes}
 			/>
 
 			<ConverterFormModal
