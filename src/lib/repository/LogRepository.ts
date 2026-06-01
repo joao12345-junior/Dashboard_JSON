@@ -2,21 +2,32 @@
 
 import { Log } from "../types/Log";
 import { detectLogType, getMapper } from "../data/LogMapperRegistry";
+import type { LogSource } from "../storage/logPaths";
 
 // ── Tipos públicos ────────────────────────────────────────────────────────────
 
+/** Metadados de um arquivo individual, vindos do index.json */
 export interface FileIndexEntry {
 	name: string;
 	size_bytes: number;
 	size_mb: number;
 }
 
+/** Estrutura completa do index.json gerado pelo Python */
 export interface LogIndex {
 	generated_at: string;
 	total_files: number;
 	files: FileIndexEntry[];
 }
 
+/**
+ * Resultado do carregamento de um arquivo individual.
+ *
+ * União discriminada — o campo `status` identifica qual forma está ativa.
+ * TypeScript sabe exatamente quais campos existem em cada branch:
+ *   if (result.status === "error")   → result.error está disponível
+ *   if (result.status === "success") → result.recordCount está disponível
+ */
 export type FileLoadResult =
 	| {
 			status: "success";
@@ -24,6 +35,7 @@ export type FileLoadResult =
 			recordCount: number;
 			size_mb: number;
 			duration_ms: number;
+			sourceAlias: string;
 	  }
 	| {
 			status: "error";
@@ -31,14 +43,17 @@ export type FileLoadResult =
 			error: string;
 			size_mb: number;
 			duration_ms: number;
+			sourceAlias: string;
 	  }
 	| {
 			status: "skipped";
 			fileName: string;
 			reason: string;
 			size_mb: number;
+			sourceAlias: string;
 	  };
 
+/** Callback chamado a cada lote carregado — alimenta o hook de progresso */
 export type BatchCallback = (params: {
 	logs: Log[];
 	results: FileLoadResult[];
@@ -48,49 +63,42 @@ export type BatchCallback = (params: {
 
 // ── Funções internas ──────────────────────────────────────────────────────────
 
-function mapRawToLog(raw: Record<string, unknown>): Log {
-	const logType = detectLogType(raw);
+/**
+ * Converte um item bruto do JSON em Log usando o mapper correto.
+ *
+ * Hierarquia de detecção (do mais confiável ao menos confiável):
+ * 1. logTypeHint — vem da LogSource configurada pelo usuário (mais confiável)
+ * 2. detectLogType — heurística pelo conteúdo do JSON (fallback)
+ *
+ * Por que a dica tem prioridade?
+ * detectLogType() infere pelo conteúdo. Se amanhã chegar um formato novo
+ * que por acaso tenha um campo "Start", ele seria mapeado errado.
+ * A dica elimina essa ambiguidade.
+ */
+function mapRawToLog(raw: Record<string, unknown>, logTypeHint?: string): Log {
+	const logType = logTypeHint ?? detectLogType(raw);
 	const mapper = getMapper(logType);
 	return mapper.toLog(raw);
 }
 
 /**
- * Verifica se uma resposta HTTP realmente contém JSON.
+ * Carrega e processa um único arquivo JSON via fetch.
  *
- * Por que isso é necessário?
- * O Vite (e qualquer SPA com historyApiFallback) devolve o index.html
- * para rotas não encontradas, em vez de um 404 limpo.
- * Esse HTML tem status 200 e começa com "<!doctype", o que quebra
- * o JSON.parse com o erro "Unexpected token '<'".
- *
- * A verificação do Content-Type detecta isso antes do parse,
- * permitindo uma mensagem de erro útil para o operador.
+ * Retorna FileLoadResult em vez de lançar exceção — padrão
+ * "Railway Oriented Programming": o fluxo sempre continua,
+ * seja no trilho de sucesso ou no trilho de erro.
+ * Um arquivo corrompido não derruba os outros.
  */
-function assertJsonResponse(response: Response, url: string): void {
-	const contentType = response.headers.get("Content-Type") ?? "";
-	const isJson =
-		contentType.includes("application/json") ||
-		contentType.includes("text/plain"); // alguns servidores servem JSON como text/plain
-
-	if (!isJson) {
-		// Se o Content-Type não é JSON, o servidor provavelmente devolveu HTML.
-		// Isso acontece quando o arquivo não existe e o servidor usa fallback.
-		throw new Error(
-			`Servidor devolveu "${contentType}" em vez de JSON para: ${url}\n` +
-				`Verifique se o arquivo existe em public/data/ e se o generate_index.py foi executado.`,
-		);
-	}
-}
-
 async function fetchSingleFile(
 	entry: FileIndexEntry,
-	basePath: string,
+	sourceUrl: string,
+	sourceAlias: string,
+	logTypeHint?: string,
 ): Promise<{ logs: Log[]; result: FileLoadResult }> {
 	const start = performance.now();
-	const url = `${basePath}/${entry.name}`;
 
 	try {
-		const response = await fetch(url);
+		const response = await fetch(`${sourceUrl}/${entry.name}`);
 
 		if (!response.ok) {
 			return {
@@ -101,13 +109,10 @@ async function fetchSingleFile(
 					error: `HTTP ${response.status}: ${response.statusText}`,
 					size_mb: entry.size_mb,
 					duration_ms: Math.round(performance.now() - start),
+					sourceAlias,
 				},
 			};
 		}
-
-		// Valida Content-Type antes de tentar o parse —
-		// evita o "Unexpected token '<'" quando o servidor devolve HTML
-		assertJsonResponse(response, url);
 
 		const parsed = await response.json();
 
@@ -119,6 +124,7 @@ async function fetchSingleFile(
 					fileName: entry.name,
 					reason: "Arquivo vazio",
 					size_mb: entry.size_mb,
+					sourceAlias,
 				},
 			};
 		}
@@ -129,7 +135,7 @@ async function fetchSingleFile(
 				? parsed.logs
 				: [parsed];
 
-		const logs = raws.map(mapRawToLog);
+		const logs = raws.map((raw) => mapRawToLog(raw, logTypeHint));
 		const duration_ms = Math.round(performance.now() - start);
 
 		return {
@@ -140,6 +146,7 @@ async function fetchSingleFile(
 				recordCount: logs.length,
 				size_mb: entry.size_mb,
 				duration_ms,
+				sourceAlias,
 			},
 		};
 	} catch (err) {
@@ -151,47 +158,118 @@ async function fetchSingleFile(
 				error: err instanceof Error ? err.message : "Erro desconhecido",
 				size_mb: entry.size_mb,
 				duration_ms: Math.round(performance.now() - start),
+				sourceAlias,
 			},
 		};
 	}
+}
+
+/**
+ * Lê um File local via FileReader.
+ * Separado do repositório porque é I/O diferente (disco local vs rede),
+ * mas produz o mesmo tipo de resultado.
+ */
+async function readLocalFile(
+	file: File,
+): Promise<{ logs: Log[]; result: FileLoadResult }> {
+	const start = performance.now();
+	const size_mb = Math.round((file.size / (1024 * 1024)) * 100) / 100;
+
+	return new Promise((resolve) => {
+		const reader = new FileReader();
+
+		reader.onload = (e) => {
+			try {
+				const parsed = JSON.parse(e.target?.result as string);
+				const raws: Record<string, unknown>[] = Array.isArray(parsed)
+					? parsed
+					: parsed.logs
+						? parsed.logs
+						: [parsed];
+
+				const logs = raws.map((raw) => mapRawToLog(raw));
+
+				resolve({
+					logs,
+					result: {
+						status: "success",
+						fileName: file.name,
+						recordCount: logs.length,
+						size_mb,
+						duration_ms: Math.round(performance.now() - start),
+						sourceAlias: "manual",
+					},
+				});
+			} catch (err) {
+				resolve({
+					logs: [],
+					result: {
+						status: "error",
+						fileName: file.name,
+						error: err instanceof Error ? err.message : "JSON inválido",
+						size_mb,
+						duration_ms: Math.round(performance.now() - start),
+						sourceAlias: "manual",
+					},
+				});
+			}
+		};
+
+		reader.onerror = () => {
+			resolve({
+				logs: [],
+				result: {
+					status: "error",
+					fileName: file.name,
+					error: "Erro ao ler arquivo",
+					size_mb,
+					duration_ms: Math.round(performance.now() - start),
+					sourceAlias: "manual",
+				},
+			});
+		};
+
+		reader.readAsText(file, "utf-8");
+	});
 }
 
 // ── API pública do repositório ────────────────────────────────────────────────
 
 export const LogRepository = {
 	/**
-	 * Busca o índice de arquivos disponíveis.
-	 *
-	 * Ordem de verificações:
-	 * 1. response.ok — garante que o HTTP não deu erro (404, 500, etc.)
-	 * 2. assertJsonResponse — garante que o corpo é JSON, não HTML de fallback
-	 * 3. response.json() — só chega aqui se as duas condições anteriores passaram
+	 * Busca o índice de arquivos disponíveis em uma fonte.
+	 * Lançar exceção aqui é intencional — sem índice, não há nada a fazer
+	 * para esta fonte específica.
 	 */
-	async fetchIndex(basePath = "/data"): Promise<LogIndex> {
-		const url = `${basePath}/index.json`;
-		const response = await fetch(url);
-
+	async fetchIndex(sourceUrl: string): Promise<LogIndex> {
+		const response = await fetch(`${sourceUrl}/index.json`);
 		if (!response.ok) {
 			throw new Error(
-				`index.json não encontrado (HTTP ${response.status}).\n` +
-					`Execute: python generate_index.py\n` +
-					`Caminho esperado: public/data/index.json`,
+				`Índice não encontrado em ${sourceUrl}/index.json. ` +
+					"Verifique se o servidor está rodando e a URL está correta.",
 			);
 		}
-
-		// Segunda linha de defesa: o arquivo pode existir mas o servidor
-		// ainda pode devolver HTML por questões de configuração/cache
-		assertJsonResponse(response, url);
-
 		return response.json();
 	},
 
+	/**
+	 * Carrega todos os arquivos de uma LogSource em lotes.
+	 *
+	 * Recebe LogSource em vez de basePath string:
+	 * - A URL vem da source configurada (não hardcoded)
+	 * - O logTypeHint elimina a ambiguidade do detectLogType
+	 *
+	 * Por que lotes e não um arquivo por vez?
+	 * Um arquivo por vez seria lento (centenas de requisições sequenciais).
+	 * Todos de uma vez esgota memória.
+	 * Lotes de 10 equilibra velocidade e consumo.
+	 */
 	async fetchProgressively(
 		onBatch: BatchCallback,
-		basePath = "/data",
+		source: LogSource,
 		batchSize = 10,
 	): Promise<void> {
-		const index = await this.fetchIndex(basePath);
+		const index = await this.fetchIndex(source.url);
 		const { files } = index;
 		let loadedFiles = 0;
 
@@ -199,7 +277,9 @@ export const LogRepository = {
 			const batch = files.slice(i, i + batchSize);
 
 			const batchResults = await Promise.all(
-				batch.map((entry) => fetchSingleFile(entry, basePath)),
+				batch.map((entry) =>
+					fetchSingleFile(entry, source.url, source.alias, source.logType),
+				),
 			);
 
 			const batchLogs = batchResults.flatMap((r) => r.logs);
@@ -215,6 +295,10 @@ export const LogRepository = {
 		}
 	},
 
+	/**
+	 * Carrega arquivos passados manualmente (botão "Carregar Logs").
+	 * Usa FileReader — sem fetch, sem índice.
+	 */
 	async fromFiles(
 		files: File[],
 		onBatch: BatchCallback,
@@ -225,9 +309,7 @@ export const LogRepository = {
 		for (let i = 0; i < files.length; i += batchSize) {
 			const batch = files.slice(i, i + batchSize);
 
-			const batchResults = await Promise.all(
-				batch.map((file) => readLocalFile(file)),
-			);
+			const batchResults = await Promise.all(batch.map(readLocalFile));
 
 			const batchLogs = batchResults.flatMap((r) => r.logs);
 			const batchFileResults = batchResults.map((r) => r.result);
@@ -242,83 +324,3 @@ export const LogRepository = {
 		}
 	},
 };
-
-// ── Leitura de arquivos locais (upload manual) ────────────────────────────────
-
-async function readLocalFile(
-	file: File,
-): Promise<{ logs: Log[]; result: FileLoadResult }> {
-	const start = performance.now();
-
-	return new Promise((resolve) => {
-		const reader = new FileReader();
-
-		reader.onload = (e) => {
-			try {
-				const text = e.target?.result;
-				if (typeof text !== "string") {
-					resolve({
-						logs: [],
-						result: {
-							status: "error",
-							fileName: file.name,
-							error: "Conteúdo não é texto",
-							size_mb: file.size / (1024 * 1024),
-							duration_ms: Math.round(performance.now() - start),
-						},
-					});
-					return;
-				}
-
-				const parsed = JSON.parse(text);
-				const raws: Record<string, unknown>[] = Array.isArray(parsed)
-					? parsed
-					: parsed.logs
-						? parsed.logs
-						: [parsed];
-
-				const logs = raws.map(mapRawToLog);
-
-				resolve({
-					logs,
-					result: {
-						status: "success",
-						fileName: file.name,
-						recordCount: logs.length,
-						size_mb: round(file.size / (1024 * 1024), 2),
-						duration_ms: Math.round(performance.now() - start),
-					},
-				});
-			} catch (err) {
-				resolve({
-					logs: [],
-					result: {
-						status: "error",
-						fileName: file.name,
-						error: err instanceof Error ? err.message : "JSON inválido",
-						size_mb: round(file.size / (1024 * 1024), 2),
-						duration_ms: Math.round(performance.now() - start),
-					},
-				});
-			}
-		};
-
-		reader.onerror = () =>
-			resolve({
-				logs: [],
-				result: {
-					status: "error",
-					fileName: file.name,
-					error: "Erro ao ler arquivo",
-					size_mb: round(file.size / (1024 * 1024), 2),
-					duration_ms: Math.round(performance.now() - start),
-				},
-			});
-
-		reader.readAsText(file);
-	});
-}
-
-function round(value: number, decimals: number): number {
-	return Math.round(value * 10 ** decimals) / 10 ** decimals;
-}

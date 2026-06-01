@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Log } from "../lib/types/Log";
 import { LogRepository, FileLoadResult } from "../lib/repository/LogRepository";
+import { loadEnabledSources } from "../lib/storage/logPaths";
 
 export interface LoadProgress {
 	loadedFiles: number;
@@ -25,15 +26,12 @@ export interface DebugInfo {
 }
 
 interface UseProgressiveLogsReturn {
-	// Fontes separadas — Opção C
 	staticLogs: Log[];
 	manualLogs: Log[];
-	// Combinado para conveniência
 	logs: Log[];
 	progress: LoadProgress;
 	debug: DebugInfo;
 	reload: () => void;
-	// Limpa só os logs manuais — sem recarregar os estáticos
 	clearManual: () => void;
 }
 
@@ -61,37 +59,39 @@ const EMPTY_DEBUG: DebugInfo = {
 export function useProgressiveLogs(
 	localFiles: File[] = [],
 ): UseProgressiveLogsReturn {
-	// Fontes separadas — cada uma tem seu próprio estado
 	const [staticLogs, setStaticLogs] = useState<Log[]>([]);
 	const [manualLogs, setManualLogs] = useState<Log[]>([]);
-
 	const [progress, setProgress] = useState<LoadProgress>(EMPTY_PROGRESS);
 	const [debug, setDebug] = useState<DebugInfo>(EMPTY_DEBUG);
 
-	// tick força o useEffect a re-executar quando reload() é chamado
 	const reloadTick = useRef(0);
 	const [tick, setTick] = useState(0);
 
 	const reload = useCallback(() => {
 		reloadTick.current += 1;
 		setTick((t) => t + 1);
-		// Limpa os dois arrays — reload é um recomeço total
 		setStaticLogs([]);
 		setManualLogs([]);
 	}, []);
 
-	// Limpa só os logs manuais sem tocar nos estáticos
 	const clearManual = useCallback(() => {
 		setManualLogs([]);
 	}, []);
 
-	// Carregamento dos arquivos estáticos (public/data/)
-	// Roda uma vez na montagem e quando reload() é chamado
+	// ── Carregamento estático ─────────────────────────────────────────────────
+	// Itera sobre TODAS as fontes habilitadas configuradas pelo usuário.
+	// Antes: sempre carregava de /data (hardcoded).
+	// Agora: carrega de cada LogSource ativa — a lista vem do localStorage.
 	useEffect(() => {
-		// Só carrega estáticos se não houver arquivos manuais
-		// Se o usuário carregou manualmente, os estáticos ficam
-		// disponíveis mas não são recarregados desnecessariamente
 		if (localFiles.length > 0) return;
+
+		const sources = loadEnabledSources();
+
+		// Sem fontes habilitadas: informa o usuário, não deixa em loading infinito
+		if (sources.length === 0) {
+			setProgress({ ...EMPTY_PROGRESS, isDone: true, error: null });
+			return;
+		}
 
 		let cancelled = false;
 		const startedAt = new Date();
@@ -101,25 +101,74 @@ export function useProgressiveLogs(
 		setDebug({ ...EMPTY_DEBUG, startedAt });
 		setStaticLogs([]);
 
-		async function loadStatic() {
+		async function loadAllSources() {
 			try {
-				await LogRepository.fetchProgressively((params) => {
-					if (cancelled) return;
+				// Cada fonte é carregada em sequência para não saturar a rede.
+				// O progresso é acumulado entre fontes — o usuário vê um único
+				// indicador de progresso global, não um por fonte.
+				let globalLoadedFiles = 0;
 
-					allResults.push(...params.results);
-					setStaticLogs((prev) => [...prev, ...params.logs]);
-					setProgress({
-						loadedFiles: params.loadedFiles,
-						totalFiles: params.totalFiles,
-						percentComplete: Math.round(
-							(params.loadedFiles / params.totalFiles) * 100,
-						),
-						isLoading: true,
-						isDone: false,
-						error: null,
-					});
-					setDebug(buildDebugInfo(allResults, startedAt, null));
-				});
+				// Primeira passagem: conta o total de arquivos em todas as fontes
+				// para calcular o percentual corretamente desde o início.
+				// Se fetchIndex falhar em uma fonte, ela é ignorada (não quebra as outras).
+				const indexResults = await Promise.allSettled(
+					sources.map((s) => LogRepository.fetchIndex(s.url)),
+				);
+
+				const totalFiles = indexResults.reduce((sum, result) => {
+					if (result.status === "fulfilled")
+						return sum + result.value.total_files;
+					return sum;
+				}, 0);
+
+				// Atualiza o total antes de começar a carregar
+				setProgress((prev) => ({ ...prev, totalFiles }));
+
+				// Segunda passagem: carrega cada fonte
+				for (const source of sources) {
+					if (cancelled) break;
+
+					try {
+						await LogRepository.fetchProgressively((params) => {
+							if (cancelled) return;
+
+							globalLoadedFiles += params.logs.length > 0 ? 0 : 0;
+							// Incrementa pelo número de arquivos do lote, não de logs
+							globalLoadedFiles = Math.min(
+								globalLoadedFiles + params.results.length,
+								totalFiles,
+							);
+
+							allResults.push(...params.results);
+							setStaticLogs((prev) => [...prev, ...params.logs]);
+							setProgress({
+								loadedFiles: globalLoadedFiles,
+								totalFiles,
+								percentComplete:
+									totalFiles > 0
+										? Math.round((globalLoadedFiles / totalFiles) * 100)
+										: 0,
+								isLoading: true,
+								isDone: false,
+								error: null,
+							});
+							setDebug(buildDebugInfo(allResults, startedAt, null));
+						}, source);
+					} catch (sourceErr) {
+						// Fonte inacessível: registra como erro mas continua com as outras
+						allResults.push({
+							status: "error",
+							fileName: "index.json",
+							error:
+								sourceErr instanceof Error
+									? sourceErr.message
+									: "Fonte inacessível",
+							size_mb: 0,
+							duration_ms: 0,
+							sourceAlias: source.alias,
+						});
+					}
+				}
 
 				if (!cancelled) {
 					const finishedAt = new Date();
@@ -141,14 +190,15 @@ export function useProgressiveLogs(
 			}
 		}
 
-		loadStatic();
+		loadAllSources();
 		return () => {
 			cancelled = true;
 		};
-	}, [tick]); // localFiles intencionalmente fora — ver comentário acima
+		// tick força re-execução quando reload() ou quando sources mudam
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [tick]);
 
-	// Carregamento dos arquivos manuais
-	// Roda sempre que localFiles mudar
+	// ── Carregamento manual ───────────────────────────────────────────────────
 	useEffect(() => {
 		if (localFiles.length === 0) return;
 
@@ -156,8 +206,6 @@ export function useProgressiveLogs(
 		const startedAt = new Date();
 		const allResults: FileLoadResult[] = [];
 
-		// Progresso separado para carregamento manual
-		// Não sobrescreve o progresso dos estáticos
 		setManualLogs([]);
 
 		async function loadManual() {
@@ -170,7 +218,6 @@ export function useProgressiveLogs(
 
 				if (!cancelled) {
 					const finishedAt = new Date();
-					// Adiciona os resultados manuais ao debug existente
 					setDebug((prev) => ({
 						...prev,
 						results: [...prev.results, ...allResults],
@@ -202,8 +249,6 @@ export function useProgressiveLogs(
 		};
 	}, [localFiles]);
 
-	// logs combinado — useMemo evita recriar o array a cada render
-	// sem mudança real nos dados
 	const logs = useMemo(
 		() => [...staticLogs, ...manualLogs],
 		[staticLogs, manualLogs],
@@ -212,8 +257,8 @@ export function useProgressiveLogs(
 	return { staticLogs, manualLogs, logs, progress, debug, reload, clearManual };
 }
 
-// ── Função auxiliar — extrai o cálculo de debug para fora do hook ─────────────
-// Funções puras são mais fáceis de testar e de ler dentro do hook
+// ── Função auxiliar ───────────────────────────────────────────────────────────
+// Extraída do hook: funções puras são mais fáceis de testar
 function buildDebugInfo(
 	results: FileLoadResult[],
 	startedAt: Date,

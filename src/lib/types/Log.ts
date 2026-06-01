@@ -1,3 +1,5 @@
+// types/Log.ts
+
 /**
  * Contrato mínimo — presente em qualquer tipo de log do sistema.
  * Campos universais que a UI sempre pode acessar com segurança.

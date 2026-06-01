@@ -1,6 +1,6 @@
 // src/components/DebugPanel.tsx
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { DebugInfo, LoadProgress } from "../hooks/useProgressiveLogs";
 import { FileLoadResult } from "../lib/repository/LogRepository";
 

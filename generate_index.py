@@ -72,6 +72,8 @@ if __name__ == "__main__":
     # Caminho relativo ao script — ajuste se necessário
     # O script deve ficar na raiz do projeto (junto com package.json)
     BASE = Path(__file__).parent
-    data_folder = BASE / "public" / "data"
+    data_folder1 = BASE / "public" / "data" / 'process_logs'
+    data_folder2 = BASE / "public" / "data" / 'windows_logs'
 
-    generate_index(data_folder)
+    generate_index(data_folder1)
+    generate_index(data_folder2)
