@@ -7,7 +7,7 @@ import type { LogTypeDescriptor } from "../../lib/data/LogMapperRegistry";
 interface LogTypeFormModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	onSave: (logType: string) => void;
+	onSave: (newLogType: string, previousLogType: string | null) => void;
 	existingLogType: string | null;
 	availableTypes: LogTypeDescriptor[];
 }
@@ -46,7 +46,7 @@ export function LogTypeFormModal({
 
 	function handleSubmit() {
 		if (!validate()) return;
-		onSave(logType);
+		onSave(logType, existingLogType);
 	}
 
 	const inputStyle: React.CSSProperties = {

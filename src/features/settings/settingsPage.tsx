@@ -139,12 +139,25 @@ export function Settings({
 
 	// ── Handlers: Tipos de Log ───────────────────────────────────────────────
 
-	function handleSaveLogType(logType: string) {
-		if (!customLogTypes.includes(logType)) {
-			const next = [...customLogTypes, logType];
-			setCustomLogTypes(next);
+	function handleSaveLogType(
+		newLogType: string,
+		previousLogType: string | null,
+	) {
+		setCustomLogTypes((prev) => {
+			// Remove o tipo antigo se estava sendo editado
+			const withoutPrevious = previousLogType
+				? prev.filter((t) => t !== previousLogType)
+				: prev;
+
+			// Adiciona o novo tipo (se ainda não existir)
+			const next = withoutPrevious.includes(newLogType)
+				? withoutPrevious
+				: [...withoutPrevious, newLogType];
+
 			saveLogTypes(next);
-		}
+			return next;
+		});
+
 		setLogTypesModalOpen(false);
 		setEditingLogType(null);
 	}

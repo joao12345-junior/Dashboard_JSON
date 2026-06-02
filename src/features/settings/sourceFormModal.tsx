@@ -69,8 +69,8 @@ export function SourceFormModal({
 		setErrors((prev) => ({ ...prev, [key]: undefined }));
 	}
 
-	async function validate(): Promise<boolean> {
-		const next: typeof errors = {};
+	function validate(): boolean {
+		const next: Partial<Record<string, string>> = {};
 
 		if (!form.label.trim()) next.label = "Nome de exibição é obrigatório.";
 
@@ -91,16 +91,25 @@ export function SourceFormModal({
 		) {
 			next.url = 'Use "/data" para local ou uma URL completa (http://...).';
 		}
-		if ((await handleTestConnection()) === "Erro")
+
+		// validate() lê o resultado do teste — não executa o teste.
+		// handleTestConnection() é responsável por escrever testStatus.
+		// Aqui só consultamos o que já foi decidido.
+		if (testStatus === "error") {
 			next.url =
 				"A URL não passou no teste de conexão. Verifique e tente novamente.";
+		}
+
+		if (testStatus === "idle" && form.url.trim()) {
+			next.url = "Teste a conexão antes de salvar.";
+		}
 
 		setErrors(next);
-		return Object.keys(next).length === 0 ? true : false;
+		return Object.keys(next).length === 0;
 	}
 
-	async function handleSubmit() {
-		if (!(await validate())) return;
+	function handleSubmit() {
+		if (!validate()) return;
 		onSave({ ...form, enabled: existingSource?.enabled ?? true });
 	}
 

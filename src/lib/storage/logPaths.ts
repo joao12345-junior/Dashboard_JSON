@@ -1,5 +1,7 @@
 // src/lib/storage/logPaths.ts
 
+import type { IConverterPlugin } from "../plugins/IConverterPlugin";
+
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 /**
@@ -33,40 +35,6 @@ export interface LogSource {
 	label: string;
 }
 
-/**
- * Representa um conversor de log instalado pelo usuário.
- *
- * Um conversor é diferente de um mapper:
- * - Mapper: sabe transformar JSON bruto → Log (roda no frontend)
- * - Converter: sabe transformar formato externo → JSON (roda como script)
- *
- * A settings page gerencia os metadados do conversor.
- * O script em si (Python, PowerShell, etc.) fica no servidor.
- */
-export interface ConverterEntry {
-	/** Identificador único do conversor */
-	id: string;
-	/** Nome exibido na UI */
-	name: string;
-	/** Descrição do formato que o conversor processa */
-	description: string;
-	/** Extensão de entrada: ".evtx", ".log", ".csv", etc. */
-	inputExtension: string;
-	/**
-	 * Caminho ou comando para executar o conversor no servidor.
-	 * Apenas informativo por enquanto — o frontend não executa scripts.
-	 * Exemplo: "python evtx_converter_v2.py"
-	 */
-	command: string;
-	/**
-	 * Se true, é um conversor embutido no sistema (evtx_converter_v2.py).
-	 * Built-ins aparecem na lista mas não podem ser removidos.
-	 */
-	builtIn: boolean;
-	/** Versão do conversor — exibida na UI para referência */
-	version: string;
-}
-
 // ── Chaves de storage ─────────────────────────────────────────────────────────
 
 /**
@@ -80,7 +48,7 @@ export interface ConverterEntry {
  * e o código quebra de formas imprevisíveis.
  */
 const SOURCES_KEY = "logdash:sources:v2";
-const CONVERTERS_KEY = "logdash:converters:v1";
+const PLUGINS_KEY = "logdash:converters:v1";
 
 // ── Fontes padrão ─────────────────────────────────────────────────────────────
 
@@ -102,24 +70,6 @@ const DEFAULT_SOURCES: LogSource[] = [
 		logType: "process",
 		enabled: true,
 		label: "Dados Locais (public/data/process_logs)",
-	},
-];
-
-/**
- * Conversores embutidos — espelham o que já existe no projeto.
- * builtIn: true impede remoção acidental pela UI.
- */
-const DEFAULT_CONVERTERS: ConverterEntry[] = [
-	{
-		id: "evtx-v2",
-		name: "Windows Event Log (.evtx)",
-		description:
-			"Converte arquivos .evtx do Windows para JSON estruturado com campos _enriched. " +
-			"Requer Python 3.8+ no servidor onde os logs estão armazenados.",
-		inputExtension: ".evtx",
-		command: "python evtx_converter_v2.py",
-		builtIn: true,
-		version: "2.0",
 	},
 ];
 
@@ -178,26 +128,25 @@ export function loadEnabledSources(): LogSource[] {
 
 // ── API pública — Converters ──────────────────────────────────────────────────
 
-export function loadConverters(): ConverterEntry[] {
+export function saveCustomPlugins(plugins: IConverterPlugin[]): void {
 	try {
-		const raw = localStorage.getItem(CONVERTERS_KEY);
-		if (!raw) return DEFAULT_CONVERTERS;
-		const parsed = JSON.parse(raw) as ConverterEntry[];
-		if (!Array.isArray(parsed)) return DEFAULT_CONVERTERS;
-
-		// Garante que os built-ins sempre estão na lista,
-		// mesmo que o localStorage esteja corrompido ou desatualizado
-		const hasEvtx = parsed.some((c) => c.id === "evtx-v2");
-		return hasEvtx ? parsed : [...DEFAULT_CONVERTERS, ...parsed];
+		const custom = plugins.filter((p) => !p.builtIn);
+		localStorage.setItem(PLUGINS_KEY, JSON.stringify(custom));
 	} catch {
-		return DEFAULT_CONVERTERS;
+		console.warn("[logPaths] Falha ao salvar plugins no localStorage");
 	}
 }
 
-export function saveConverters(converters: ConverterEntry[]): void {
+export function loadCustomPlugins(): IConverterPlugin[] {
 	try {
-		localStorage.setItem(CONVERTERS_KEY, JSON.stringify(converters));
+		const raw = localStorage.getItem(PLUGINS_KEY);
+		if (!raw) return [];
+
+		const parsed = JSON.parse(raw) as IConverterPlugin[];
+		if (!Array.isArray(parsed)) return [];
+
+		return parsed.map((p) => ({ ...p, builtIn: false, mapper: null }));
 	} catch {
-		console.warn("[logPaths] Falha ao salvar conversores no localStorage");
+		return [];
 	}
 }
