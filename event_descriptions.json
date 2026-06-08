@@ -1,0 +1,852 @@
+{
+  "Microsoft-Windows-Security-Auditing": {
+    "4618": {
+      "summary": "Ocorreu um padrão de evento de segurança monitorado.",
+      "criticality": "High"
+    },
+    "4649": {
+      "summary": "Um ataque de repetição foi detectado.",
+      "criticality": "High"
+    },
+    "4719": {
+      "summary": "A política de auditoria do sistema foi alterada.",
+      "criticality": "High"
+    },
+    "4765": {
+      "summary": "O histórico do SID foi adicionado a uma conta.",
+      "criticality": "High"
+    },
+    "4766": {
+      "summary": "Tentativa de adicionar histórico de SID a uma conta falhou.",
+      "criticality": "High"
+    },
+    "4794": {
+      "summary": "Tentativa de definir o Modo de Restauração dos Serviços de Diretório.",
+      "criticality": "High"
+    },
+    "4897": {
+      "summary": "Separação de funções ativada.",
+      "criticality": "High"
+    },
+    "4964": {
+      "summary": "Grupos especiais foram atribuídos a um novo logon.",
+      "criticality": "High"
+    },
+    "5124": {
+      "summary": "Uma configuração de segurança foi atualizada no Serviço de Respondente OCSP.",
+      "criticality": "High"
+    },
+    "1102": {
+      "summary": "O log de auditoria foi limpo.",
+      "criticality": "Medium"
+    },
+    "4621": {
+      "summary": "Administrador recuperou o sistema de CrashOnAuditFail.",
+      "criticality": "Medium"
+    },
+    "4675": {
+      "summary": "SIDs foram filtradas.",
+      "criticality": "Medium"
+    },
+    "4692": {
+      "summary": "Tentativa de backup da chave mestre de proteção de dados.",
+      "criticality": "Medium"
+    },
+    "4693": {
+      "summary": "Tentativa de recuperação da chave mestre de proteção de dados.",
+      "criticality": "Medium"
+    },
+    "4706": {
+      "summary": "Uma relação de confiança foi criada para um domínio.",
+      "criticality": "Medium"
+    },
+    "4713": {
+      "summary": "A política do Kerberos foi alterada.",
+      "criticality": "Medium"
+    },
+    "4714": {
+      "summary": "A política de recuperação de dados criptografados foi alterada.",
+      "criticality": "Medium"
+    },
+    "4715": {
+      "summary": "A política de auditoria (SACL) em um objeto foi alterada.",
+      "criticality": "Medium"
+    },
+    "4716": {
+      "summary": "Informações de domínio confiável foram modificadas.",
+      "criticality": "Medium"
+    },
+    "4724": {
+      "summary": "Tentativa de redefinição de senha de uma conta.",
+      "criticality": "Medium"
+    },
+    "4727": {
+      "summary": "Um grupo global habilitado para segurança foi criado.",
+      "criticality": "Medium"
+    },
+    "4735": {
+      "summary": "Um grupo local habilitado para segurança foi alterado.",
+      "criticality": "Medium"
+    },
+    "4737": {
+      "summary": "Um grupo global habilitado para segurança foi alterado.",
+      "criticality": "Medium"
+    },
+    "4739": {
+      "summary": "A política de domínio foi alterada.",
+      "criticality": "Medium"
+    },
+    "4754": {
+      "summary": "Um grupo universal habilitado para segurança foi criado.",
+      "criticality": "Medium"
+    },
+    "4755": {
+      "summary": "Um grupo universal habilitado para segurança foi alterado.",
+      "criticality": "Medium"
+    },
+    "4764": {
+      "summary": "O tipo de um grupo foi alterado.",
+      "criticality": "Medium"
+    },
+    "4780": {
+      "summary": "A ACL foi definida em contas membros de grupos de administradores.",
+      "criticality": "Medium"
+    },
+    "4816": {
+      "summary": "O RPC detectou uma violação de integridade ao descriptografar mensagem.",
+      "criticality": "Medium"
+    },
+    "4865": {
+      "summary": "Uma entrada de informações de floresta confiável foi adicionada.",
+      "criticality": "Medium"
+    },
+    "4866": {
+      "summary": "Uma entrada de informações de floresta confiável foi removida.",
+      "criticality": "Medium"
+    },
+    "4867": {
+      "summary": "Uma entrada de informações de floresta confiável foi modificada.",
+      "criticality": "Medium"
+    },
+    "4868": {
+      "summary": "O gerenciador de certificados negou uma solicitação de certificado pendente.",
+      "criticality": "Medium"
+    },
+    "4870": {
+      "summary": "Serviços de Certificados revogaram um certificado.",
+      "criticality": "Medium"
+    },
+    "4882": {
+      "summary": "As permissões de segurança para Serviços de Certificados mudaram.",
+      "criticality": "Medium"
+    },
+    "4885": {
+      "summary": "O filtro de auditoria dos Serviços de Certificados mudou.",
+      "criticality": "Medium"
+    },
+    "4890": {
+      "summary": "As configurações do gerenciador de certificados para Serviços de Certificados mudaram.",
+      "criticality": "Medium"
+    },
+    "4892": {
+      "summary": "Uma propriedade dos Serviços de Certificados mudou.",
+      "criticality": "Medium"
+    },
+    "4896": {
+      "summary": "Uma ou mais linhas foram excluídas do banco de dados do certificado.",
+      "criticality": "Medium"
+    },
+    "4906": {
+      "summary": "O valor de CrashOnAuditFail foi alterado.",
+      "criticality": "Medium"
+    },
+    "4907": {
+      "summary": "As configurações de auditoria no objeto foram alteradas.",
+      "criticality": "Medium"
+    },
+    "4908": {
+      "summary": "Tabela de Logon de Grupos Especiais modificada.",
+      "criticality": "Medium"
+    },
+    "4912": {
+      "summary": "A Política de Auditoria por Usuário foi alterada.",
+      "criticality": "Medium"
+    },
+    "4960": {
+      "summary": "IPsec descartou pacote de entrada com falha de verificação de integridade.",
+      "criticality": "Medium"
+    },
+    "4961": {
+      "summary": "IPsec descartou pacote de entrada com falha de verificação de reprodução.",
+      "criticality": "Medium"
+    },
+    "4962": {
+      "summary": "IPsec descartou pacote com número de sequência muito baixo.",
+      "criticality": "Medium"
+    },
+    "4963": {
+      "summary": "IPsec descartou pacote de texto limpo que deveria estar protegido.",
+      "criticality": "Medium"
+    },
+    "4965": {
+      "summary": "IPsec recebeu pacote com SPI incorreto de computador remoto.",
+      "criticality": "Medium"
+    },
+    "4976": {
+      "summary": "IPsec recebeu pacote de negociação inválido no Modo Principal.",
+      "criticality": "Medium"
+    },
+    "4977": {
+      "summary": "IPsec recebeu pacote de negociação inválido no Modo Rápido.",
+      "criticality": "Medium"
+    },
+    "4978": {
+      "summary": "IPsec recebeu pacote de negociação inválido no Modo Estendido.",
+      "criticality": "Medium"
+    },
+    "4983": {
+      "summary": "Falha na negociação no Modo Estendido do IPsec.",
+      "criticality": "Medium"
+    },
+    "4984": {
+      "summary": "Falha na negociação no Modo Estendido do IPsec.",
+      "criticality": "Medium"
+    },
+    "5027": {
+      "summary": "Serviço de Firewall do Windows não pôde recuperar política de segurança.",
+      "criticality": "Medium"
+    },
+    "5028": {
+      "summary": "Serviço do Firewall do Windows não conseguiu analisar nova política de segurança.",
+      "criticality": "Medium"
+    },
+    "5029": {
+      "summary": "Serviço de Firewall do Windows não pôde inicializar o driver.",
+      "criticality": "Medium"
+    },
+    "5030": {
+      "summary": "Não foi possível iniciar o Serviço do Firewall do Windows.",
+      "criticality": "Medium"
+    },
+    "5035": {
+      "summary": "Não foi possível iniciar o Driver do Firewall do Windows.",
+      "criticality": "Medium"
+    },
+    "5037": {
+      "summary": "Driver do Firewall do Windows detectou erro crítico de tempo de execução.",
+      "criticality": "Medium"
+    },
+    "5038": {
+      "summary": "Integridade do código: hash da imagem de arquivo não é válido. Possível corrupção.",
+      "criticality": "Medium"
+    },
+    "5120": {
+      "summary": "O serviço de resposta OCSP foi iniciado.",
+      "criticality": "Medium"
+    },
+    "5121": {
+      "summary": "Serviço de respondedor OCSP interrompido.",
+      "criticality": "Medium"
+    },
+    "5122": {
+      "summary": "Uma entrada de configuração foi alterada no Serviço de Respondedor OCSP.",
+      "criticality": "Medium"
+    },
+    "5123": {
+      "summary": "Uma entrada de configuração foi alterada no Serviço de Respondedor OCSP.",
+      "criticality": "Medium"
+    },
+    "5376": {
+      "summary": "O backup das credenciais do Gerenciador de Credenciais foi feito.",
+      "criticality": "Medium"
+    },
+    "5377": {
+      "summary": "As credenciais do Gerenciador de Credenciais foram restauradas de um backup.",
+      "criticality": "Medium"
+    },
+    "5453": {
+      "summary": "Negociação IPsec falhou: serviço IKEEXT não foi iniciado.",
+      "criticality": "Medium"
+    },
+    "5480": {
+      "summary": "Serviços IPsec falharam ao obter lista completa de interfaces de rede.",
+      "criticality": "Medium"
+    },
+    "5483": {
+      "summary": "Serviços IPsec falharam ao inicializar servidor RPC.",
+      "criticality": "Medium"
+    },
+    "5484": {
+      "summary": "Serviços IPsec sofreram falha crítica e foram desligados.",
+      "criticality": "Medium"
+    },
+    "5485": {
+      "summary": "Serviços IPsec falharam ao processar filtros em evento plug-and-play.",
+      "criticality": "Medium"
+    },
+    "5827": {
+      "summary": "Netlogon negou conexão de canal seguro vulnerável de conta de computador.",
+      "criticality": "Medium"
+    },
+    "5828": {
+      "summary": "Netlogon negou conexão de canal seguro vulnerável usando conta confiável.",
+      "criticality": "Medium"
+    },
+    "6145": {
+      "summary": "Erros ao processar política de segurança em objetos de Política de Grupo.",
+      "criticality": "Medium"
+    },
+    "6273": {
+      "summary": "Servidor de políticas de rede negou acesso a um usuário.",
+      "criticality": "Medium"
+    },
+    "6274": {
+      "summary": "Servidor de Política de Rede descartou solicitação de usuário.",
+      "criticality": "Medium"
+    },
+    "6275": {
+      "summary": "Servidor de Políticas de Rede descartou solicitação de contabilização.",
+      "criticality": "Medium"
+    },
+    "6276": {
+      "summary": "Servidor de Políticas de Rede colocou usuário em quarentena.",
+      "criticality": "Medium"
+    },
+    "6277": {
+      "summary": "Servidor de Políticas de Rede concedeu acesso com restrições de integridade.",
+      "criticality": "Medium"
+    },
+    "6278": {
+      "summary": "Servidor de Políticas de Rede concedeu acesso completo ao usuário.",
+      "criticality": "Medium"
+    },
+    "6279": {
+      "summary": "Servidor de Políticas de Rede bloqueou conta por tentativas falhas repetidas.",
+      "criticality": "Medium"
+    },
+    "6280": {
+      "summary": "Servidor de Políticas de Rede desbloqueou conta de usuário.",
+      "criticality": "Medium"
+    },
+    "24586": {
+      "summary": "Erro encontrado ao converter o volume.",
+      "criticality": "Medium"
+    },
+    "24592": {
+      "summary": "Falha ao tentar reiniciar automaticamente conversão no volume.",
+      "criticality": "Medium"
+    },
+    "24593": {
+      "summary": "Gravação de metadados: volume retornando erros ao modificar metadados.",
+      "criticality": "Medium"
+    },
+    "24594": {
+      "summary": "Recompilação de metadados: tentativa de gravar cópia de metadados falhou.",
+      "criticality": "Medium"
+    },
+    "4608": {
+      "summary": "O Windows está sendo inicializado.",
+      "criticality": "Low"
+    },
+    "4609": {
+      "summary": "O Windows está sendo desligado.",
+      "criticality": "Low"
+    },
+    "4610": {
+      "summary": "Um pacote de autenticação foi carregado pela LSA.",
+      "criticality": "Low"
+    },
+    "4611": {
+      "summary": "Um processo de logon confiável foi registrado com a LSA.",
+      "criticality": "Low"
+    },
+    "4612": {
+      "summary": "Recursos para fila de mensagens de auditoria se esgotaram.",
+      "criticality": "Low"
+    },
+    "4614": {
+      "summary": "Um pacote de notificação foi carregado pelo SAM.",
+      "criticality": "Low"
+    },
+    "4615": {
+      "summary": "Uso inválido da porta LPC.",
+      "criticality": "Low"
+    },
+    "4616": {
+      "summary": "A hora do sistema foi alterada.",
+      "criticality": "Low"
+    },
+    "4622": {
+      "summary": "Um pacote de segurança foi carregado pela LSA.",
+      "criticality": "Low"
+    },
+    "4624": {
+      "summary": "Logon de conta bem-sucedido.",
+      "criticality": "Low"
+    },
+    "4625": {
+      "summary": "Falha no logon de conta.",
+      "criticality": "Low"
+    },
+    "4634": {
+      "summary": "Logoff de conta efetuado.",
+      "criticality": "Low"
+    },
+    "4647": {
+      "summary": "Logoff iniciado pelo usuário.",
+      "criticality": "Low"
+    },
+    "4648": {
+      "summary": "Tentativa de logon usando credenciais explícitas.",
+      "criticality": "Low"
+    },
+    "4656": {
+      "summary": "Identificador de objeto solicitado.",
+      "criticality": "Low"
+    },
+    "4657": {
+      "summary": "Um valor do registro foi modificado.",
+      "criticality": "Low"
+    },
+    "4658": {
+      "summary": "O identificador de um objeto foi fechado.",
+      "criticality": "Low"
+    },
+    "4660": {
+      "summary": "Um objeto foi excluído.",
+      "criticality": "Low"
+    },
+    "4662": {
+      "summary": "Uma operação foi executada em um objeto.",
+      "criticality": "Low"
+    },
+    "4663": {
+      "summary": "Tentativa de acesso a um objeto.",
+      "criticality": "Low"
+    },
+    "4670": {
+      "summary": "Permissões de objeto alteradas.",
+      "criticality": "Low"
+    },
+    "4672": {
+      "summary": "Privilégios especiais atribuídos a novo logon.",
+      "criticality": "Low"
+    },
+    "4673": {
+      "summary": "Um serviço com privilégios foi chamado.",
+      "criticality": "Low"
+    },
+    "4688": {
+      "summary": "Um novo processo foi criado.",
+      "criticality": "Low"
+    },
+    "4689": {
+      "summary": "Um processo foi encerrado.",
+      "criticality": "Low"
+    },
+    "4697": {
+      "summary": "Tentativa de instalar um serviço.",
+      "criticality": "Low"
+    },
+    "4698": {
+      "summary": "Uma tarefa agendada foi criada.",
+      "criticality": "Low"
+    },
+    "4699": {
+      "summary": "Uma tarefa agendada foi excluída.",
+      "criticality": "Low"
+    },
+    "4700": {
+      "summary": "Uma tarefa agendada foi habilitada.",
+      "criticality": "Low"
+    },
+    "4701": {
+      "summary": "Uma tarefa agendada foi desabilitada.",
+      "criticality": "Low"
+    },
+    "4702": {
+      "summary": "Uma tarefa agendada foi atualizada.",
+      "criticality": "Low"
+    },
+    "4720": {
+      "summary": "Uma conta de usuário foi criada.",
+      "criticality": "Low"
+    },
+    "4722": {
+      "summary": "Uma conta de usuário foi habilitada.",
+      "criticality": "Low"
+    },
+    "4723": {
+      "summary": "Tentativa de alterar senha de conta.",
+      "criticality": "Low"
+    },
+    "4725": {
+      "summary": "Uma conta de usuário foi desabilitada.",
+      "criticality": "Low"
+    },
+    "4726": {
+      "summary": "Uma conta de usuário foi excluída.",
+      "criticality": "Low"
+    },
+    "4728": {
+      "summary": "Membro adicionado a grupo global habilitado para segurança.",
+      "criticality": "Low"
+    },
+    "4729": {
+      "summary": "Membro removido de grupo global habilitado para segurança.",
+      "criticality": "Low"
+    },
+    "4730": {
+      "summary": "Grupo global habilitado para segurança foi excluído.",
+      "criticality": "Low"
+    },
+    "4731": {
+      "summary": "Grupo local habilitado para segurança foi criado.",
+      "criticality": "Low"
+    },
+    "4732": {
+      "summary": "Membro adicionado a grupo local habilitado para segurança.",
+      "criticality": "Low"
+    },
+    "4733": {
+      "summary": "Membro removido de grupo local habilitado para segurança.",
+      "criticality": "Low"
+    },
+    "4734": {
+      "summary": "Grupo local habilitado para segurança foi excluído.",
+      "criticality": "Low"
+    },
+    "4738": {
+      "summary": "Uma conta de usuário foi alterada.",
+      "criticality": "Low"
+    },
+    "4740": {
+      "summary": "Uma conta de usuário foi bloqueada.",
+      "criticality": "Low"
+    },
+    "4741": {
+      "summary": "Uma conta de computador foi criada.",
+      "criticality": "Low"
+    },
+    "4742": {
+      "summary": "Uma conta de computador foi alterada.",
+      "criticality": "Low"
+    },
+    "4743": {
+      "summary": "Uma conta de computador foi excluída.",
+      "criticality": "Low"
+    },
+    "4756": {
+      "summary": "Membro adicionado a grupo universal habilitado para segurança.",
+      "criticality": "Low"
+    },
+    "4757": {
+      "summary": "Membro removido de grupo universal habilitado para segurança.",
+      "criticality": "Low"
+    },
+    "4758": {
+      "summary": "Grupo universal habilitado para segurança foi excluído.",
+      "criticality": "Low"
+    },
+    "4767": {
+      "summary": "Uma conta de usuário foi desbloqueada.",
+      "criticality": "Low"
+    },
+    "4768": {
+      "summary": "TGT Kerberos foi solicitado.",
+      "criticality": "Low"
+    },
+    "4769": {
+      "summary": "Tíquete de serviço Kerberos foi solicitado.",
+      "criticality": "Low"
+    },
+    "4770": {
+      "summary": "Tíquete de serviço Kerberos foi renovado.",
+      "criticality": "Low"
+    },
+    "4771": {
+      "summary": "Falha na pré-autenticação Kerberos.",
+      "criticality": "Low"
+    },
+    "4776": {
+      "summary": "Controlador de domínio tentou validar credenciais (NTLM).",
+      "criticality": "Low"
+    },
+    "4778": {
+      "summary": "Sessão de área de trabalho remota reconectada.",
+      "criticality": "Low"
+    },
+    "4779": {
+      "summary": "Sessão de área de trabalho remota desconectada.",
+      "criticality": "Low"
+    },
+    "4781": {
+      "summary": "O nome de uma conta foi alterado.",
+      "criticality": "Low"
+    },
+    "4800": {
+      "summary": "A estação de trabalho foi bloqueada.",
+      "criticality": "Low"
+    },
+    "4801": {
+      "summary": "A estação de trabalho foi desbloqueada.",
+      "criticality": "Low"
+    },
+    "4802": {
+      "summary": "A proteção de tela foi invocada.",
+      "criticality": "Low"
+    },
+    "4803": {
+      "summary": "A proteção de tela foi desativada.",
+      "criticality": "Low"
+    },
+    "5024": {
+      "summary": "Serviço do Firewall do Windows iniciado com sucesso.",
+      "criticality": "Low"
+    },
+    "5025": {
+      "summary": "Serviço do Firewall do Windows foi interrompido.",
+      "criticality": "Low"
+    },
+    "5033": {
+      "summary": "Driver do Firewall do Windows iniciado com sucesso.",
+      "criticality": "Low"
+    },
+    "5034": {
+      "summary": "Driver do Firewall do Windows foi interrompido.",
+      "criticality": "Low"
+    },
+    "5140": {
+      "summary": "Compartilhamento de rede acessado.",
+      "criticality": "Low"
+    },
+    "5145": {
+      "summary": "Objeto de compartilhamento de rede verificado.",
+      "criticality": "Low"
+    },
+    "5156": {
+      "summary": "Plataforma de Filtragem do Windows permitiu uma conexão.",
+      "criticality": "Low"
+    },
+    "5157": {
+      "summary": "Plataforma de Filtragem do Windows bloqueou uma conexão.",
+      "criticality": "Low"
+    },
+    "5136": {
+      "summary": "Um objeto de serviço de diretório foi alterado.",
+      "criticality": "Low"
+    },
+    "5137": {
+      "summary": "Um objeto de serviço de diretório foi criado.",
+      "criticality": "Low"
+    },
+    "5138": {
+      "summary": "Um objeto de serviço de diretório teve a exclusão cancelada.",
+      "criticality": "Low"
+    },
+    "5139": {
+      "summary": "Um objeto de serviço de diretório foi movido.",
+      "criticality": "Low"
+    },
+    "5141": {
+      "summary": "Um objeto de serviço de diretório foi excluído.",
+      "criticality": "Low"
+    },
+    "6008": {
+      "summary": "O desligamento anterior do sistema foi inesperado.",
+      "criticality": "Low"
+    },
+    "6144": {
+      "summary": "Política de segurança em objetos de Política de Grupo aplicada com êxito.",
+      "criticality": "Low"
+    },
+    "6272": {
+      "summary": "Servidor de Políticas de Rede negou acesso a um usuário.",
+      "criticality": "Low"
+    },
+    "24577": {
+      "summary": "Criptografia do volume iniciada.",
+      "criticality": "Low"
+    },
+    "24578": {
+      "summary": "A criptografia do volume foi interrompida.",
+      "criticality": "Low"
+    },
+    "24579": {
+      "summary": "Criptografia do volume concluída.",
+      "criticality": "Low"
+    },
+    "24580": {
+      "summary": "A descriptografia do volume foi iniciada.",
+      "criticality": "Low"
+    },
+    "24581": {
+      "summary": "A descriptografia do volume foi interrompida.",
+      "criticality": "Low"
+    },
+    "24582": {
+      "summary": "Descriptografia do volume concluída.",
+      "criticality": "Low"
+    },
+    "24583": {
+      "summary": "Tarefa de conversão de volume iniciada.",
+      "criticality": "Low"
+    },
+    "24584": {
+      "summary": "Tarefa de conversão de volume temporariamente interrompida.",
+      "criticality": "Low"
+    },
+    "24588": {
+      "summary": "Operação de conversão encontrou erro de setor inválido.",
+      "criticality": "Low"
+    },
+    "24595": {
+      "summary": "Volume contém clusters inválidos que serão ignorados.",
+      "criticality": "Low"
+    },
+    "24621": {
+      "summary": "Verificação de estado inicial: transação de conversão de volume detectada.",
+      "criticality": "Low"
+    }
+  },
+  "Microsoft-Windows-SMBServer": {
+    "1000": {
+      "summary": "O servidor SMB foi iniciado.",
+      "criticality": "Low"
+    },
+    "1001": {
+      "summary": "O servidor SMB foi encerrado.",
+      "criticality": "Low"
+    },
+    "1020": {
+      "summary": "Falha de acesso ao compartilhamento SMB.",
+      "criticality": "Medium"
+    },
+    "1022": {
+      "summary": "Desconexão de cliente SMB detectada.",
+      "criticality": "Low"
+    },
+    "1023": {
+      "summary": "Conexão de cliente SMB estabelecida.",
+      "criticality": "Low"
+    },
+    "1024": {
+      "summary": "Erro de negociação de protocolo SMB.",
+      "criticality": "Medium"
+    },
+    "1025": {
+      "summary": "Falha de autenticação no compartilhamento SMB.",
+      "criticality": "Medium"
+    }
+  },
+  "Service Control Manager": {
+    "7000": {
+      "summary": "Falha ao iniciar o serviço.",
+      "criticality": "High"
+    },
+    "7001": {
+      "summary": "Serviço depende de outro que falhou ao iniciar.",
+      "criticality": "High"
+    },
+    "7009": {
+      "summary": "Timeout: serviço não respondeu à solicitação de início.",
+      "criticality": "Medium"
+    },
+    "7011": {
+      "summary": "Timeout: serviço não respondeu à solicitação de controle.",
+      "criticality": "Medium"
+    },
+    "7022": {
+      "summary": "O serviço travou ao iniciar.",
+      "criticality": "High"
+    },
+    "7023": {
+      "summary": "O serviço encerrou com erro.",
+      "criticality": "High"
+    },
+    "7024": {
+      "summary": "O serviço encerrou com erro específico do serviço.",
+      "criticality": "High"
+    },
+    "7031": {
+      "summary": "O serviço encerrou inesperadamente.",
+      "criticality": "High"
+    },
+    "7034": {
+      "summary": "O serviço encerrou inesperadamente de forma repetida.",
+      "criticality": "High"
+    },
+    "7036": {
+      "summary": "O serviço entrou em novo estado (executando/parado).",
+      "criticality": "Low"
+    },
+    "7040": {
+      "summary": "O tipo de início do serviço foi alterado.",
+      "criticality": "Medium"
+    },
+    "7045": {
+      "summary": "Novo serviço instalado no sistema.",
+      "criticality": "Medium"
+    }
+  },
+  "Microsoft-Windows-Kernel-General": {
+    "1": {
+      "summary": "O horário do sistema foi alterado.",
+      "criticality": "Low"
+    },
+    "12": {
+      "summary": "O sistema operacional foi iniciado.",
+      "criticality": "Low"
+    },
+    "13": {
+      "summary": "O sistema operacional está sendo encerrado.",
+      "criticality": "Low"
+    }
+  },
+  "Microsoft-Windows-DNS-Client": {
+    "1014": {
+      "summary": "Resolução de nome falhou para o nome especificado.",
+      "criticality": "Medium"
+    }
+  },
+  "Microsoft-Windows-WindowsUpdateClient": {
+    "19": {
+      "summary": "Instalação bem-sucedida de atualização.",
+      "criticality": "Low"
+    },
+    "20": {
+      "summary": "Falha na instalação de atualização.",
+      "criticality": "High"
+    },
+    "43": {
+      "summary": "Download de atualização iniciado.",
+      "criticality": "Low"
+    },
+    "44": {
+      "summary": "Download de atualização concluído.",
+      "criticality": "Low"
+    }
+  },
+  "disk": {
+    "7": {
+      "summary": "Erro de bloco incorreto detectado no dispositivo.",
+      "criticality": "High"
+    },
+    "11": {
+      "summary": "Erro de controlador de driver no dispositivo.",
+      "criticality": "High"
+    },
+    "15": {
+      "summary": "Dispositivo de disco não pronto para acesso.",
+      "criticality": "High"
+    },
+    "51": {
+      "summary": "Erro de paginação detectado no dispositivo.",
+      "criticality": "Medium"
+    },
+    "52": {
+      "summary": "Arquivo de sistema corrompido detectado.",
+      "criticality": "High"
+    }
+  }
+}
