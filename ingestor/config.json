@@ -1,0 +1,9 @@
+{
+	"sources": {
+		"process_logs": {
+			"folder_path": "D:\\Script\\Log",
+			"source_host": "servidor201",
+			"source_type": "process"
+		}
+	}
+}

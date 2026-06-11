@@ -1,7 +1,6 @@
 # ingestor/ports/IRunLogger.py
 
 from abc import ABC, abstractmethod
-from datetime import datetime
 
 class IRunLogger(ABC):
     """

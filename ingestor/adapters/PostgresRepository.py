@@ -30,7 +30,7 @@ class PostgresRepository(ILogRepository):
             )
             return cur.fetchone() is not None
         
-    def save(self, records: list[dict], source_file: str | None = None) -> int:
+    def save(self, records: list[dict], run_id: int, source_file: str | None = None) -> int:
         """
         Grava os registros em process_logs em lote.
         Retorna quantos registros foram inseridos.
@@ -46,21 +46,24 @@ class PostgresRepository(ILogRepository):
         with self._conn.cursor() as cur:
             for record in records:
                 try:
+                    cur.execute("""SAVEPOINT sp""")
                     cur.execute(
                         """
-                        INSERT INTO optsislog.process_logs (message, log_date, log_time, start, source_name)
-                        VALUES (%s, %s, %s, %s, %s)
+                        INSERT INTO optsislog.process_logs (message, log_date, log_time, start, source_name, run_id)
+                        VALUES (%s, %s, %s, %s, %s, %s)
                         """,
                         (
                             record['message'],
                             record['log_date'],
                             record['log_time'],
                             record['start'],
-                            record['source_name']
+                            record['source_name'],
+                            run_id
                         ),
                     )
                     inserted += 1
                 except Exception as e:
+                    cur.execute("""ROLLBACK TO SAVEPOINT sp""")
                     # Um registro inválido não derruba os outros
                     print(f"[WARN] Registro ignorado: {e}")
         self._conn.commit()
