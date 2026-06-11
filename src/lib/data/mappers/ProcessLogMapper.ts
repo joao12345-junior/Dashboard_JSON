@@ -5,10 +5,17 @@ import { normalizeDateToView } from "../../normalizeDateToView";
 import { ProcessLog } from "../../types/Log";
 
 type RawProcessLog = {
-	message: string;
-	Data: string;
-	Hora: string;
-	Start: unknown;
+	// Formato banco (API)
+	log_date?: string;
+	log_time?: string;
+	start?: unknown;
+	// Formato arquivo JSON (legado)
+	Data?: string;
+	Hora?: string;
+	Start?: unknown;
+	// Comum aos dois
+	message?: string;
+	Message?: string;
 };
 
 function normalizeDate(raw: string): string {
@@ -32,10 +39,10 @@ export const ProcessLogMapper = {
 		const typed = raw as RawProcessLog;
 		return {
 			logType: "process",
-			message: typed.message ?? "",
-			date: normalizeDate(typed.Data ?? ""),
-			time: String(typed.Hora ?? "").trim(),
-			status: parseStatus(typed.Start),
+			message: String(typed.Message ?? typed.message ?? ""),
+			date: normalizeDate(String(typed.log_date ?? typed.Data ?? "")),
+			time: String(typed.log_time ?? typed.Hora ?? "").trim(),
+			status: parseStatus(typed.start ?? typed.Start),
 			payload: {},
 		};
 	},

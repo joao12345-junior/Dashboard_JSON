@@ -10,5 +10,11 @@ CORS(app)
 from routes.logs import logs_bp
 app.register_blueprint(logs_bp)
 
+from routes.health import logs_bp as health_bp
+app.register_blueprint(health_bp)
+
+from routes.ingest import ingest_bp
+app.register_blueprint(ingest_bp)
+
 if __name__ == "__main__":
     app.run(port=8765, debug=True)

@@ -13,7 +13,7 @@ def get_logs():
     
     if(type == 'process'):
         return _fetch_process_logs(get_connection())
-    if(type == 'windows'):
+    if(type == 'windows-event'):
         return _fetch_windows_event_logs(get_connection())
     
     return jsonify({"error": f"type '{type}' inválido. Use 'process' ou 'windows-event'"}), 400
