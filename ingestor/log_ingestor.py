@@ -32,7 +32,7 @@ class LogIngestor:
             records = self._log_source.read_records()
 
             # Salva os registros no banco
-            records_inserted = self._log_repository.save(records, source_file, run_id)
+            records_inserted = self._log_repository.save(records, source_file, run_id=run_id)
             print(f"Ingestão concluída: {records_inserted} registros inseridos para '{source_file}'")
 
         except Exception as e:
