@@ -30,7 +30,7 @@ class PostgresRepository(ILogRepository):
             )
             return cur.fetchone() is not None
         
-    def save(self, records: list[dict], run_id: int, source_file: str | None = None) -> int:
+    def save(self, records: list[dict], source_file: str | None = None, run_id: int | None = None) -> int:
         """
         Grava os registros em process_logs em lote.
         Retorna quantos registros foram inseridos.

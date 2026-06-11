@@ -10,7 +10,7 @@ class ILogRepository(ABC):
     """
 
     @abstractmethod
-    def save(self, records: list[dict], run_id: int, source_file: str | None = None) -> int:
+    def save(self, records: list[dict], source_file: str | None = None, run_id: int | None = None) -> int:
         """
         Grava os registros e retorna quantos foram inseridos.
         source_file: caminho do arquivo de origem, para deduplicação.
