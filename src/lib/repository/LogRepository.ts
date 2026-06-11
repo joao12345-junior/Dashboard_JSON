@@ -323,4 +323,27 @@ export const LogRepository = {
 			});
 		}
 	},
+	async fetchFromAPI(logType: string, apiUrl: string): Promise<Log[]> {
+		const start = performance.now();
+
+		try {
+			const response = await fetch(`${apiUrl}/api/logs?type=${logType}`);
+
+			if (!response.ok) {
+				throw new Error("[LogRepository] Erro ao ter uma resposta da API");
+			}
+
+			const parsed = await response.json();
+			if (!parsed)
+				throw new Error(
+					"[LogRepository] Erro ao fazer o parse da resposta da API",
+				);
+
+			const raws = parsed as Record<string, unknown>[];
+			return raws.map((raw) => mapRawToLog(raw, logType));
+		} catch (err) {
+			console.error("[LogRepository] Erro API: ", err);
+			return [];
+		}
+	},
 };

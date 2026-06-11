@@ -35,6 +35,11 @@ export interface LogSource {
 	label: string;
 }
 
+export interface ApiConfig {
+	url: string;
+	enabled: boolean;
+}
+
 // ── Chaves de storage ─────────────────────────────────────────────────────────
 
 /**
@@ -47,8 +52,10 @@ export interface LogSource {
  * e a chave é a mesma, o JSON.parse retorna a estrutura antiga
  * e o código quebra de formas imprevisíveis.
  */
-const SOURCES_KEY = "logdash:sources:v2";
 const PLUGINS_KEY = "logdash:converters:v1";
+const SOURCES_KEY = "logdash:sources:v2";
+const LOG_TYPES_KEY = "logdash:logtype:v3";
+const API_CONFIG_KEY = "logdash:API:v4";
 
 // ── Fontes padrão ─────────────────────────────────────────────────────────────
 
@@ -73,6 +80,11 @@ const DEFAULT_SOURCES: LogSource[] = [
 	},
 ];
 
+const DEFAULT_API_CONFIG: ApiConfig = {
+	url: "http://localhost:8765",
+	enabled: false,
+};
+
 // ── API pública — Sources ─────────────────────────────────────────────────────
 
 export function loadLogSources(): LogSource[] {
@@ -94,8 +106,6 @@ export function saveLogSources(sources: LogSource[]): void {
 		console.warn("[logPaths] Falha ao salvar fontes no localStorage");
 	}
 }
-
-const LOG_TYPES_KEY = "logdash:logtype:v3";
 
 export function loadLogTypes(): string[] {
 	try {
@@ -148,5 +158,27 @@ export function loadCustomPlugins(): IConverterPlugin[] {
 		return parsed.map((p) => ({ ...p, builtIn: false, mapper: null }));
 	} catch {
 		return [];
+	}
+}
+
+// ── API pública — API ──────────────────────────────────────────────────
+
+export function loadApiConfig(): ApiConfig {
+	try {
+		const raw = localStorage.getItem(API_CONFIG_KEY);
+		if (!raw) return DEFAULT_API_CONFIG;
+		const parsed = JSON.parse(raw) as ApiConfig;
+		if (!parsed.url) return DEFAULT_API_CONFIG;
+		return parsed;
+	} catch {
+		return DEFAULT_API_CONFIG;
+	}
+}
+
+export function saveApiConfig(config: ApiConfig): void {
+	try {
+		localStorage.setItem(API_CONFIG_KEY, JSON.stringify(config));
+	} catch {
+		console.warn("[logPaths] Falha ao salvar fontes no localStorage");
 	}
 }

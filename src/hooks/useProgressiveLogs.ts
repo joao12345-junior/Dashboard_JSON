@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Log } from "../lib/types/Log";
 import { LogRepository, FileLoadResult } from "../lib/repository/LogRepository";
-import { loadEnabledSources } from "../lib/storage/logPaths";
+import { loadApiConfig, loadEnabledSources } from "../lib/storage/logPaths";
 
 export interface LoadProgress {
 	loadedFiles: number;
@@ -28,6 +28,7 @@ export interface DebugInfo {
 interface UseProgressiveLogsReturn {
 	staticLogs: Log[];
 	manualLogs: Log[];
+	apiLogs: Log[];
 	logs: Log[];
 	progress: LoadProgress;
 	debug: DebugInfo;
@@ -64,6 +65,9 @@ export function useProgressiveLogs(
 	const [progress, setProgress] = useState<LoadProgress>(EMPTY_PROGRESS);
 	const [debug, setDebug] = useState<DebugInfo>(EMPTY_DEBUG);
 
+	// API
+	const [apiLogs, setApiLogs] = useState<Log[]>([]);
+
 	const reloadTick = useRef(0);
 	const [tick, setTick] = useState(0);
 
@@ -72,6 +76,7 @@ export function useProgressiveLogs(
 		setTick((t) => t + 1);
 		setStaticLogs([]);
 		setManualLogs([]);
+		setApiLogs([]);
 	}, []);
 
 	const clearManual = useCallback(() => {
@@ -249,12 +254,41 @@ export function useProgressiveLogs(
 		};
 	}, [localFiles]);
 
+	// Carregamento da API
+	useEffect(() => {
+		let cancelled = false;
+		let config = loadApiConfig();
+		if (!config.enabled) return;
+
+		async function loadFromApi() {
+			const [process_logs, windows_logs] = await Promise.all([
+				LogRepository.fetchFromAPI("process", config.url),
+				LogRepository.fetchFromAPI("windows-event", config.url),
+			]);
+			if (!cancelled) setApiLogs([...process_logs, ...windows_logs]);
+		}
+
+		loadFromApi();
+		return () => {
+			cancelled = true;
+		};
+	}, [tick]);
+
 	const logs = useMemo(
-		() => [...staticLogs, ...manualLogs],
-		[staticLogs, manualLogs],
+		() => [...staticLogs, ...manualLogs, ...apiLogs],
+		[staticLogs, manualLogs, apiLogs],
 	);
 
-	return { staticLogs, manualLogs, logs, progress, debug, reload, clearManual };
+	return {
+		staticLogs,
+		apiLogs,
+		manualLogs,
+		logs,
+		progress,
+		debug,
+		reload,
+		clearManual,
+	};
 }
 
 // ── Função auxiliar ───────────────────────────────────────────────────────────
