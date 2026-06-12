@@ -17,4 +17,4 @@ from routes.ingest import ingest_bp
 app.register_blueprint(ingest_bp)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.', port=8765, debug=True, use_reloader=False)
+    app.run(host='0.0.0.0', port=8765, debug=True, use_reloader=False)
