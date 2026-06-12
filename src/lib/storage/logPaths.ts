@@ -74,7 +74,7 @@ const DEFAULT_SOURCES: LogSource[] = [
 ];
 
 const DEFAULT_API_CONFIG: ApiConfig = {
-	url: "http://localhost:8765",
+	url: "http://192.168.16.201:8765",
 	enabled: true,
 };
 
