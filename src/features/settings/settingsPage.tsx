@@ -24,6 +24,8 @@ import type { IConverterPlugin } from "../../lib/plugins/IConverterPlugin";
 import { SourceFormModal } from "./sourceFormModal";
 import { ConverterFormModal } from "./converterFormModal";
 import { LogTypeFormModal } from "./logTypeFormModal";
+import { loadApiConfig, saveApiConfig } from "../../lib/storage/logPaths";
+import type { ApiConfig } from "../../lib/storage/logPaths";
 
 export function Settings({
 	logs,
@@ -42,6 +44,7 @@ export function Settings({
 	const [sources, setSources] = useState<LogSource[]>(() => loadLogSources());
 	const [sourceModalOpen, setSourceModalOpen] = useState(false);
 	const [editingSource, setEditingSource] = useState<LogSource | null>(null);
+	const [apiConfig, setApiConfig] = useState<ApiConfig>(() => loadApiConfig());
 
 	// ── Plugins/Conversores ──────────────────────────────────────────────────
 	// Estado derivado do ConverterRegistry — re-sincroniza após operações
@@ -121,6 +124,11 @@ export function Settings({
 		);
 		setSourceModalOpen(false);
 		setEditingSource(null);
+	}
+
+	function handleSaveApiConfig(config: ApiConfig) {
+		setApiConfig(config);
+		saveApiConfig(config);
 	}
 
 	// ── Handlers: Conversores ────────────────────────────────────────────────
@@ -285,6 +293,11 @@ export function Settings({
 						</>
 					}
 				>
+					<ApiCard
+						config={apiConfig}
+						onSave={handleSaveApiConfig}
+						isMobile={isMobile}
+					/>
 					{sources.length === 0 ? (
 						<EmptyState
 							message="Nenhuma fonte configurada."
@@ -899,6 +912,222 @@ function LogTypeCard({
 				>
 					Remover
 				</button>
+			</div>
+		</div>
+	);
+}
+
+// ── ApiCard ────────────────────────────────────────────────────────────────
+interface ApiCardProps {
+	config: ApiConfig;
+	onSave: (config: ApiConfig) => void;
+	isMobile: boolean;
+}
+
+type IngestSucesso = {
+	status: string;
+	ERRO?: string;
+};
+
+type IngestErro = {
+	ERRO: string;
+	status?: string;
+};
+
+export type IngestResult = IngestSucesso | IngestErro;
+
+function ApiCard({ config, onSave, isMobile }: ApiCardProps) {
+	const [url, setUrl] = useState(config.url);
+
+	// Testing
+	const [testResult, setTestResult] = useState<"ok" | "error" | null>(null);
+	const [testing, setTesting] = useState(false);
+
+	// Ingest
+	const [ingestResult, setIngestResult] = useState<IngestResult | null>(null);
+	const [ingesting, setIngesting] = useState(false);
+
+	function handleToggle() {
+		onSave({ ...config, enabled: !config.enabled });
+	}
+
+	function handleSave() {
+		onSave({ ...config, url });
+	}
+
+	async function handleReloadIngest() {
+		setIngesting(true);
+		setIngestResult(null);
+
+		try {
+			const conn = await fetch("http://localhost:8765/api/ingest", {
+				method: "POST",
+			});
+			const res = await conn.json();
+			setIngestResult(res);
+		} catch (err) {
+			setIngestResult(null);
+			console.error("[ApiCard/ReloadIngest] Erro ao chamar Ingestor: ", err);
+		} finally {
+			setIngesting(false);
+		}
+	}
+
+	async function handleTestConnection() {
+		setTesting(true);
+		setTestResult(null);
+		try {
+			const res = await fetch(`${url}/api/health`);
+			setTestResult(res.ok ? "ok" : "error");
+		} catch (err) {
+			setTestResult("error");
+			console.error(
+				"[ApiCard/TestConnection] Erro ao testar conexão URL: ",
+				err,
+			);
+		} finally {
+			setTesting(false);
+		}
+	}
+
+	return (
+		<div
+			style={{
+				display: "flex",
+				flexDirection: "column",
+				gap: 10,
+				padding: "12px 16px",
+				borderRadius: 8,
+				border: "1px solid var(--border)",
+				backgroundColor: config.enabled ? "var(--background)" : "var(--muted)",
+				opacity: config.enabled ? 1 : 0.65,
+				transition: "opacity 0.2s",
+			}}
+		>
+			{/* Linha superior: toggle + label */}
+			<div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+				<button
+					onClick={handleToggle}
+					title={config.enabled ? "Desabilitar" : "Habilitar"}
+					style={{
+						width: 36,
+						height: 20,
+						borderRadius: 10,
+						border: "none",
+						backgroundColor: config.enabled
+							? "var(--primary)"
+							: "var(--muted-foreground)",
+						cursor: "pointer",
+						position: "relative",
+						flexShrink: 0,
+						transition: "background-color 0.2s",
+					}}
+				>
+					<span
+						style={{
+							position: "absolute",
+							top: 2,
+							left: config.enabled ? 18 : 2,
+							width: 16,
+							height: 16,
+							borderRadius: "50%",
+							backgroundColor: "white",
+							transition: "left 0.2s",
+						}}
+					/>
+				</button>
+				<span
+					style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}
+				>
+					Flask API
+				</span>
+				<span
+					style={{
+						fontSize: 10,
+						fontWeight: 700,
+						color: "var(--primary)",
+						backgroundColor:
+							"color-mix(in oklch, var(--primary) 12%, transparent)",
+						padding: "2px 7px",
+						borderRadius: 20,
+						textTransform: "uppercase",
+						letterSpacing: "0.05em",
+						border:
+							"1px solid color-mix(in oklch, var(--primary) 25%, transparent)",
+					}}
+				>
+					api
+				</span>
+			</div>
+
+			{/* Linha inferior: input URL + botões */}
+			<div
+				style={{
+					display: "flex",
+					gap: 8,
+					flexWrap: isMobile ? "wrap" : "nowrap",
+					alignItems: "center",
+				}}
+			>
+				<input
+					value={url}
+					onChange={(e) => setUrl(e.target.value)}
+					style={{
+						flex: 1,
+						fontFamily: "monospace",
+						fontSize: 12,
+						padding: "6px 10px",
+						borderRadius: 6,
+						border: "1px solid var(--border)",
+						backgroundColor: "var(--background)",
+						color: "var(--foreground)",
+					}}
+				/>
+				<button onClick={handleSave} style={btnPrimary}>
+					Salvar
+				</button>
+				<button
+					onClick={handleTestConnection}
+					style={btnSecondary}
+					disabled={testing}
+				>
+					{testing ? "Testando…" : "Testar"}
+				</button>
+				{testResult && (
+					<span
+						style={{
+							fontSize: 12,
+							color:
+								testResult === "ok"
+									? "oklch(0.6 0.2 145)"
+									: "var(--destructive, oklch(0.6 0.22 25))",
+						}}
+					>
+						{testResult === "ok" ? "✓ Conexão estável" : "✗ Falhou"}
+					</span>
+				)}
+				<button
+					onClick={handleReloadIngest}
+					disabled={ingesting}
+					style={btnPrimary}
+				>
+					{ingesting ? "Recarregando..." : "↺ Recarregar"}
+				</button>
+				{ingestResult && (
+					<span
+						style={{
+							fontSize: 12,
+							color:
+								"status" in ingestResult
+									? "oklch(0.6 0.2 145)"
+									: "var(--destructive, oklch(0.6 0.22 25))",
+						}}
+					>
+						{"status" in ingestResult
+							? `✓ ${ingestResult.status}`
+							: `✗ ${ingestResult.ERRO}`}
+					</span>
+				)}
 			</div>
 		</div>
 	);

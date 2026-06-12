@@ -71,18 +71,11 @@ const DEFAULT_SOURCES: LogSource[] = [
 		enabled: true,
 		label: "Dados Locais (public/data/windows_logs)",
 	},
-	{
-		alias: "local-data/process_logs",
-		url: "/data/process_logs",
-		logType: "process",
-		enabled: true,
-		label: "Dados Locais (public/data/process_logs)",
-	},
 ];
 
 const DEFAULT_API_CONFIG: ApiConfig = {
 	url: "http://localhost:8765",
-	enabled: false,
+	enabled: true,
 };
 
 // ── API pública — Sources ─────────────────────────────────────────────────────
