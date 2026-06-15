@@ -960,7 +960,7 @@ function ApiCard({ config, onSave, isMobile }: ApiCardProps) {
 		setIngestResult(null);
 
 		try {
-			const conn = await fetch("http://localhost:8765/api/ingest", {
+			const conn = await fetch(`${url}/api/ingest`, {
 				method: "POST",
 			});
 			const res = await conn.json();

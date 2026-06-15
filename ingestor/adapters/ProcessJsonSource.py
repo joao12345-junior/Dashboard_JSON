@@ -36,6 +36,16 @@ class ProcessJsonSource(ILogSource):
                 print(f"[WARN] {file.name}: {e}")
         return records
     
+    def read_single_file(self, file: Path) -> list[dict]:
+        """Lê e normaliza um único arquivo."""
+        try:
+            raw = self._read_file(file)
+            entries = raw if isinstance(raw, list) else [raw]
+            return [self._normalize(entry, source_file=file.name) for entry in entries]
+        except Exception as e:
+            print(f"[WARN] {file.name}: {e}")
+            return []
+    
     # ── Métodos privados ──────────────────────────────────────────
 
     def _read_file(self, path: Path) -> list | dict:

@@ -36,10 +36,16 @@ def main():
     run_logger=PostgresRunLogger(conn=conn)
     
     # Variavel do ingestor
-    ingestor = LogIngestor(source_type=source_type, log_repository=repository, run_logger=run_logger, log_source=source, source_host=source_host)
+    ingestor = LogIngestor(
+        source_type=source_type,
+        log_repository=repository,
+        run_logger=run_logger,
+        log_source=source,
+        source_host=source_host,
+        folder_path=folder_path,  # ← adicionar
+    )
 
-    for file in Path(folder_path).glob("*bkp.json"):
-        ingestor.ingest(file.name)
+    ingestor.run()
 
     conn.close()
     

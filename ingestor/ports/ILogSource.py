@@ -1,7 +1,7 @@
 # ingestor/ports/ILogSource.py
 
 from abc import ABC, abstractmethod
-
+from pathlib import Path
 class ILogSource(ABC):
     """
     Port: contrato que toda fonte de log deve implementar.
@@ -18,4 +18,9 @@ class ILogSource(ABC):
         Lê registros da fonte e retorna como lista de dicionários.
         Cada dicionário representa um registro bruto — sem transformação.
         """
+        ...
+
+    @abstractmethod
+    def read_single_file(self, file: Path) -> list[dict]:
+        """Lê e normaliza um único arquivo da fonte."""
         ...
