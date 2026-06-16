@@ -16,11 +16,13 @@ export function LoginPage() {
 			return;
 		}
 		setIsLoading(true);
-		await new Promise((r) => setTimeout(r, 500));
-		const success = login({
+		setError("");
+
+		const success = await login({
 			username: username.trim(),
 			password: password.trim(),
 		});
+
 		if (!success) {
 			setError("Usuário ou senha inválidos.");
 			setIsLoading(false);

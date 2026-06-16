@@ -5,7 +5,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
 
 from routes.logs import logs_bp
 app.register_blueprint(logs_bp)
@@ -15,6 +15,9 @@ app.register_blueprint(health_bp)
 
 from routes.ingest import ingest_bp
 app.register_blueprint(ingest_bp)
+
+from routes.auth import auth_bp
+app.register_blueprint(auth_bp)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8765, debug=True, use_reloader=False)

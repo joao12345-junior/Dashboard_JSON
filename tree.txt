@@ -1,0 +1,3115 @@
+﻿LogDash -- 2026-06-15 17:33
+Root: C:\Projetos\Trabalho\Optare\Dashboard_JSON\logdash
+
+|-- api
+|   |-- .venv
+|   |   |-- Include
+|   |   |-- Lib
+|   |   |   +-- site-packages
+|   |   |       |-- blinker
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- _utilities.cpython-314.pyc
+|   |   |       |   |   +-- base.cpython-314.pyc
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- _utilities.py
+|   |   |       |   |-- base.py
+|   |   |       |   +-- py.typed
+|   |   |       |-- blinker-1.9.0.dist-info
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- LICENSE.txt
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   +-- WHEEL
+|   |   |       |-- click
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- _compat.cpython-314.pyc
+|   |   |       |   |   |-- _termui_impl.cpython-314.pyc
+|   |   |       |   |   |-- _textwrap.cpython-314.pyc
+|   |   |       |   |   |-- _utils.cpython-314.pyc
+|   |   |       |   |   |-- _winconsole.cpython-314.pyc
+|   |   |       |   |   |-- core.cpython-314.pyc
+|   |   |       |   |   |-- decorators.cpython-314.pyc
+|   |   |       |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |-- formatting.cpython-314.pyc
+|   |   |       |   |   |-- globals.cpython-314.pyc
+|   |   |       |   |   |-- parser.cpython-314.pyc
+|   |   |       |   |   |-- shell_completion.cpython-314.pyc
+|   |   |       |   |   |-- termui.cpython-314.pyc
+|   |   |       |   |   |-- testing.cpython-314.pyc
+|   |   |       |   |   |-- types.cpython-314.pyc
+|   |   |       |   |   +-- utils.cpython-314.pyc
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- _compat.py
+|   |   |       |   |-- _termui_impl.py
+|   |   |       |   |-- _textwrap.py
+|   |   |       |   |-- _utils.py
+|   |   |       |   |-- _winconsole.py
+|   |   |       |   |-- core.py
+|   |   |       |   |-- decorators.py
+|   |   |       |   |-- exceptions.py
+|   |   |       |   |-- formatting.py
+|   |   |       |   |-- globals.py
+|   |   |       |   |-- parser.py
+|   |   |       |   |-- py.typed
+|   |   |       |   |-- shell_completion.py
+|   |   |       |   |-- termui.py
+|   |   |       |   |-- testing.py
+|   |   |       |   |-- types.py
+|   |   |       |   +-- utils.py
+|   |   |       |-- click-8.4.1.dist-info
+|   |   |       |   |-- licenses
+|   |   |       |   |   +-- LICENSE.txt
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   +-- WHEEL
+|   |   |       |-- colorama
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- ansi.cpython-314.pyc
+|   |   |       |   |   |-- ansitowin32.cpython-314.pyc
+|   |   |       |   |   |-- initialise.cpython-314.pyc
+|   |   |       |   |   |-- win32.cpython-314.pyc
+|   |   |       |   |   +-- winterm.cpython-314.pyc
+|   |   |       |   |-- tests
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- ansi_test.cpython-314.pyc
+|   |   |       |   |   |   |-- ansitowin32_test.cpython-314.pyc
+|   |   |       |   |   |   |-- initialise_test.cpython-314.pyc
+|   |   |       |   |   |   |-- isatty_test.cpython-314.pyc
+|   |   |       |   |   |   |-- utils.cpython-314.pyc
+|   |   |       |   |   |   +-- winterm_test.cpython-314.pyc
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- ansi_test.py
+|   |   |       |   |   |-- ansitowin32_test.py
+|   |   |       |   |   |-- initialise_test.py
+|   |   |       |   |   |-- isatty_test.py
+|   |   |       |   |   |-- utils.py
+|   |   |       |   |   +-- winterm_test.py
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- ansi.py
+|   |   |       |   |-- ansitowin32.py
+|   |   |       |   |-- initialise.py
+|   |   |       |   |-- win32.py
+|   |   |       |   +-- winterm.py
+|   |   |       |-- colorama-0.4.6.dist-info
+|   |   |       |   |-- licenses
+|   |   |       |   |   +-- LICENSE.txt
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   +-- WHEEL
+|   |   |       |-- dotenv
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |-- cli.cpython-314.pyc
+|   |   |       |   |   |-- ipython.cpython-314.pyc
+|   |   |       |   |   |-- main.cpython-314.pyc
+|   |   |       |   |   |-- parser.cpython-314.pyc
+|   |   |       |   |   |-- variables.cpython-314.pyc
+|   |   |       |   |   +-- version.cpython-314.pyc
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- __main__.py
+|   |   |       |   |-- cli.py
+|   |   |       |   |-- ipython.py
+|   |   |       |   |-- main.py
+|   |   |       |   |-- parser.py
+|   |   |       |   |-- py.typed
+|   |   |       |   |-- variables.py
+|   |   |       |   +-- version.py
+|   |   |       |-- flask
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |-- app.cpython-314.pyc
+|   |   |       |   |   |-- blueprints.cpython-314.pyc
+|   |   |       |   |   |-- cli.cpython-314.pyc
+|   |   |       |   |   |-- config.cpython-314.pyc
+|   |   |       |   |   |-- ctx.cpython-314.pyc
+|   |   |       |   |   |-- debughelpers.cpython-314.pyc
+|   |   |       |   |   |-- globals.cpython-314.pyc
+|   |   |       |   |   |-- helpers.cpython-314.pyc
+|   |   |       |   |   |-- logging.cpython-314.pyc
+|   |   |       |   |   |-- sessions.cpython-314.pyc
+|   |   |       |   |   |-- signals.cpython-314.pyc
+|   |   |       |   |   |-- templating.cpython-314.pyc
+|   |   |       |   |   |-- testing.cpython-314.pyc
+|   |   |       |   |   |-- typing.cpython-314.pyc
+|   |   |       |   |   |-- views.cpython-314.pyc
+|   |   |       |   |   +-- wrappers.cpython-314.pyc
+|   |   |       |   |-- json
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- provider.cpython-314.pyc
+|   |   |       |   |   |   +-- tag.cpython-314.pyc
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- provider.py
+|   |   |       |   |   +-- tag.py
+|   |   |       |   |-- sansio
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   |-- app.cpython-314.pyc
+|   |   |       |   |   |   |-- blueprints.cpython-314.pyc
+|   |   |       |   |   |   +-- scaffold.cpython-314.pyc
+|   |   |       |   |   |-- app.py
+|   |   |       |   |   |-- blueprints.py
+|   |   |       |   |   |-- README.md
+|   |   |       |   |   +-- scaffold.py
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- __main__.py
+|   |   |       |   |-- app.py
+|   |   |       |   |-- blueprints.py
+|   |   |       |   |-- cli.py
+|   |   |       |   |-- config.py
+|   |   |       |   |-- ctx.py
+|   |   |       |   |-- debughelpers.py
+|   |   |       |   |-- globals.py
+|   |   |       |   |-- helpers.py
+|   |   |       |   |-- logging.py
+|   |   |       |   |-- py.typed
+|   |   |       |   |-- sessions.py
+|   |   |       |   |-- signals.py
+|   |   |       |   |-- templating.py
+|   |   |       |   |-- testing.py
+|   |   |       |   |-- typing.py
+|   |   |       |   |-- views.py
+|   |   |       |   +-- wrappers.py
+|   |   |       |-- flask_cors
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- core.cpython-314.pyc
+|   |   |       |   |   |-- decorator.cpython-314.pyc
+|   |   |       |   |   +-- extension.cpython-314.pyc
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- core.py
+|   |   |       |   |-- decorator.py
+|   |   |       |   |-- extension.py
+|   |   |       |   +-- py.typed
+|   |   |       |-- flask_cors-6.0.5.dist-info
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   |-- REQUESTED
+|   |   |       |   |-- top_level.txt
+|   |   |       |   +-- WHEEL
+|   |   |       |-- flask-3.1.3.dist-info
+|   |   |       |   |-- licenses
+|   |   |       |   |   +-- LICENSE.txt
+|   |   |       |   |-- entry_points.txt
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   |-- REQUESTED
+|   |   |       |   +-- WHEEL
+|   |   |       |-- itsdangerous
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- _json.cpython-314.pyc
+|   |   |       |   |   |-- encoding.cpython-314.pyc
+|   |   |       |   |   |-- exc.cpython-314.pyc
+|   |   |       |   |   |-- serializer.cpython-314.pyc
+|   |   |       |   |   |-- signer.cpython-314.pyc
+|   |   |       |   |   |-- timed.cpython-314.pyc
+|   |   |       |   |   +-- url_safe.cpython-314.pyc
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- _json.py
+|   |   |       |   |-- encoding.py
+|   |   |       |   |-- exc.py
+|   |   |       |   |-- py.typed
+|   |   |       |   |-- serializer.py
+|   |   |       |   |-- signer.py
+|   |   |       |   |-- timed.py
+|   |   |       |   +-- url_safe.py
+|   |   |       |-- itsdangerous-2.2.0.dist-info
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- LICENSE.txt
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   +-- WHEEL
+|   |   |       |-- jinja2
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- _identifier.cpython-314.pyc
+|   |   |       |   |   |-- async_utils.cpython-314.pyc
+|   |   |       |   |   |-- bccache.cpython-314.pyc
+|   |   |       |   |   |-- compiler.cpython-314.pyc
+|   |   |       |   |   |-- constants.cpython-314.pyc
+|   |   |       |   |   |-- debug.cpython-314.pyc
+|   |   |       |   |   |-- defaults.cpython-314.pyc
+|   |   |       |   |   |-- environment.cpython-314.pyc
+|   |   |       |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |-- ext.cpython-314.pyc
+|   |   |       |   |   |-- filters.cpython-314.pyc
+|   |   |       |   |   |-- idtracking.cpython-314.pyc
+|   |   |       |   |   |-- lexer.cpython-314.pyc
+|   |   |       |   |   |-- loaders.cpython-314.pyc
+|   |   |       |   |   |-- meta.cpython-314.pyc
+|   |   |       |   |   |-- nativetypes.cpython-314.pyc
+|   |   |       |   |   |-- nodes.cpython-314.pyc
+|   |   |       |   |   |-- optimizer.cpython-314.pyc
+|   |   |       |   |   |-- parser.cpython-314.pyc
+|   |   |       |   |   |-- runtime.cpython-314.pyc
+|   |   |       |   |   |-- sandbox.cpython-314.pyc
+|   |   |       |   |   |-- tests.cpython-314.pyc
+|   |   |       |   |   |-- utils.cpython-314.pyc
+|   |   |       |   |   +-- visitor.cpython-314.pyc
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- _identifier.py
+|   |   |       |   |-- async_utils.py
+|   |   |       |   |-- bccache.py
+|   |   |       |   |-- compiler.py
+|   |   |       |   |-- constants.py
+|   |   |       |   |-- debug.py
+|   |   |       |   |-- defaults.py
+|   |   |       |   |-- environment.py
+|   |   |       |   |-- exceptions.py
+|   |   |       |   |-- ext.py
+|   |   |       |   |-- filters.py
+|   |   |       |   |-- idtracking.py
+|   |   |       |   |-- lexer.py
+|   |   |       |   |-- loaders.py
+|   |   |       |   |-- meta.py
+|   |   |       |   |-- nativetypes.py
+|   |   |       |   |-- nodes.py
+|   |   |       |   |-- optimizer.py
+|   |   |       |   |-- parser.py
+|   |   |       |   |-- py.typed
+|   |   |       |   |-- runtime.py
+|   |   |       |   |-- sandbox.py
+|   |   |       |   |-- tests.py
+|   |   |       |   |-- utils.py
+|   |   |       |   +-- visitor.py
+|   |   |       |-- jinja2-3.1.6.dist-info
+|   |   |       |   |-- licenses
+|   |   |       |   |   +-- LICENSE.txt
+|   |   |       |   |-- entry_points.txt
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   +-- WHEEL
+|   |   |       |-- markupsafe
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   +-- _native.cpython-314.pyc
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- _native.py
+|   |   |       |   |-- _speedups.c
+|   |   |       |   |-- _speedups.cp314-win_amd64.pyd
+|   |   |       |   |-- _speedups.pyi
+|   |   |       |   +-- py.typed
+|   |   |       |-- markupsafe-3.0.3.dist-info
+|   |   |       |   |-- licenses
+|   |   |       |   |   +-- LICENSE.txt
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   |-- top_level.txt
+|   |   |       |   +-- WHEEL
+|   |   |       |-- pip
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   +-- __pip-runner__.cpython-314.pyc
+|   |   |       |   |-- _internal
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- build_env.cpython-314.pyc
+|   |   |       |   |   |   |-- cache.cpython-314.pyc
+|   |   |       |   |   |   |-- configuration.cpython-314.pyc
+|   |   |       |   |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |   |-- main.cpython-314.pyc
+|   |   |       |   |   |   |-- pyproject.cpython-314.pyc
+|   |   |       |   |   |   |-- self_outdated_check.cpython-314.pyc
+|   |   |       |   |   |   +-- wheel_builder.cpython-314.pyc
+|   |   |       |   |   |-- cli
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- autocompletion.cpython-314.pyc
+|   |   |       |   |   |   |   |-- base_command.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cmdoptions.cpython-314.pyc
+|   |   |       |   |   |   |   |-- command_context.cpython-314.pyc
+|   |   |       |   |   |   |   |-- index_command.cpython-314.pyc
+|   |   |       |   |   |   |   |-- main.cpython-314.pyc
+|   |   |       |   |   |   |   |-- main_parser.cpython-314.pyc
+|   |   |       |   |   |   |   |-- parser.cpython-314.pyc
+|   |   |       |   |   |   |   |-- progress_bars.cpython-314.pyc
+|   |   |       |   |   |   |   |-- req_command.cpython-314.pyc
+|   |   |       |   |   |   |   |-- spinners.cpython-314.pyc
+|   |   |       |   |   |   |   +-- status_codes.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- autocompletion.py
+|   |   |       |   |   |   |-- base_command.py
+|   |   |       |   |   |   |-- cmdoptions.py
+|   |   |       |   |   |   |-- command_context.py
+|   |   |       |   |   |   |-- index_command.py
+|   |   |       |   |   |   |-- main.py
+|   |   |       |   |   |   |-- main_parser.py
+|   |   |       |   |   |   |-- parser.py
+|   |   |       |   |   |   |-- progress_bars.py
+|   |   |       |   |   |   |-- req_command.py
+|   |   |       |   |   |   |-- spinners.py
+|   |   |       |   |   |   +-- status_codes.py
+|   |   |       |   |   |-- commands
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cache.cpython-314.pyc
+|   |   |       |   |   |   |   |-- check.cpython-314.pyc
+|   |   |       |   |   |   |   |-- completion.cpython-314.pyc
+|   |   |       |   |   |   |   |-- configuration.cpython-314.pyc
+|   |   |       |   |   |   |   |-- debug.cpython-314.pyc
+|   |   |       |   |   |   |   |-- download.cpython-314.pyc
+|   |   |       |   |   |   |   |-- freeze.cpython-314.pyc
+|   |   |       |   |   |   |   |-- hash.cpython-314.pyc
+|   |   |       |   |   |   |   |-- help.cpython-314.pyc
+|   |   |       |   |   |   |   |-- index.cpython-314.pyc
+|   |   |       |   |   |   |   |-- inspect.cpython-314.pyc
+|   |   |       |   |   |   |   |-- install.cpython-314.pyc
+|   |   |       |   |   |   |   |-- list.cpython-314.pyc
+|   |   |       |   |   |   |   |-- lock.cpython-314.pyc
+|   |   |       |   |   |   |   |-- search.cpython-314.pyc
+|   |   |       |   |   |   |   |-- show.cpython-314.pyc
+|   |   |       |   |   |   |   |-- uninstall.cpython-314.pyc
+|   |   |       |   |   |   |   +-- wheel.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- cache.py
+|   |   |       |   |   |   |-- check.py
+|   |   |       |   |   |   |-- completion.py
+|   |   |       |   |   |   |-- configuration.py
+|   |   |       |   |   |   |-- debug.py
+|   |   |       |   |   |   |-- download.py
+|   |   |       |   |   |   |-- freeze.py
+|   |   |       |   |   |   |-- hash.py
+|   |   |       |   |   |   |-- help.py
+|   |   |       |   |   |   |-- index.py
+|   |   |       |   |   |   |-- inspect.py
+|   |   |       |   |   |   |-- install.py
+|   |   |       |   |   |   |-- list.py
+|   |   |       |   |   |   |-- lock.py
+|   |   |       |   |   |   |-- search.py
+|   |   |       |   |   |   |-- show.py
+|   |   |       |   |   |   |-- uninstall.py
+|   |   |       |   |   |   +-- wheel.py
+|   |   |       |   |   |-- distributions
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- base.cpython-314.pyc
+|   |   |       |   |   |   |   |-- installed.cpython-314.pyc
+|   |   |       |   |   |   |   |-- sdist.cpython-314.pyc
+|   |   |       |   |   |   |   +-- wheel.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- base.py
+|   |   |       |   |   |   |-- installed.py
+|   |   |       |   |   |   |-- sdist.py
+|   |   |       |   |   |   +-- wheel.py
+|   |   |       |   |   |-- index
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- collector.cpython-314.pyc
+|   |   |       |   |   |   |   |-- package_finder.cpython-314.pyc
+|   |   |       |   |   |   |   +-- sources.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- collector.py
+|   |   |       |   |   |   |-- package_finder.py
+|   |   |       |   |   |   +-- sources.py
+|   |   |       |   |   |-- locations
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _distutils.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _sysconfig.cpython-314.pyc
+|   |   |       |   |   |   |   +-- base.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _distutils.py
+|   |   |       |   |   |   |-- _sysconfig.py
+|   |   |       |   |   |   +-- base.py
+|   |   |       |   |   |-- metadata
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _json.cpython-314.pyc
+|   |   |       |   |   |   |   |-- base.cpython-314.pyc
+|   |   |       |   |   |   |   +-- pkg_resources.cpython-314.pyc
+|   |   |       |   |   |   |-- importlib
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- _compat.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- _dists.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- _envs.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- _compat.py
+|   |   |       |   |   |   |   |-- _dists.py
+|   |   |       |   |   |   |   +-- _envs.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _json.py
+|   |   |       |   |   |   |-- base.py
+|   |   |       |   |   |   +-- pkg_resources.py
+|   |   |       |   |   |-- models
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- candidate.cpython-314.pyc
+|   |   |       |   |   |   |   |-- direct_url.cpython-314.pyc
+|   |   |       |   |   |   |   |-- format_control.cpython-314.pyc
+|   |   |       |   |   |   |   |-- index.cpython-314.pyc
+|   |   |       |   |   |   |   |-- installation_report.cpython-314.pyc
+|   |   |       |   |   |   |   |-- link.cpython-314.pyc
+|   |   |       |   |   |   |   |-- release_control.cpython-314.pyc
+|   |   |       |   |   |   |   |-- scheme.cpython-314.pyc
+|   |   |       |   |   |   |   |-- search_scope.cpython-314.pyc
+|   |   |       |   |   |   |   |-- selection_prefs.cpython-314.pyc
+|   |   |       |   |   |   |   |-- target_python.cpython-314.pyc
+|   |   |       |   |   |   |   +-- wheel.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- candidate.py
+|   |   |       |   |   |   |-- direct_url.py
+|   |   |       |   |   |   |-- format_control.py
+|   |   |       |   |   |   |-- index.py
+|   |   |       |   |   |   |-- installation_report.py
+|   |   |       |   |   |   |-- link.py
+|   |   |       |   |   |   |-- release_control.py
+|   |   |       |   |   |   |-- scheme.py
+|   |   |       |   |   |   |-- search_scope.py
+|   |   |       |   |   |   |-- selection_prefs.py
+|   |   |       |   |   |   |-- target_python.py
+|   |   |       |   |   |   +-- wheel.py
+|   |   |       |   |   |-- network
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- auth.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cache.cpython-314.pyc
+|   |   |       |   |   |   |   |-- download.cpython-314.pyc
+|   |   |       |   |   |   |   |-- lazy_wheel.cpython-314.pyc
+|   |   |       |   |   |   |   |-- session.cpython-314.pyc
+|   |   |       |   |   |   |   |-- utils.cpython-314.pyc
+|   |   |       |   |   |   |   +-- xmlrpc.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- auth.py
+|   |   |       |   |   |   |-- cache.py
+|   |   |       |   |   |   |-- download.py
+|   |   |       |   |   |   |-- lazy_wheel.py
+|   |   |       |   |   |   |-- session.py
+|   |   |       |   |   |   |-- utils.py
+|   |   |       |   |   |   +-- xmlrpc.py
+|   |   |       |   |   |-- operations
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- check.cpython-314.pyc
+|   |   |       |   |   |   |   |-- freeze.cpython-314.pyc
+|   |   |       |   |   |   |   +-- prepare.cpython-314.pyc
+|   |   |       |   |   |   |-- install
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- wheel.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- wheel.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- check.py
+|   |   |       |   |   |   |-- freeze.py
+|   |   |       |   |   |   +-- prepare.py
+|   |   |       |   |   |-- req
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- constructors.cpython-314.pyc
+|   |   |       |   |   |   |   |-- pep723.cpython-314.pyc
+|   |   |       |   |   |   |   |-- req_dependency_group.cpython-314.pyc
+|   |   |       |   |   |   |   |-- req_file.cpython-314.pyc
+|   |   |       |   |   |   |   |-- req_install.cpython-314.pyc
+|   |   |       |   |   |   |   |-- req_set.cpython-314.pyc
+|   |   |       |   |   |   |   +-- req_uninstall.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- constructors.py
+|   |   |       |   |   |   |-- pep723.py
+|   |   |       |   |   |   |-- req_dependency_group.py
+|   |   |       |   |   |   |-- req_file.py
+|   |   |       |   |   |   |-- req_install.py
+|   |   |       |   |   |   |-- req_set.py
+|   |   |       |   |   |   +-- req_uninstall.py
+|   |   |       |   |   |-- resolution
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- base.cpython-314.pyc
+|   |   |       |   |   |   |-- legacy
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- resolver.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- resolver.py
+|   |   |       |   |   |   |-- resolvelib
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- base.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- candidates.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- factory.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- found_candidates.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- provider.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- reporter.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- requirements.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- resolver.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- base.py
+|   |   |       |   |   |   |   |-- candidates.py
+|   |   |       |   |   |   |   |-- factory.py
+|   |   |       |   |   |   |   |-- found_candidates.py
+|   |   |       |   |   |   |   |-- provider.py
+|   |   |       |   |   |   |   |-- reporter.py
+|   |   |       |   |   |   |   |-- requirements.py
+|   |   |       |   |   |   |   +-- resolver.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   +-- base.py
+|   |   |       |   |   |-- utils
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _jaraco_text.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _log.cpython-314.pyc
+|   |   |       |   |   |   |   |-- appdirs.cpython-314.pyc
+|   |   |       |   |   |   |   |-- compat.cpython-314.pyc
+|   |   |       |   |   |   |   |-- compatibility_tags.cpython-314.pyc
+|   |   |       |   |   |   |   |-- datetime.cpython-314.pyc
+|   |   |       |   |   |   |   |-- deprecation.cpython-314.pyc
+|   |   |       |   |   |   |   |-- direct_url_helpers.cpython-314.pyc
+|   |   |       |   |   |   |   |-- egg_link.cpython-314.pyc
+|   |   |       |   |   |   |   |-- entrypoints.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filesystem.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filetypes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- glibc.cpython-314.pyc
+|   |   |       |   |   |   |   |-- hashes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- logging.cpython-314.pyc
+|   |   |       |   |   |   |   |-- misc.cpython-314.pyc
+|   |   |       |   |   |   |   |-- packaging.cpython-314.pyc
+|   |   |       |   |   |   |   |-- pylock.cpython-314.pyc
+|   |   |       |   |   |   |   |-- retry.cpython-314.pyc
+|   |   |       |   |   |   |   |-- subprocess.cpython-314.pyc
+|   |   |       |   |   |   |   |-- temp_dir.cpython-314.pyc
+|   |   |       |   |   |   |   |-- unpacking.cpython-314.pyc
+|   |   |       |   |   |   |   |-- urls.cpython-314.pyc
+|   |   |       |   |   |   |   |-- virtualenv.cpython-314.pyc
+|   |   |       |   |   |   |   +-- wheel.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _jaraco_text.py
+|   |   |       |   |   |   |-- _log.py
+|   |   |       |   |   |   |-- appdirs.py
+|   |   |       |   |   |   |-- compat.py
+|   |   |       |   |   |   |-- compatibility_tags.py
+|   |   |       |   |   |   |-- datetime.py
+|   |   |       |   |   |   |-- deprecation.py
+|   |   |       |   |   |   |-- direct_url_helpers.py
+|   |   |       |   |   |   |-- egg_link.py
+|   |   |       |   |   |   |-- entrypoints.py
+|   |   |       |   |   |   |-- filesystem.py
+|   |   |       |   |   |   |-- filetypes.py
+|   |   |       |   |   |   |-- glibc.py
+|   |   |       |   |   |   |-- hashes.py
+|   |   |       |   |   |   |-- logging.py
+|   |   |       |   |   |   |-- misc.py
+|   |   |       |   |   |   |-- packaging.py
+|   |   |       |   |   |   |-- pylock.py
+|   |   |       |   |   |   |-- retry.py
+|   |   |       |   |   |   |-- subprocess.py
+|   |   |       |   |   |   |-- temp_dir.py
+|   |   |       |   |   |   |-- unpacking.py
+|   |   |       |   |   |   |-- urls.py
+|   |   |       |   |   |   |-- virtualenv.py
+|   |   |       |   |   |   +-- wheel.py
+|   |   |       |   |   |-- vcs
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- bazaar.cpython-314.pyc
+|   |   |       |   |   |   |   |-- git.cpython-314.pyc
+|   |   |       |   |   |   |   |-- mercurial.cpython-314.pyc
+|   |   |       |   |   |   |   |-- subversion.cpython-314.pyc
+|   |   |       |   |   |   |   +-- versioncontrol.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- bazaar.py
+|   |   |       |   |   |   |-- git.py
+|   |   |       |   |   |   |-- mercurial.py
+|   |   |       |   |   |   |-- subversion.py
+|   |   |       |   |   |   +-- versioncontrol.py
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- build_env.py
+|   |   |       |   |   |-- cache.py
+|   |   |       |   |   |-- configuration.py
+|   |   |       |   |   |-- exceptions.py
+|   |   |       |   |   |-- main.py
+|   |   |       |   |   |-- pyproject.py
+|   |   |       |   |   |-- self_outdated_check.py
+|   |   |       |   |   +-- wheel_builder.py
+|   |   |       |   |-- _vendor
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   +-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- cachecontrol
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _cmd.cpython-314.pyc
+|   |   |       |   |   |   |   |-- adapter.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cache.cpython-314.pyc
+|   |   |       |   |   |   |   |-- controller.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filewrapper.cpython-314.pyc
+|   |   |       |   |   |   |   |-- heuristics.cpython-314.pyc
+|   |   |       |   |   |   |   |-- serialize.cpython-314.pyc
+|   |   |       |   |   |   |   +-- wrapper.cpython-314.pyc
+|   |   |       |   |   |   |-- caches
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- file_cache.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- redis_cache.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- file_cache.py
+|   |   |       |   |   |   |   +-- redis_cache.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _cmd.py
+|   |   |       |   |   |   |-- adapter.py
+|   |   |       |   |   |   |-- cache.py
+|   |   |       |   |   |   |-- controller.py
+|   |   |       |   |   |   |-- filewrapper.py
+|   |   |       |   |   |   |-- heuristics.py
+|   |   |       |   |   |   |-- LICENSE.txt
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   |-- serialize.py
+|   |   |       |   |   |   +-- wrapper.py
+|   |   |       |   |   |-- certifi
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- core.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- cacert.pem
+|   |   |       |   |   |   |-- core.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- dependency_groups
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _implementation.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _lint_dependency_groups.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _pip_wrapper.cpython-314.pyc
+|   |   |       |   |   |   |   +-- _toml_compat.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- _implementation.py
+|   |   |       |   |   |   |-- _lint_dependency_groups.py
+|   |   |       |   |   |   |-- _pip_wrapper.py
+|   |   |       |   |   |   |-- _toml_compat.py
+|   |   |       |   |   |   |-- LICENSE.txt
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- distlib
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- compat.cpython-314.pyc
+|   |   |       |   |   |   |   |-- resources.cpython-314.pyc
+|   |   |       |   |   |   |   |-- scripts.cpython-314.pyc
+|   |   |       |   |   |   |   +-- util.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- compat.py
+|   |   |       |   |   |   |-- LICENSE.txt
+|   |   |       |   |   |   |-- resources.py
+|   |   |       |   |   |   |-- scripts.py
+|   |   |       |   |   |   |-- t32.exe
+|   |   |       |   |   |   |-- t64.exe
+|   |   |       |   |   |   |-- t64-arm.exe
+|   |   |       |   |   |   |-- util.py
+|   |   |       |   |   |   |-- w32.exe
+|   |   |       |   |   |   |-- w64.exe
+|   |   |       |   |   |   +-- w64-arm.exe
+|   |   |       |   |   |-- distro
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- distro.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- distro.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- idna
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- codec.cpython-314.pyc
+|   |   |       |   |   |   |   |-- compat.cpython-314.pyc
+|   |   |       |   |   |   |   |-- core.cpython-314.pyc
+|   |   |       |   |   |   |   |-- idnadata.cpython-314.pyc
+|   |   |       |   |   |   |   |-- intranges.cpython-314.pyc
+|   |   |       |   |   |   |   |-- package_data.cpython-314.pyc
+|   |   |       |   |   |   |   +-- uts46data.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- codec.py
+|   |   |       |   |   |   |-- compat.py
+|   |   |       |   |   |   |-- core.py
+|   |   |       |   |   |   |-- idnadata.py
+|   |   |       |   |   |   |-- intranges.py
+|   |   |       |   |   |   |-- LICENSE.md
+|   |   |       |   |   |   |-- package_data.py
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   +-- uts46data.py
+|   |   |       |   |   |-- msgpack
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |   |   |-- ext.cpython-314.pyc
+|   |   |       |   |   |   |   +-- fallback.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- COPYING
+|   |   |       |   |   |   |-- exceptions.py
+|   |   |       |   |   |   |-- ext.py
+|   |   |       |   |   |   +-- fallback.py
+|   |   |       |   |   |-- packaging
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _elffile.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _manylinux.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _musllinux.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _parser.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _structures.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _tokenizer.cpython-314.pyc
+|   |   |       |   |   |   |   |-- markers.cpython-314.pyc
+|   |   |       |   |   |   |   |-- metadata.cpython-314.pyc
+|   |   |       |   |   |   |   |-- pylock.cpython-314.pyc
+|   |   |       |   |   |   |   |-- requirements.cpython-314.pyc
+|   |   |       |   |   |   |   |-- specifiers.cpython-314.pyc
+|   |   |       |   |   |   |   |-- tags.cpython-314.pyc
+|   |   |       |   |   |   |   |-- utils.cpython-314.pyc
+|   |   |       |   |   |   |   +-- version.cpython-314.pyc
+|   |   |       |   |   |   |-- licenses
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- _spdx.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- _spdx.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _elffile.py
+|   |   |       |   |   |   |-- _manylinux.py
+|   |   |       |   |   |   |-- _musllinux.py
+|   |   |       |   |   |   |-- _parser.py
+|   |   |       |   |   |   |-- _structures.py
+|   |   |       |   |   |   |-- _tokenizer.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- LICENSE.APACHE
+|   |   |       |   |   |   |-- LICENSE.BSD
+|   |   |       |   |   |   |-- markers.py
+|   |   |       |   |   |   |-- metadata.py
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   |-- pylock.py
+|   |   |       |   |   |   |-- requirements.py
+|   |   |       |   |   |   |-- specifiers.py
+|   |   |       |   |   |   |-- tags.py
+|   |   |       |   |   |   |-- utils.py
+|   |   |       |   |   |   +-- version.py
+|   |   |       |   |   |-- pkg_resources
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   +-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   +-- LICENSE
+|   |   |       |   |   |-- platformdirs
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- android.cpython-314.pyc
+|   |   |       |   |   |   |   |-- api.cpython-314.pyc
+|   |   |       |   |   |   |   |-- macos.cpython-314.pyc
+|   |   |       |   |   |   |   |-- unix.cpython-314.pyc
+|   |   |       |   |   |   |   |-- version.cpython-314.pyc
+|   |   |       |   |   |   |   +-- windows.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- android.py
+|   |   |       |   |   |   |-- api.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- macos.py
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   |-- unix.py
+|   |   |       |   |   |   |-- version.py
+|   |   |       |   |   |   +-- windows.py
+|   |   |       |   |   |-- pygments
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- console.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filter.cpython-314.pyc
+|   |   |       |   |   |   |   |-- formatter.cpython-314.pyc
+|   |   |       |   |   |   |   |-- lexer.cpython-314.pyc
+|   |   |       |   |   |   |   |-- modeline.cpython-314.pyc
+|   |   |       |   |   |   |   |-- plugin.cpython-314.pyc
+|   |   |       |   |   |   |   |-- regexopt.cpython-314.pyc
+|   |   |       |   |   |   |   |-- scanner.cpython-314.pyc
+|   |   |       |   |   |   |   |-- sphinxext.cpython-314.pyc
+|   |   |       |   |   |   |   |-- style.cpython-314.pyc
+|   |   |       |   |   |   |   |-- token.cpython-314.pyc
+|   |   |       |   |   |   |   |-- unistring.cpython-314.pyc
+|   |   |       |   |   |   |   +-- util.cpython-314.pyc
+|   |   |       |   |   |   |-- filters
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   +-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- __init__.py
+|   |   |       |   |   |   |-- formatters
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- _mapping.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- _mapping.py
+|   |   |       |   |   |   |-- lexers
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- _mapping.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- python.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- _mapping.py
+|   |   |       |   |   |   |   +-- python.py
+|   |   |       |   |   |   |-- styles
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- _mapping.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- _mapping.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- console.py
+|   |   |       |   |   |   |-- filter.py
+|   |   |       |   |   |   |-- formatter.py
+|   |   |       |   |   |   |-- lexer.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- modeline.py
+|   |   |       |   |   |   |-- plugin.py
+|   |   |       |   |   |   |-- regexopt.py
+|   |   |       |   |   |   |-- scanner.py
+|   |   |       |   |   |   |-- sphinxext.py
+|   |   |       |   |   |   |-- style.py
+|   |   |       |   |   |   |-- token.py
+|   |   |       |   |   |   |-- unistring.py
+|   |   |       |   |   |   +-- util.py
+|   |   |       |   |   |-- pyproject_hooks
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- _impl.cpython-314.pyc
+|   |   |       |   |   |   |-- _in_process
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- _in_process.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- _in_process.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _impl.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- requests
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __version__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _internal_utils.cpython-314.pyc
+|   |   |       |   |   |   |   |-- adapters.cpython-314.pyc
+|   |   |       |   |   |   |   |-- api.cpython-314.pyc
+|   |   |       |   |   |   |   |-- auth.cpython-314.pyc
+|   |   |       |   |   |   |   |-- certs.cpython-314.pyc
+|   |   |       |   |   |   |   |-- compat.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cookies.cpython-314.pyc
+|   |   |       |   |   |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |   |   |-- help.cpython-314.pyc
+|   |   |       |   |   |   |   |-- hooks.cpython-314.pyc
+|   |   |       |   |   |   |   |-- models.cpython-314.pyc
+|   |   |       |   |   |   |   |-- packages.cpython-314.pyc
+|   |   |       |   |   |   |   |-- sessions.cpython-314.pyc
+|   |   |       |   |   |   |   |-- status_codes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- structures.cpython-314.pyc
+|   |   |       |   |   |   |   +-- utils.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __version__.py
+|   |   |       |   |   |   |-- _internal_utils.py
+|   |   |       |   |   |   |-- adapters.py
+|   |   |       |   |   |   |-- api.py
+|   |   |       |   |   |   |-- auth.py
+|   |   |       |   |   |   |-- certs.py
+|   |   |       |   |   |   |-- compat.py
+|   |   |       |   |   |   |-- cookies.py
+|   |   |       |   |   |   |-- exceptions.py
+|   |   |       |   |   |   |-- help.py
+|   |   |       |   |   |   |-- hooks.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- models.py
+|   |   |       |   |   |   |-- packages.py
+|   |   |       |   |   |   |-- sessions.py
+|   |   |       |   |   |   |-- status_codes.py
+|   |   |       |   |   |   |-- structures.py
+|   |   |       |   |   |   +-- utils.py
+|   |   |       |   |   |-- resolvelib
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- providers.cpython-314.pyc
+|   |   |       |   |   |   |   |-- reporters.cpython-314.pyc
+|   |   |       |   |   |   |   +-- structs.cpython-314.pyc
+|   |   |       |   |   |   |-- resolvers
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- abstract.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- criterion.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- resolution.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- abstract.py
+|   |   |       |   |   |   |   |-- criterion.py
+|   |   |       |   |   |   |   |-- exceptions.py
+|   |   |       |   |   |   |   +-- resolution.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- providers.py
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   |-- reporters.py
+|   |   |       |   |   |   +-- structs.py
+|   |   |       |   |   |-- rich
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _cell_widths.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _emoji_codes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _emoji_replace.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _export_format.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _extension.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _fileno.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _inspect.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _log_render.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _loop.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _null_file.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _palettes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _pick.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _ratio.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _spinners.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _stack.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _timer.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _win32_console.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _windows.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _windows_renderer.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _wrap.cpython-314.pyc
+|   |   |       |   |   |   |   |-- abc.cpython-314.pyc
+|   |   |       |   |   |   |   |-- align.cpython-314.pyc
+|   |   |       |   |   |   |   |-- ansi.cpython-314.pyc
+|   |   |       |   |   |   |   |-- bar.cpython-314.pyc
+|   |   |       |   |   |   |   |-- box.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cells.cpython-314.pyc
+|   |   |       |   |   |   |   |-- color.cpython-314.pyc
+|   |   |       |   |   |   |   |-- color_triplet.cpython-314.pyc
+|   |   |       |   |   |   |   |-- columns.cpython-314.pyc
+|   |   |       |   |   |   |   |-- console.cpython-314.pyc
+|   |   |       |   |   |   |   |-- constrain.cpython-314.pyc
+|   |   |       |   |   |   |   |-- containers.cpython-314.pyc
+|   |   |       |   |   |   |   |-- control.cpython-314.pyc
+|   |   |       |   |   |   |   |-- default_styles.cpython-314.pyc
+|   |   |       |   |   |   |   |-- diagnose.cpython-314.pyc
+|   |   |       |   |   |   |   |-- emoji.cpython-314.pyc
+|   |   |       |   |   |   |   |-- errors.cpython-314.pyc
+|   |   |       |   |   |   |   |-- file_proxy.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filesize.cpython-314.pyc
+|   |   |       |   |   |   |   |-- highlighter.cpython-314.pyc
+|   |   |       |   |   |   |   |-- json.cpython-314.pyc
+|   |   |       |   |   |   |   |-- jupyter.cpython-314.pyc
+|   |   |       |   |   |   |   |-- layout.cpython-314.pyc
+|   |   |       |   |   |   |   |-- live.cpython-314.pyc
+|   |   |       |   |   |   |   |-- live_render.cpython-314.pyc
+|   |   |       |   |   |   |   |-- logging.cpython-314.pyc
+|   |   |       |   |   |   |   |-- markup.cpython-314.pyc
+|   |   |       |   |   |   |   |-- measure.cpython-314.pyc
+|   |   |       |   |   |   |   |-- padding.cpython-314.pyc
+|   |   |       |   |   |   |   |-- pager.cpython-314.pyc
+|   |   |       |   |   |   |   |-- palette.cpython-314.pyc
+|   |   |       |   |   |   |   |-- panel.cpython-314.pyc
+|   |   |       |   |   |   |   |-- pretty.cpython-314.pyc
+|   |   |       |   |   |   |   |-- progress.cpython-314.pyc
+|   |   |       |   |   |   |   |-- progress_bar.cpython-314.pyc
+|   |   |       |   |   |   |   |-- prompt.cpython-314.pyc
+|   |   |       |   |   |   |   |-- protocol.cpython-314.pyc
+|   |   |       |   |   |   |   |-- region.cpython-314.pyc
+|   |   |       |   |   |   |   |-- repr.cpython-314.pyc
+|   |   |       |   |   |   |   |-- rule.cpython-314.pyc
+|   |   |       |   |   |   |   |-- scope.cpython-314.pyc
+|   |   |       |   |   |   |   |-- screen.cpython-314.pyc
+|   |   |       |   |   |   |   |-- segment.cpython-314.pyc
+|   |   |       |   |   |   |   |-- spinner.cpython-314.pyc
+|   |   |       |   |   |   |   |-- status.cpython-314.pyc
+|   |   |       |   |   |   |   |-- style.cpython-314.pyc
+|   |   |       |   |   |   |   |-- styled.cpython-314.pyc
+|   |   |       |   |   |   |   |-- syntax.cpython-314.pyc
+|   |   |       |   |   |   |   |-- table.cpython-314.pyc
+|   |   |       |   |   |   |   |-- terminal_theme.cpython-314.pyc
+|   |   |       |   |   |   |   |-- text.cpython-314.pyc
+|   |   |       |   |   |   |   |-- theme.cpython-314.pyc
+|   |   |       |   |   |   |   |-- themes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- traceback.cpython-314.pyc
+|   |   |       |   |   |   |   +-- tree.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- _cell_widths.py
+|   |   |       |   |   |   |-- _emoji_codes.py
+|   |   |       |   |   |   |-- _emoji_replace.py
+|   |   |       |   |   |   |-- _export_format.py
+|   |   |       |   |   |   |-- _extension.py
+|   |   |       |   |   |   |-- _fileno.py
+|   |   |       |   |   |   |-- _inspect.py
+|   |   |       |   |   |   |-- _log_render.py
+|   |   |       |   |   |   |-- _loop.py
+|   |   |       |   |   |   |-- _null_file.py
+|   |   |       |   |   |   |-- _palettes.py
+|   |   |       |   |   |   |-- _pick.py
+|   |   |       |   |   |   |-- _ratio.py
+|   |   |       |   |   |   |-- _spinners.py
+|   |   |       |   |   |   |-- _stack.py
+|   |   |       |   |   |   |-- _timer.py
+|   |   |       |   |   |   |-- _win32_console.py
+|   |   |       |   |   |   |-- _windows.py
+|   |   |       |   |   |   |-- _windows_renderer.py
+|   |   |       |   |   |   |-- _wrap.py
+|   |   |       |   |   |   |-- abc.py
+|   |   |       |   |   |   |-- align.py
+|   |   |       |   |   |   |-- ansi.py
+|   |   |       |   |   |   |-- bar.py
+|   |   |       |   |   |   |-- box.py
+|   |   |       |   |   |   |-- cells.py
+|   |   |       |   |   |   |-- color.py
+|   |   |       |   |   |   |-- color_triplet.py
+|   |   |       |   |   |   |-- columns.py
+|   |   |       |   |   |   |-- console.py
+|   |   |       |   |   |   |-- constrain.py
+|   |   |       |   |   |   |-- containers.py
+|   |   |       |   |   |   |-- control.py
+|   |   |       |   |   |   |-- default_styles.py
+|   |   |       |   |   |   |-- diagnose.py
+|   |   |       |   |   |   |-- emoji.py
+|   |   |       |   |   |   |-- errors.py
+|   |   |       |   |   |   |-- file_proxy.py
+|   |   |       |   |   |   |-- filesize.py
+|   |   |       |   |   |   |-- highlighter.py
+|   |   |       |   |   |   |-- json.py
+|   |   |       |   |   |   |-- jupyter.py
+|   |   |       |   |   |   |-- layout.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- live.py
+|   |   |       |   |   |   |-- live_render.py
+|   |   |       |   |   |   |-- logging.py
+|   |   |       |   |   |   |-- markup.py
+|   |   |       |   |   |   |-- measure.py
+|   |   |       |   |   |   |-- padding.py
+|   |   |       |   |   |   |-- pager.py
+|   |   |       |   |   |   |-- palette.py
+|   |   |       |   |   |   |-- panel.py
+|   |   |       |   |   |   |-- pretty.py
+|   |   |       |   |   |   |-- progress.py
+|   |   |       |   |   |   |-- progress_bar.py
+|   |   |       |   |   |   |-- prompt.py
+|   |   |       |   |   |   |-- protocol.py
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   |-- region.py
+|   |   |       |   |   |   |-- repr.py
+|   |   |       |   |   |   |-- rule.py
+|   |   |       |   |   |   |-- scope.py
+|   |   |       |   |   |   |-- screen.py
+|   |   |       |   |   |   |-- segment.py
+|   |   |       |   |   |   |-- spinner.py
+|   |   |       |   |   |   |-- status.py
+|   |   |       |   |   |   |-- style.py
+|   |   |       |   |   |   |-- styled.py
+|   |   |       |   |   |   |-- syntax.py
+|   |   |       |   |   |   |-- table.py
+|   |   |       |   |   |   |-- terminal_theme.py
+|   |   |       |   |   |   |-- text.py
+|   |   |       |   |   |   |-- theme.py
+|   |   |       |   |   |   |-- themes.py
+|   |   |       |   |   |   |-- traceback.py
+|   |   |       |   |   |   +-- tree.py
+|   |   |       |   |   |-- tomli
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _parser.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _re.cpython-314.pyc
+|   |   |       |   |   |   |   +-- _types.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _parser.py
+|   |   |       |   |   |   |-- _re.py
+|   |   |       |   |   |   |-- _types.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- tomli_w
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- _writer.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _writer.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- truststore
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _api.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _macos.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _openssl.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _ssl_constants.cpython-314.pyc
+|   |   |       |   |   |   |   +-- _windows.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _api.py
+|   |   |       |   |   |   |-- _macos.py
+|   |   |       |   |   |   |-- _openssl.py
+|   |   |       |   |   |   |-- _ssl_constants.py
+|   |   |       |   |   |   |-- _windows.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- urllib3
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _collections.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _version.cpython-314.pyc
+|   |   |       |   |   |   |   |-- connection.cpython-314.pyc
+|   |   |       |   |   |   |   |-- connectionpool.cpython-314.pyc
+|   |   |       |   |   |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |   |   |-- fields.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filepost.cpython-314.pyc
+|   |   |       |   |   |   |   |-- poolmanager.cpython-314.pyc
+|   |   |       |   |   |   |   |-- request.cpython-314.pyc
+|   |   |       |   |   |   |   +-- response.cpython-314.pyc
+|   |   |       |   |   |   |-- contrib
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- _appengine_environ.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- appengine.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- ntlmpool.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- pyopenssl.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- securetransport.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- socks.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _securetransport
+|   |   |       |   |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |   |-- bindings.cpython-314.pyc
+|   |   |       |   |   |   |   |   |   +-- low_level.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |   |-- bindings.py
+|   |   |       |   |   |   |   |   +-- low_level.py
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- _appengine_environ.py
+|   |   |       |   |   |   |   |-- appengine.py
+|   |   |       |   |   |   |   |-- ntlmpool.py
+|   |   |       |   |   |   |   |-- pyopenssl.py
+|   |   |       |   |   |   |   |-- securetransport.py
+|   |   |       |   |   |   |   +-- socks.py
+|   |   |       |   |   |   |-- packages
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- six.cpython-314.pyc
+|   |   |       |   |   |   |   |-- backports
+|   |   |       |   |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |   |-- makefile.cpython-314.pyc
+|   |   |       |   |   |   |   |   |   +-- weakref_finalize.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |   |-- makefile.py
+|   |   |       |   |   |   |   |   +-- weakref_finalize.py
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- six.py
+|   |   |       |   |   |   |-- util
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- connection.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- proxy.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- queue.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- request.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- response.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- retry.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- ssl_.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- ssl_match_hostname.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- ssltransport.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- timeout.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- url.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- wait.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- connection.py
+|   |   |       |   |   |   |   |-- proxy.py
+|   |   |       |   |   |   |   |-- queue.py
+|   |   |       |   |   |   |   |-- request.py
+|   |   |       |   |   |   |   |-- response.py
+|   |   |       |   |   |   |   |-- retry.py
+|   |   |       |   |   |   |   |-- ssl_.py
+|   |   |       |   |   |   |   |-- ssl_match_hostname.py
+|   |   |       |   |   |   |   |-- ssltransport.py
+|   |   |       |   |   |   |   |-- timeout.py
+|   |   |       |   |   |   |   |-- url.py
+|   |   |       |   |   |   |   +-- wait.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _collections.py
+|   |   |       |   |   |   |-- _version.py
+|   |   |       |   |   |   |-- connection.py
+|   |   |       |   |   |   |-- connectionpool.py
+|   |   |       |   |   |   |-- exceptions.py
+|   |   |       |   |   |   |-- fields.py
+|   |   |       |   |   |   |-- filepost.py
+|   |   |       |   |   |   |-- LICENSE.txt
+|   |   |       |   |   |   |-- poolmanager.py
+|   |   |       |   |   |   |-- request.py
+|   |   |       |   |   |   +-- response.py
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- README.rst
+|   |   |       |   |   +-- vendor.txt
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- __main__.py
+|   |   |       |   |-- __pip-runner__.py
+|   |   |       |   +-- py.typed
+|   |   |       |-- pip-26.0.1.dist-info
+|   |   |       |   |-- licenses
+|   |   |       |   |   |-- src
+|   |   |       |   |   |   +-- pip
+|   |   |       |   |   |       +-- _vendor
+|   |   |       |   |   |           |-- cachecontrol
+|   |   |       |   |   |           |   +-- LICENSE.txt
+|   |   |       |   |   |           |-- certifi
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- dependency_groups
+|   |   |       |   |   |           |   +-- LICENSE.txt
+|   |   |       |   |   |           |-- distlib
+|   |   |       |   |   |           |   +-- LICENSE.txt
+|   |   |       |   |   |           |-- distro
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- idna
+|   |   |       |   |   |           |   +-- LICENSE.md
+|   |   |       |   |   |           |-- msgpack
+|   |   |       |   |   |           |   +-- COPYING
+|   |   |       |   |   |           |-- packaging
+|   |   |       |   |   |           |   |-- LICENSE
+|   |   |       |   |   |           |   |-- LICENSE.APACHE
+|   |   |       |   |   |           |   +-- LICENSE.BSD
+|   |   |       |   |   |           |-- pkg_resources
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- platformdirs
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- pygments
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- pyproject_hooks
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- requests
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- resolvelib
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- rich
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- tomli
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- tomli_w
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- truststore
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           +-- urllib3
+|   |   |       |   |   |               +-- LICENSE.txt
+|   |   |       |   |   |-- AUTHORS.txt
+|   |   |       |   |   +-- LICENSE.txt
+|   |   |       |   |-- entry_points.txt
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   |-- REQUESTED
+|   |   |       |   +-- WHEEL
+|   |   |       |-- psycopg2
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- _ipaddress.cpython-314.pyc
+|   |   |       |   |   |-- _json.cpython-314.pyc
+|   |   |       |   |   |-- _range.cpython-314.pyc
+|   |   |       |   |   |-- errorcodes.cpython-314.pyc
+|   |   |       |   |   |-- errors.cpython-314.pyc
+|   |   |       |   |   |-- extensions.cpython-314.pyc
+|   |   |       |   |   |-- extras.cpython-314.pyc
+|   |   |       |   |   |-- pool.cpython-314.pyc
+|   |   |       |   |   |-- sql.cpython-314.pyc
+|   |   |       |   |   +-- tz.cpython-314.pyc
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- _ipaddress.py
+|   |   |       |   |-- _json.py
+|   |   |       |   |-- _psycopg.cp314-win_amd64.pyd
+|   |   |       |   |-- _range.py
+|   |   |       |   |-- errorcodes.py
+|   |   |       |   |-- errors.py
+|   |   |       |   |-- extensions.py
+|   |   |       |   |-- extras.py
+|   |   |       |   |-- pool.py
+|   |   |       |   |-- sql.py
+|   |   |       |   +-- tz.py
+|   |   |       |-- psycopg2_binary.libs
+|   |   |       |   |-- libcrypto-3-x64-a541aa02e9207ebe82a6024a9b4cbecb.dll
+|   |   |       |   |-- libpq-f42384d3c1939d42a6a0d0621313fd37.dll
+|   |   |       |   +-- libssl-3-x64-2b03928d9b6537a6d961c5bc118ed43e.dll
+|   |   |       |-- psycopg2_binary-2.9.12.dist-info
+|   |   |       |   |-- licenses
+|   |   |       |   |   +-- LICENSE
+|   |   |       |   |-- DELVEWHEEL
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   |-- REQUESTED
+|   |   |       |   |-- top_level.txt
+|   |   |       |   +-- WHEEL
+|   |   |       |-- python_dotenv-1.2.2.dist-info
+|   |   |       |   |-- licenses
+|   |   |       |   |   +-- LICENSE
+|   |   |       |   |-- entry_points.txt
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   |-- REQUESTED
+|   |   |       |   |-- top_level.txt
+|   |   |       |   +-- WHEEL
+|   |   |       |-- werkzeug
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- _internal.cpython-314.pyc
+|   |   |       |   |   |-- _reloader.cpython-314.pyc
+|   |   |       |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |-- formparser.cpython-314.pyc
+|   |   |       |   |   |-- http.cpython-314.pyc
+|   |   |       |   |   |-- local.cpython-314.pyc
+|   |   |       |   |   |-- security.cpython-314.pyc
+|   |   |       |   |   |-- serving.cpython-314.pyc
+|   |   |       |   |   |-- test.cpython-314.pyc
+|   |   |       |   |   |-- testapp.cpython-314.pyc
+|   |   |       |   |   |-- urls.cpython-314.pyc
+|   |   |       |   |   |-- user_agent.cpython-314.pyc
+|   |   |       |   |   |-- utils.cpython-314.pyc
+|   |   |       |   |   +-- wsgi.cpython-314.pyc
+|   |   |       |   |-- datastructures
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- accept.cpython-314.pyc
+|   |   |       |   |   |   |-- auth.cpython-314.pyc
+|   |   |       |   |   |   |-- cache_control.cpython-314.pyc
+|   |   |       |   |   |   |-- csp.cpython-314.pyc
+|   |   |       |   |   |   |-- etag.cpython-314.pyc
+|   |   |       |   |   |   |-- file_storage.cpython-314.pyc
+|   |   |       |   |   |   |-- headers.cpython-314.pyc
+|   |   |       |   |   |   |-- mixins.cpython-314.pyc
+|   |   |       |   |   |   |-- range.cpython-314.pyc
+|   |   |       |   |   |   +-- structures.cpython-314.pyc
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- accept.py
+|   |   |       |   |   |-- auth.py
+|   |   |       |   |   |-- cache_control.py
+|   |   |       |   |   |-- csp.py
+|   |   |       |   |   |-- etag.py
+|   |   |       |   |   |-- file_storage.py
+|   |   |       |   |   |-- headers.py
+|   |   |       |   |   |-- mixins.py
+|   |   |       |   |   |-- range.py
+|   |   |       |   |   +-- structures.py
+|   |   |       |   |-- debug
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- console.cpython-314.pyc
+|   |   |       |   |   |   |-- repr.cpython-314.pyc
+|   |   |       |   |   |   +-- tbtools.cpython-314.pyc
+|   |   |       |   |   |-- shared
+|   |   |       |   |   |   |-- console.png
+|   |   |       |   |   |   |-- debugger.js
+|   |   |       |   |   |   |-- ICON_LICENSE.md
+|   |   |       |   |   |   |-- less.png
+|   |   |       |   |   |   |-- more.png
+|   |   |       |   |   |   +-- style.css
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- console.py
+|   |   |       |   |   |-- repr.py
+|   |   |       |   |   +-- tbtools.py
+|   |   |       |   |-- middleware
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- dispatcher.cpython-314.pyc
+|   |   |       |   |   |   |-- http_proxy.cpython-314.pyc
+|   |   |       |   |   |   |-- lint.cpython-314.pyc
+|   |   |       |   |   |   |-- profiler.cpython-314.pyc
+|   |   |       |   |   |   |-- proxy_fix.cpython-314.pyc
+|   |   |       |   |   |   +-- shared_data.cpython-314.pyc
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- dispatcher.py
+|   |   |       |   |   |-- http_proxy.py
+|   |   |       |   |   |-- lint.py
+|   |   |       |   |   |-- profiler.py
+|   |   |       |   |   |-- proxy_fix.py
+|   |   |       |   |   +-- shared_data.py
+|   |   |       |   |-- routing
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- converters.cpython-314.pyc
+|   |   |       |   |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |   |-- map.cpython-314.pyc
+|   |   |       |   |   |   |-- matcher.cpython-314.pyc
+|   |   |       |   |   |   +-- rules.cpython-314.pyc
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- converters.py
+|   |   |       |   |   |-- exceptions.py
+|   |   |       |   |   |-- map.py
+|   |   |       |   |   |-- matcher.py
+|   |   |       |   |   +-- rules.py
+|   |   |       |   |-- sansio
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- http.cpython-314.pyc
+|   |   |       |   |   |   |-- multipart.cpython-314.pyc
+|   |   |       |   |   |   |-- request.cpython-314.pyc
+|   |   |       |   |   |   |-- response.cpython-314.pyc
+|   |   |       |   |   |   +-- utils.cpython-314.pyc
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- http.py
+|   |   |       |   |   |-- multipart.py
+|   |   |       |   |   |-- request.py
+|   |   |       |   |   |-- response.py
+|   |   |       |   |   +-- utils.py
+|   |   |       |   |-- wrappers
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- request.cpython-314.pyc
+|   |   |       |   |   |   +-- response.cpython-314.pyc
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- request.py
+|   |   |       |   |   +-- response.py
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- _internal.py
+|   |   |       |   |-- _reloader.py
+|   |   |       |   |-- exceptions.py
+|   |   |       |   |-- formparser.py
+|   |   |       |   |-- http.py
+|   |   |       |   |-- local.py
+|   |   |       |   |-- py.typed
+|   |   |       |   |-- security.py
+|   |   |       |   |-- serving.py
+|   |   |       |   |-- test.py
+|   |   |       |   |-- testapp.py
+|   |   |       |   |-- urls.py
+|   |   |       |   |-- user_agent.py
+|   |   |       |   |-- utils.py
+|   |   |       |   +-- wsgi.py
+|   |   |       +-- werkzeug-3.1.8.dist-info
+|   |   |           |-- licenses
+|   |   |           |   +-- LICENSE.txt
+|   |   |           |-- INSTALLER
+|   |   |           |-- METADATA
+|   |   |           |-- RECORD
+|   |   |           +-- WHEEL
+|   |   |-- Scripts
+|   |   |   |-- activate
+|   |   |   |-- activate.bat
+|   |   |   |-- activate.fish
+|   |   |   |-- Activate.ps1
+|   |   |   |-- deactivate.bat
+|   |   |   |-- dotenv.exe
+|   |   |   |-- flask.exe
+|   |   |   |-- pip.exe
+|   |   |   |-- pip3.14.exe
+|   |   |   |-- pip3.exe
+|   |   |   |-- python.exe
+|   |   |   +-- pythonw.exe
+|   |   |-- .gitignore
+|   |   +-- pyvenv.cfg
+|   |-- __pycache__
+|   |   +-- db.cpython-314.pyc
+|   |-- routes
+|   |   |-- __pycache__
+|   |   |   |-- __init__.cpython-314.pyc
+|   |   |   |-- health.cpython-314.pyc
+|   |   |   |-- ingest.cpython-314.pyc
+|   |   |   +-- logs.cpython-314.pyc
+|   |   |-- __init__.py
+|   |   |-- health.py
+|   |   |-- ingest.py
+|   |   +-- logs.py
+|   |-- .env
+|   |-- app.py
+|   |-- db.py
+|   +-- requirements.txt
+|-- ingestor
+|   |-- .venv
+|   |   |-- Include
+|   |   |-- Lib
+|   |   |   +-- site-packages
+|   |   |       |-- dotenv
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |-- cli.cpython-314.pyc
+|   |   |       |   |   |-- ipython.cpython-314.pyc
+|   |   |       |   |   |-- main.cpython-314.pyc
+|   |   |       |   |   |-- parser.cpython-314.pyc
+|   |   |       |   |   |-- variables.cpython-314.pyc
+|   |   |       |   |   +-- version.cpython-314.pyc
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- __main__.py
+|   |   |       |   |-- cli.py
+|   |   |       |   |-- ipython.py
+|   |   |       |   |-- main.py
+|   |   |       |   |-- parser.py
+|   |   |       |   |-- py.typed
+|   |   |       |   |-- variables.py
+|   |   |       |   +-- version.py
+|   |   |       |-- pip
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   +-- __pip-runner__.cpython-314.pyc
+|   |   |       |   |-- _internal
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- build_env.cpython-314.pyc
+|   |   |       |   |   |   |-- cache.cpython-314.pyc
+|   |   |       |   |   |   |-- configuration.cpython-314.pyc
+|   |   |       |   |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |   |-- main.cpython-314.pyc
+|   |   |       |   |   |   |-- pyproject.cpython-314.pyc
+|   |   |       |   |   |   |-- self_outdated_check.cpython-314.pyc
+|   |   |       |   |   |   +-- wheel_builder.cpython-314.pyc
+|   |   |       |   |   |-- cli
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- autocompletion.cpython-314.pyc
+|   |   |       |   |   |   |   |-- base_command.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cmdoptions.cpython-314.pyc
+|   |   |       |   |   |   |   |-- command_context.cpython-314.pyc
+|   |   |       |   |   |   |   |-- index_command.cpython-314.pyc
+|   |   |       |   |   |   |   |-- main.cpython-314.pyc
+|   |   |       |   |   |   |   |-- main_parser.cpython-314.pyc
+|   |   |       |   |   |   |   |-- parser.cpython-314.pyc
+|   |   |       |   |   |   |   |-- progress_bars.cpython-314.pyc
+|   |   |       |   |   |   |   |-- req_command.cpython-314.pyc
+|   |   |       |   |   |   |   |-- spinners.cpython-314.pyc
+|   |   |       |   |   |   |   +-- status_codes.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- autocompletion.py
+|   |   |       |   |   |   |-- base_command.py
+|   |   |       |   |   |   |-- cmdoptions.py
+|   |   |       |   |   |   |-- command_context.py
+|   |   |       |   |   |   |-- index_command.py
+|   |   |       |   |   |   |-- main.py
+|   |   |       |   |   |   |-- main_parser.py
+|   |   |       |   |   |   |-- parser.py
+|   |   |       |   |   |   |-- progress_bars.py
+|   |   |       |   |   |   |-- req_command.py
+|   |   |       |   |   |   |-- spinners.py
+|   |   |       |   |   |   +-- status_codes.py
+|   |   |       |   |   |-- commands
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cache.cpython-314.pyc
+|   |   |       |   |   |   |   |-- check.cpython-314.pyc
+|   |   |       |   |   |   |   |-- completion.cpython-314.pyc
+|   |   |       |   |   |   |   |-- configuration.cpython-314.pyc
+|   |   |       |   |   |   |   |-- debug.cpython-314.pyc
+|   |   |       |   |   |   |   |-- download.cpython-314.pyc
+|   |   |       |   |   |   |   |-- freeze.cpython-314.pyc
+|   |   |       |   |   |   |   |-- hash.cpython-314.pyc
+|   |   |       |   |   |   |   |-- help.cpython-314.pyc
+|   |   |       |   |   |   |   |-- index.cpython-314.pyc
+|   |   |       |   |   |   |   |-- inspect.cpython-314.pyc
+|   |   |       |   |   |   |   |-- install.cpython-314.pyc
+|   |   |       |   |   |   |   |-- list.cpython-314.pyc
+|   |   |       |   |   |   |   |-- lock.cpython-314.pyc
+|   |   |       |   |   |   |   |-- search.cpython-314.pyc
+|   |   |       |   |   |   |   |-- show.cpython-314.pyc
+|   |   |       |   |   |   |   |-- uninstall.cpython-314.pyc
+|   |   |       |   |   |   |   +-- wheel.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- cache.py
+|   |   |       |   |   |   |-- check.py
+|   |   |       |   |   |   |-- completion.py
+|   |   |       |   |   |   |-- configuration.py
+|   |   |       |   |   |   |-- debug.py
+|   |   |       |   |   |   |-- download.py
+|   |   |       |   |   |   |-- freeze.py
+|   |   |       |   |   |   |-- hash.py
+|   |   |       |   |   |   |-- help.py
+|   |   |       |   |   |   |-- index.py
+|   |   |       |   |   |   |-- inspect.py
+|   |   |       |   |   |   |-- install.py
+|   |   |       |   |   |   |-- list.py
+|   |   |       |   |   |   |-- lock.py
+|   |   |       |   |   |   |-- search.py
+|   |   |       |   |   |   |-- show.py
+|   |   |       |   |   |   |-- uninstall.py
+|   |   |       |   |   |   +-- wheel.py
+|   |   |       |   |   |-- distributions
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- base.cpython-314.pyc
+|   |   |       |   |   |   |   |-- installed.cpython-314.pyc
+|   |   |       |   |   |   |   |-- sdist.cpython-314.pyc
+|   |   |       |   |   |   |   +-- wheel.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- base.py
+|   |   |       |   |   |   |-- installed.py
+|   |   |       |   |   |   |-- sdist.py
+|   |   |       |   |   |   +-- wheel.py
+|   |   |       |   |   |-- index
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- collector.cpython-314.pyc
+|   |   |       |   |   |   |   |-- package_finder.cpython-314.pyc
+|   |   |       |   |   |   |   +-- sources.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- collector.py
+|   |   |       |   |   |   |-- package_finder.py
+|   |   |       |   |   |   +-- sources.py
+|   |   |       |   |   |-- locations
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _distutils.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _sysconfig.cpython-314.pyc
+|   |   |       |   |   |   |   +-- base.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _distutils.py
+|   |   |       |   |   |   |-- _sysconfig.py
+|   |   |       |   |   |   +-- base.py
+|   |   |       |   |   |-- metadata
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _json.cpython-314.pyc
+|   |   |       |   |   |   |   |-- base.cpython-314.pyc
+|   |   |       |   |   |   |   +-- pkg_resources.cpython-314.pyc
+|   |   |       |   |   |   |-- importlib
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- _compat.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- _dists.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- _envs.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- _compat.py
+|   |   |       |   |   |   |   |-- _dists.py
+|   |   |       |   |   |   |   +-- _envs.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _json.py
+|   |   |       |   |   |   |-- base.py
+|   |   |       |   |   |   +-- pkg_resources.py
+|   |   |       |   |   |-- models
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- candidate.cpython-314.pyc
+|   |   |       |   |   |   |   |-- direct_url.cpython-314.pyc
+|   |   |       |   |   |   |   |-- format_control.cpython-314.pyc
+|   |   |       |   |   |   |   |-- index.cpython-314.pyc
+|   |   |       |   |   |   |   |-- installation_report.cpython-314.pyc
+|   |   |       |   |   |   |   |-- link.cpython-314.pyc
+|   |   |       |   |   |   |   |-- release_control.cpython-314.pyc
+|   |   |       |   |   |   |   |-- scheme.cpython-314.pyc
+|   |   |       |   |   |   |   |-- search_scope.cpython-314.pyc
+|   |   |       |   |   |   |   |-- selection_prefs.cpython-314.pyc
+|   |   |       |   |   |   |   |-- target_python.cpython-314.pyc
+|   |   |       |   |   |   |   +-- wheel.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- candidate.py
+|   |   |       |   |   |   |-- direct_url.py
+|   |   |       |   |   |   |-- format_control.py
+|   |   |       |   |   |   |-- index.py
+|   |   |       |   |   |   |-- installation_report.py
+|   |   |       |   |   |   |-- link.py
+|   |   |       |   |   |   |-- release_control.py
+|   |   |       |   |   |   |-- scheme.py
+|   |   |       |   |   |   |-- search_scope.py
+|   |   |       |   |   |   |-- selection_prefs.py
+|   |   |       |   |   |   |-- target_python.py
+|   |   |       |   |   |   +-- wheel.py
+|   |   |       |   |   |-- network
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- auth.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cache.cpython-314.pyc
+|   |   |       |   |   |   |   |-- download.cpython-314.pyc
+|   |   |       |   |   |   |   |-- lazy_wheel.cpython-314.pyc
+|   |   |       |   |   |   |   |-- session.cpython-314.pyc
+|   |   |       |   |   |   |   |-- utils.cpython-314.pyc
+|   |   |       |   |   |   |   +-- xmlrpc.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- auth.py
+|   |   |       |   |   |   |-- cache.py
+|   |   |       |   |   |   |-- download.py
+|   |   |       |   |   |   |-- lazy_wheel.py
+|   |   |       |   |   |   |-- session.py
+|   |   |       |   |   |   |-- utils.py
+|   |   |       |   |   |   +-- xmlrpc.py
+|   |   |       |   |   |-- operations
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- check.cpython-314.pyc
+|   |   |       |   |   |   |   |-- freeze.cpython-314.pyc
+|   |   |       |   |   |   |   +-- prepare.cpython-314.pyc
+|   |   |       |   |   |   |-- install
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- wheel.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- wheel.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- check.py
+|   |   |       |   |   |   |-- freeze.py
+|   |   |       |   |   |   +-- prepare.py
+|   |   |       |   |   |-- req
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- constructors.cpython-314.pyc
+|   |   |       |   |   |   |   |-- pep723.cpython-314.pyc
+|   |   |       |   |   |   |   |-- req_dependency_group.cpython-314.pyc
+|   |   |       |   |   |   |   |-- req_file.cpython-314.pyc
+|   |   |       |   |   |   |   |-- req_install.cpython-314.pyc
+|   |   |       |   |   |   |   |-- req_set.cpython-314.pyc
+|   |   |       |   |   |   |   +-- req_uninstall.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- constructors.py
+|   |   |       |   |   |   |-- pep723.py
+|   |   |       |   |   |   |-- req_dependency_group.py
+|   |   |       |   |   |   |-- req_file.py
+|   |   |       |   |   |   |-- req_install.py
+|   |   |       |   |   |   |-- req_set.py
+|   |   |       |   |   |   +-- req_uninstall.py
+|   |   |       |   |   |-- resolution
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- base.cpython-314.pyc
+|   |   |       |   |   |   |-- legacy
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- resolver.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- resolver.py
+|   |   |       |   |   |   |-- resolvelib
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- base.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- candidates.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- factory.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- found_candidates.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- provider.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- reporter.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- requirements.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- resolver.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- base.py
+|   |   |       |   |   |   |   |-- candidates.py
+|   |   |       |   |   |   |   |-- factory.py
+|   |   |       |   |   |   |   |-- found_candidates.py
+|   |   |       |   |   |   |   |-- provider.py
+|   |   |       |   |   |   |   |-- reporter.py
+|   |   |       |   |   |   |   |-- requirements.py
+|   |   |       |   |   |   |   +-- resolver.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   +-- base.py
+|   |   |       |   |   |-- utils
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _jaraco_text.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _log.cpython-314.pyc
+|   |   |       |   |   |   |   |-- appdirs.cpython-314.pyc
+|   |   |       |   |   |   |   |-- compat.cpython-314.pyc
+|   |   |       |   |   |   |   |-- compatibility_tags.cpython-314.pyc
+|   |   |       |   |   |   |   |-- datetime.cpython-314.pyc
+|   |   |       |   |   |   |   |-- deprecation.cpython-314.pyc
+|   |   |       |   |   |   |   |-- direct_url_helpers.cpython-314.pyc
+|   |   |       |   |   |   |   |-- egg_link.cpython-314.pyc
+|   |   |       |   |   |   |   |-- entrypoints.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filesystem.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filetypes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- glibc.cpython-314.pyc
+|   |   |       |   |   |   |   |-- hashes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- logging.cpython-314.pyc
+|   |   |       |   |   |   |   |-- misc.cpython-314.pyc
+|   |   |       |   |   |   |   |-- packaging.cpython-314.pyc
+|   |   |       |   |   |   |   |-- pylock.cpython-314.pyc
+|   |   |       |   |   |   |   |-- retry.cpython-314.pyc
+|   |   |       |   |   |   |   |-- subprocess.cpython-314.pyc
+|   |   |       |   |   |   |   |-- temp_dir.cpython-314.pyc
+|   |   |       |   |   |   |   |-- unpacking.cpython-314.pyc
+|   |   |       |   |   |   |   |-- urls.cpython-314.pyc
+|   |   |       |   |   |   |   |-- virtualenv.cpython-314.pyc
+|   |   |       |   |   |   |   +-- wheel.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _jaraco_text.py
+|   |   |       |   |   |   |-- _log.py
+|   |   |       |   |   |   |-- appdirs.py
+|   |   |       |   |   |   |-- compat.py
+|   |   |       |   |   |   |-- compatibility_tags.py
+|   |   |       |   |   |   |-- datetime.py
+|   |   |       |   |   |   |-- deprecation.py
+|   |   |       |   |   |   |-- direct_url_helpers.py
+|   |   |       |   |   |   |-- egg_link.py
+|   |   |       |   |   |   |-- entrypoints.py
+|   |   |       |   |   |   |-- filesystem.py
+|   |   |       |   |   |   |-- filetypes.py
+|   |   |       |   |   |   |-- glibc.py
+|   |   |       |   |   |   |-- hashes.py
+|   |   |       |   |   |   |-- logging.py
+|   |   |       |   |   |   |-- misc.py
+|   |   |       |   |   |   |-- packaging.py
+|   |   |       |   |   |   |-- pylock.py
+|   |   |       |   |   |   |-- retry.py
+|   |   |       |   |   |   |-- subprocess.py
+|   |   |       |   |   |   |-- temp_dir.py
+|   |   |       |   |   |   |-- unpacking.py
+|   |   |       |   |   |   |-- urls.py
+|   |   |       |   |   |   |-- virtualenv.py
+|   |   |       |   |   |   +-- wheel.py
+|   |   |       |   |   |-- vcs
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- bazaar.cpython-314.pyc
+|   |   |       |   |   |   |   |-- git.cpython-314.pyc
+|   |   |       |   |   |   |   |-- mercurial.cpython-314.pyc
+|   |   |       |   |   |   |   |-- subversion.cpython-314.pyc
+|   |   |       |   |   |   |   +-- versioncontrol.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- bazaar.py
+|   |   |       |   |   |   |-- git.py
+|   |   |       |   |   |   |-- mercurial.py
+|   |   |       |   |   |   |-- subversion.py
+|   |   |       |   |   |   +-- versioncontrol.py
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- build_env.py
+|   |   |       |   |   |-- cache.py
+|   |   |       |   |   |-- configuration.py
+|   |   |       |   |   |-- exceptions.py
+|   |   |       |   |   |-- main.py
+|   |   |       |   |   |-- pyproject.py
+|   |   |       |   |   |-- self_outdated_check.py
+|   |   |       |   |   +-- wheel_builder.py
+|   |   |       |   |-- _vendor
+|   |   |       |   |   |-- __pycache__
+|   |   |       |   |   |   +-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- cachecontrol
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _cmd.cpython-314.pyc
+|   |   |       |   |   |   |   |-- adapter.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cache.cpython-314.pyc
+|   |   |       |   |   |   |   |-- controller.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filewrapper.cpython-314.pyc
+|   |   |       |   |   |   |   |-- heuristics.cpython-314.pyc
+|   |   |       |   |   |   |   |-- serialize.cpython-314.pyc
+|   |   |       |   |   |   |   +-- wrapper.cpython-314.pyc
+|   |   |       |   |   |   |-- caches
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- file_cache.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- redis_cache.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- file_cache.py
+|   |   |       |   |   |   |   +-- redis_cache.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _cmd.py
+|   |   |       |   |   |   |-- adapter.py
+|   |   |       |   |   |   |-- cache.py
+|   |   |       |   |   |   |-- controller.py
+|   |   |       |   |   |   |-- filewrapper.py
+|   |   |       |   |   |   |-- heuristics.py
+|   |   |       |   |   |   |-- LICENSE.txt
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   |-- serialize.py
+|   |   |       |   |   |   +-- wrapper.py
+|   |   |       |   |   |-- certifi
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- core.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- cacert.pem
+|   |   |       |   |   |   |-- core.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- dependency_groups
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _implementation.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _lint_dependency_groups.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _pip_wrapper.cpython-314.pyc
+|   |   |       |   |   |   |   +-- _toml_compat.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- _implementation.py
+|   |   |       |   |   |   |-- _lint_dependency_groups.py
+|   |   |       |   |   |   |-- _pip_wrapper.py
+|   |   |       |   |   |   |-- _toml_compat.py
+|   |   |       |   |   |   |-- LICENSE.txt
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- distlib
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- compat.cpython-314.pyc
+|   |   |       |   |   |   |   |-- resources.cpython-314.pyc
+|   |   |       |   |   |   |   |-- scripts.cpython-314.pyc
+|   |   |       |   |   |   |   +-- util.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- compat.py
+|   |   |       |   |   |   |-- LICENSE.txt
+|   |   |       |   |   |   |-- resources.py
+|   |   |       |   |   |   |-- scripts.py
+|   |   |       |   |   |   |-- t32.exe
+|   |   |       |   |   |   |-- t64.exe
+|   |   |       |   |   |   |-- t64-arm.exe
+|   |   |       |   |   |   |-- util.py
+|   |   |       |   |   |   |-- w32.exe
+|   |   |       |   |   |   |-- w64.exe
+|   |   |       |   |   |   +-- w64-arm.exe
+|   |   |       |   |   |-- distro
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- distro.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- distro.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- idna
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- codec.cpython-314.pyc
+|   |   |       |   |   |   |   |-- compat.cpython-314.pyc
+|   |   |       |   |   |   |   |-- core.cpython-314.pyc
+|   |   |       |   |   |   |   |-- idnadata.cpython-314.pyc
+|   |   |       |   |   |   |   |-- intranges.cpython-314.pyc
+|   |   |       |   |   |   |   |-- package_data.cpython-314.pyc
+|   |   |       |   |   |   |   +-- uts46data.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- codec.py
+|   |   |       |   |   |   |-- compat.py
+|   |   |       |   |   |   |-- core.py
+|   |   |       |   |   |   |-- idnadata.py
+|   |   |       |   |   |   |-- intranges.py
+|   |   |       |   |   |   |-- LICENSE.md
+|   |   |       |   |   |   |-- package_data.py
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   +-- uts46data.py
+|   |   |       |   |   |-- msgpack
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |   |   |-- ext.cpython-314.pyc
+|   |   |       |   |   |   |   +-- fallback.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- COPYING
+|   |   |       |   |   |   |-- exceptions.py
+|   |   |       |   |   |   |-- ext.py
+|   |   |       |   |   |   +-- fallback.py
+|   |   |       |   |   |-- packaging
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _elffile.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _manylinux.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _musllinux.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _parser.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _structures.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _tokenizer.cpython-314.pyc
+|   |   |       |   |   |   |   |-- markers.cpython-314.pyc
+|   |   |       |   |   |   |   |-- metadata.cpython-314.pyc
+|   |   |       |   |   |   |   |-- pylock.cpython-314.pyc
+|   |   |       |   |   |   |   |-- requirements.cpython-314.pyc
+|   |   |       |   |   |   |   |-- specifiers.cpython-314.pyc
+|   |   |       |   |   |   |   |-- tags.cpython-314.pyc
+|   |   |       |   |   |   |   |-- utils.cpython-314.pyc
+|   |   |       |   |   |   |   +-- version.cpython-314.pyc
+|   |   |       |   |   |   |-- licenses
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- _spdx.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- _spdx.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _elffile.py
+|   |   |       |   |   |   |-- _manylinux.py
+|   |   |       |   |   |   |-- _musllinux.py
+|   |   |       |   |   |   |-- _parser.py
+|   |   |       |   |   |   |-- _structures.py
+|   |   |       |   |   |   |-- _tokenizer.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- LICENSE.APACHE
+|   |   |       |   |   |   |-- LICENSE.BSD
+|   |   |       |   |   |   |-- markers.py
+|   |   |       |   |   |   |-- metadata.py
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   |-- pylock.py
+|   |   |       |   |   |   |-- requirements.py
+|   |   |       |   |   |   |-- specifiers.py
+|   |   |       |   |   |   |-- tags.py
+|   |   |       |   |   |   |-- utils.py
+|   |   |       |   |   |   +-- version.py
+|   |   |       |   |   |-- pkg_resources
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   +-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   +-- LICENSE
+|   |   |       |   |   |-- platformdirs
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- android.cpython-314.pyc
+|   |   |       |   |   |   |   |-- api.cpython-314.pyc
+|   |   |       |   |   |   |   |-- macos.cpython-314.pyc
+|   |   |       |   |   |   |   |-- unix.cpython-314.pyc
+|   |   |       |   |   |   |   |-- version.cpython-314.pyc
+|   |   |       |   |   |   |   +-- windows.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- android.py
+|   |   |       |   |   |   |-- api.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- macos.py
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   |-- unix.py
+|   |   |       |   |   |   |-- version.py
+|   |   |       |   |   |   +-- windows.py
+|   |   |       |   |   |-- pygments
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- console.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filter.cpython-314.pyc
+|   |   |       |   |   |   |   |-- formatter.cpython-314.pyc
+|   |   |       |   |   |   |   |-- lexer.cpython-314.pyc
+|   |   |       |   |   |   |   |-- modeline.cpython-314.pyc
+|   |   |       |   |   |   |   |-- plugin.cpython-314.pyc
+|   |   |       |   |   |   |   |-- regexopt.cpython-314.pyc
+|   |   |       |   |   |   |   |-- scanner.cpython-314.pyc
+|   |   |       |   |   |   |   |-- sphinxext.cpython-314.pyc
+|   |   |       |   |   |   |   |-- style.cpython-314.pyc
+|   |   |       |   |   |   |   |-- token.cpython-314.pyc
+|   |   |       |   |   |   |   |-- unistring.cpython-314.pyc
+|   |   |       |   |   |   |   +-- util.cpython-314.pyc
+|   |   |       |   |   |   |-- filters
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   +-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- __init__.py
+|   |   |       |   |   |   |-- formatters
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- _mapping.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- _mapping.py
+|   |   |       |   |   |   |-- lexers
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- _mapping.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- python.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- _mapping.py
+|   |   |       |   |   |   |   +-- python.py
+|   |   |       |   |   |   |-- styles
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- _mapping.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- _mapping.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- console.py
+|   |   |       |   |   |   |-- filter.py
+|   |   |       |   |   |   |-- formatter.py
+|   |   |       |   |   |   |-- lexer.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- modeline.py
+|   |   |       |   |   |   |-- plugin.py
+|   |   |       |   |   |   |-- regexopt.py
+|   |   |       |   |   |   |-- scanner.py
+|   |   |       |   |   |   |-- sphinxext.py
+|   |   |       |   |   |   |-- style.py
+|   |   |       |   |   |   |-- token.py
+|   |   |       |   |   |   |-- unistring.py
+|   |   |       |   |   |   +-- util.py
+|   |   |       |   |   |-- pyproject_hooks
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- _impl.cpython-314.pyc
+|   |   |       |   |   |   |-- _in_process
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- _in_process.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- _in_process.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _impl.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- requests
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __version__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _internal_utils.cpython-314.pyc
+|   |   |       |   |   |   |   |-- adapters.cpython-314.pyc
+|   |   |       |   |   |   |   |-- api.cpython-314.pyc
+|   |   |       |   |   |   |   |-- auth.cpython-314.pyc
+|   |   |       |   |   |   |   |-- certs.cpython-314.pyc
+|   |   |       |   |   |   |   |-- compat.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cookies.cpython-314.pyc
+|   |   |       |   |   |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |   |   |-- help.cpython-314.pyc
+|   |   |       |   |   |   |   |-- hooks.cpython-314.pyc
+|   |   |       |   |   |   |   |-- models.cpython-314.pyc
+|   |   |       |   |   |   |   |-- packages.cpython-314.pyc
+|   |   |       |   |   |   |   |-- sessions.cpython-314.pyc
+|   |   |       |   |   |   |   |-- status_codes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- structures.cpython-314.pyc
+|   |   |       |   |   |   |   +-- utils.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __version__.py
+|   |   |       |   |   |   |-- _internal_utils.py
+|   |   |       |   |   |   |-- adapters.py
+|   |   |       |   |   |   |-- api.py
+|   |   |       |   |   |   |-- auth.py
+|   |   |       |   |   |   |-- certs.py
+|   |   |       |   |   |   |-- compat.py
+|   |   |       |   |   |   |-- cookies.py
+|   |   |       |   |   |   |-- exceptions.py
+|   |   |       |   |   |   |-- help.py
+|   |   |       |   |   |   |-- hooks.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- models.py
+|   |   |       |   |   |   |-- packages.py
+|   |   |       |   |   |   |-- sessions.py
+|   |   |       |   |   |   |-- status_codes.py
+|   |   |       |   |   |   |-- structures.py
+|   |   |       |   |   |   +-- utils.py
+|   |   |       |   |   |-- resolvelib
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- providers.cpython-314.pyc
+|   |   |       |   |   |   |   |-- reporters.cpython-314.pyc
+|   |   |       |   |   |   |   +-- structs.cpython-314.pyc
+|   |   |       |   |   |   |-- resolvers
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- abstract.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- criterion.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- resolution.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- abstract.py
+|   |   |       |   |   |   |   |-- criterion.py
+|   |   |       |   |   |   |   |-- exceptions.py
+|   |   |       |   |   |   |   +-- resolution.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- providers.py
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   |-- reporters.py
+|   |   |       |   |   |   +-- structs.py
+|   |   |       |   |   |-- rich
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __main__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _cell_widths.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _emoji_codes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _emoji_replace.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _export_format.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _extension.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _fileno.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _inspect.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _log_render.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _loop.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _null_file.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _palettes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _pick.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _ratio.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _spinners.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _stack.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _timer.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _win32_console.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _windows.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _windows_renderer.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _wrap.cpython-314.pyc
+|   |   |       |   |   |   |   |-- abc.cpython-314.pyc
+|   |   |       |   |   |   |   |-- align.cpython-314.pyc
+|   |   |       |   |   |   |   |-- ansi.cpython-314.pyc
+|   |   |       |   |   |   |   |-- bar.cpython-314.pyc
+|   |   |       |   |   |   |   |-- box.cpython-314.pyc
+|   |   |       |   |   |   |   |-- cells.cpython-314.pyc
+|   |   |       |   |   |   |   |-- color.cpython-314.pyc
+|   |   |       |   |   |   |   |-- color_triplet.cpython-314.pyc
+|   |   |       |   |   |   |   |-- columns.cpython-314.pyc
+|   |   |       |   |   |   |   |-- console.cpython-314.pyc
+|   |   |       |   |   |   |   |-- constrain.cpython-314.pyc
+|   |   |       |   |   |   |   |-- containers.cpython-314.pyc
+|   |   |       |   |   |   |   |-- control.cpython-314.pyc
+|   |   |       |   |   |   |   |-- default_styles.cpython-314.pyc
+|   |   |       |   |   |   |   |-- diagnose.cpython-314.pyc
+|   |   |       |   |   |   |   |-- emoji.cpython-314.pyc
+|   |   |       |   |   |   |   |-- errors.cpython-314.pyc
+|   |   |       |   |   |   |   |-- file_proxy.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filesize.cpython-314.pyc
+|   |   |       |   |   |   |   |-- highlighter.cpython-314.pyc
+|   |   |       |   |   |   |   |-- json.cpython-314.pyc
+|   |   |       |   |   |   |   |-- jupyter.cpython-314.pyc
+|   |   |       |   |   |   |   |-- layout.cpython-314.pyc
+|   |   |       |   |   |   |   |-- live.cpython-314.pyc
+|   |   |       |   |   |   |   |-- live_render.cpython-314.pyc
+|   |   |       |   |   |   |   |-- logging.cpython-314.pyc
+|   |   |       |   |   |   |   |-- markup.cpython-314.pyc
+|   |   |       |   |   |   |   |-- measure.cpython-314.pyc
+|   |   |       |   |   |   |   |-- padding.cpython-314.pyc
+|   |   |       |   |   |   |   |-- pager.cpython-314.pyc
+|   |   |       |   |   |   |   |-- palette.cpython-314.pyc
+|   |   |       |   |   |   |   |-- panel.cpython-314.pyc
+|   |   |       |   |   |   |   |-- pretty.cpython-314.pyc
+|   |   |       |   |   |   |   |-- progress.cpython-314.pyc
+|   |   |       |   |   |   |   |-- progress_bar.cpython-314.pyc
+|   |   |       |   |   |   |   |-- prompt.cpython-314.pyc
+|   |   |       |   |   |   |   |-- protocol.cpython-314.pyc
+|   |   |       |   |   |   |   |-- region.cpython-314.pyc
+|   |   |       |   |   |   |   |-- repr.cpython-314.pyc
+|   |   |       |   |   |   |   |-- rule.cpython-314.pyc
+|   |   |       |   |   |   |   |-- scope.cpython-314.pyc
+|   |   |       |   |   |   |   |-- screen.cpython-314.pyc
+|   |   |       |   |   |   |   |-- segment.cpython-314.pyc
+|   |   |       |   |   |   |   |-- spinner.cpython-314.pyc
+|   |   |       |   |   |   |   |-- status.cpython-314.pyc
+|   |   |       |   |   |   |   |-- style.cpython-314.pyc
+|   |   |       |   |   |   |   |-- styled.cpython-314.pyc
+|   |   |       |   |   |   |   |-- syntax.cpython-314.pyc
+|   |   |       |   |   |   |   |-- table.cpython-314.pyc
+|   |   |       |   |   |   |   |-- terminal_theme.cpython-314.pyc
+|   |   |       |   |   |   |   |-- text.cpython-314.pyc
+|   |   |       |   |   |   |   |-- theme.cpython-314.pyc
+|   |   |       |   |   |   |   |-- themes.cpython-314.pyc
+|   |   |       |   |   |   |   |-- traceback.cpython-314.pyc
+|   |   |       |   |   |   |   +-- tree.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- __main__.py
+|   |   |       |   |   |   |-- _cell_widths.py
+|   |   |       |   |   |   |-- _emoji_codes.py
+|   |   |       |   |   |   |-- _emoji_replace.py
+|   |   |       |   |   |   |-- _export_format.py
+|   |   |       |   |   |   |-- _extension.py
+|   |   |       |   |   |   |-- _fileno.py
+|   |   |       |   |   |   |-- _inspect.py
+|   |   |       |   |   |   |-- _log_render.py
+|   |   |       |   |   |   |-- _loop.py
+|   |   |       |   |   |   |-- _null_file.py
+|   |   |       |   |   |   |-- _palettes.py
+|   |   |       |   |   |   |-- _pick.py
+|   |   |       |   |   |   |-- _ratio.py
+|   |   |       |   |   |   |-- _spinners.py
+|   |   |       |   |   |   |-- _stack.py
+|   |   |       |   |   |   |-- _timer.py
+|   |   |       |   |   |   |-- _win32_console.py
+|   |   |       |   |   |   |-- _windows.py
+|   |   |       |   |   |   |-- _windows_renderer.py
+|   |   |       |   |   |   |-- _wrap.py
+|   |   |       |   |   |   |-- abc.py
+|   |   |       |   |   |   |-- align.py
+|   |   |       |   |   |   |-- ansi.py
+|   |   |       |   |   |   |-- bar.py
+|   |   |       |   |   |   |-- box.py
+|   |   |       |   |   |   |-- cells.py
+|   |   |       |   |   |   |-- color.py
+|   |   |       |   |   |   |-- color_triplet.py
+|   |   |       |   |   |   |-- columns.py
+|   |   |       |   |   |   |-- console.py
+|   |   |       |   |   |   |-- constrain.py
+|   |   |       |   |   |   |-- containers.py
+|   |   |       |   |   |   |-- control.py
+|   |   |       |   |   |   |-- default_styles.py
+|   |   |       |   |   |   |-- diagnose.py
+|   |   |       |   |   |   |-- emoji.py
+|   |   |       |   |   |   |-- errors.py
+|   |   |       |   |   |   |-- file_proxy.py
+|   |   |       |   |   |   |-- filesize.py
+|   |   |       |   |   |   |-- highlighter.py
+|   |   |       |   |   |   |-- json.py
+|   |   |       |   |   |   |-- jupyter.py
+|   |   |       |   |   |   |-- layout.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   |-- live.py
+|   |   |       |   |   |   |-- live_render.py
+|   |   |       |   |   |   |-- logging.py
+|   |   |       |   |   |   |-- markup.py
+|   |   |       |   |   |   |-- measure.py
+|   |   |       |   |   |   |-- padding.py
+|   |   |       |   |   |   |-- pager.py
+|   |   |       |   |   |   |-- palette.py
+|   |   |       |   |   |   |-- panel.py
+|   |   |       |   |   |   |-- pretty.py
+|   |   |       |   |   |   |-- progress.py
+|   |   |       |   |   |   |-- progress_bar.py
+|   |   |       |   |   |   |-- prompt.py
+|   |   |       |   |   |   |-- protocol.py
+|   |   |       |   |   |   |-- py.typed
+|   |   |       |   |   |   |-- region.py
+|   |   |       |   |   |   |-- repr.py
+|   |   |       |   |   |   |-- rule.py
+|   |   |       |   |   |   |-- scope.py
+|   |   |       |   |   |   |-- screen.py
+|   |   |       |   |   |   |-- segment.py
+|   |   |       |   |   |   |-- spinner.py
+|   |   |       |   |   |   |-- status.py
+|   |   |       |   |   |   |-- style.py
+|   |   |       |   |   |   |-- styled.py
+|   |   |       |   |   |   |-- syntax.py
+|   |   |       |   |   |   |-- table.py
+|   |   |       |   |   |   |-- terminal_theme.py
+|   |   |       |   |   |   |-- text.py
+|   |   |       |   |   |   |-- theme.py
+|   |   |       |   |   |   |-- themes.py
+|   |   |       |   |   |   |-- traceback.py
+|   |   |       |   |   |   +-- tree.py
+|   |   |       |   |   |-- tomli
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _parser.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _re.cpython-314.pyc
+|   |   |       |   |   |   |   +-- _types.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _parser.py
+|   |   |       |   |   |   |-- _re.py
+|   |   |       |   |   |   |-- _types.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- tomli_w
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   +-- _writer.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _writer.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- truststore
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _api.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _macos.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _openssl.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _ssl_constants.cpython-314.pyc
+|   |   |       |   |   |   |   +-- _windows.cpython-314.pyc
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _api.py
+|   |   |       |   |   |   |-- _macos.py
+|   |   |       |   |   |   |-- _openssl.py
+|   |   |       |   |   |   |-- _ssl_constants.py
+|   |   |       |   |   |   |-- _windows.py
+|   |   |       |   |   |   |-- LICENSE
+|   |   |       |   |   |   +-- py.typed
+|   |   |       |   |   |-- urllib3
+|   |   |       |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _collections.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _version.cpython-314.pyc
+|   |   |       |   |   |   |   |-- connection.cpython-314.pyc
+|   |   |       |   |   |   |   |-- connectionpool.cpython-314.pyc
+|   |   |       |   |   |   |   |-- exceptions.cpython-314.pyc
+|   |   |       |   |   |   |   |-- fields.cpython-314.pyc
+|   |   |       |   |   |   |   |-- filepost.cpython-314.pyc
+|   |   |       |   |   |   |   |-- poolmanager.cpython-314.pyc
+|   |   |       |   |   |   |   |-- request.cpython-314.pyc
+|   |   |       |   |   |   |   +-- response.cpython-314.pyc
+|   |   |       |   |   |   |-- contrib
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- _appengine_environ.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- appengine.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- ntlmpool.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- pyopenssl.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- securetransport.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- socks.cpython-314.pyc
+|   |   |       |   |   |   |   |-- _securetransport
+|   |   |       |   |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |   |-- bindings.cpython-314.pyc
+|   |   |       |   |   |   |   |   |   +-- low_level.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |   |-- bindings.py
+|   |   |       |   |   |   |   |   +-- low_level.py
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- _appengine_environ.py
+|   |   |       |   |   |   |   |-- appengine.py
+|   |   |       |   |   |   |   |-- ntlmpool.py
+|   |   |       |   |   |   |   |-- pyopenssl.py
+|   |   |       |   |   |   |   |-- securetransport.py
+|   |   |       |   |   |   |   +-- socks.py
+|   |   |       |   |   |   |-- packages
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- six.cpython-314.pyc
+|   |   |       |   |   |   |   |-- backports
+|   |   |       |   |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |   |-- makefile.cpython-314.pyc
+|   |   |       |   |   |   |   |   |   +-- weakref_finalize.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |   |-- makefile.py
+|   |   |       |   |   |   |   |   +-- weakref_finalize.py
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   +-- six.py
+|   |   |       |   |   |   |-- util
+|   |   |       |   |   |   |   |-- __pycache__
+|   |   |       |   |   |   |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- connection.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- proxy.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- queue.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- request.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- response.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- retry.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- ssl_.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- ssl_match_hostname.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- ssltransport.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- timeout.cpython-314.pyc
+|   |   |       |   |   |   |   |   |-- url.cpython-314.pyc
+|   |   |       |   |   |   |   |   +-- wait.cpython-314.pyc
+|   |   |       |   |   |   |   |-- __init__.py
+|   |   |       |   |   |   |   |-- connection.py
+|   |   |       |   |   |   |   |-- proxy.py
+|   |   |       |   |   |   |   |-- queue.py
+|   |   |       |   |   |   |   |-- request.py
+|   |   |       |   |   |   |   |-- response.py
+|   |   |       |   |   |   |   |-- retry.py
+|   |   |       |   |   |   |   |-- ssl_.py
+|   |   |       |   |   |   |   |-- ssl_match_hostname.py
+|   |   |       |   |   |   |   |-- ssltransport.py
+|   |   |       |   |   |   |   |-- timeout.py
+|   |   |       |   |   |   |   |-- url.py
+|   |   |       |   |   |   |   +-- wait.py
+|   |   |       |   |   |   |-- __init__.py
+|   |   |       |   |   |   |-- _collections.py
+|   |   |       |   |   |   |-- _version.py
+|   |   |       |   |   |   |-- connection.py
+|   |   |       |   |   |   |-- connectionpool.py
+|   |   |       |   |   |   |-- exceptions.py
+|   |   |       |   |   |   |-- fields.py
+|   |   |       |   |   |   |-- filepost.py
+|   |   |       |   |   |   |-- LICENSE.txt
+|   |   |       |   |   |   |-- poolmanager.py
+|   |   |       |   |   |   |-- request.py
+|   |   |       |   |   |   +-- response.py
+|   |   |       |   |   |-- __init__.py
+|   |   |       |   |   |-- README.rst
+|   |   |       |   |   +-- vendor.txt
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- __main__.py
+|   |   |       |   |-- __pip-runner__.py
+|   |   |       |   +-- py.typed
+|   |   |       |-- pip-26.0.1.dist-info
+|   |   |       |   |-- licenses
+|   |   |       |   |   |-- src
+|   |   |       |   |   |   +-- pip
+|   |   |       |   |   |       +-- _vendor
+|   |   |       |   |   |           |-- cachecontrol
+|   |   |       |   |   |           |   +-- LICENSE.txt
+|   |   |       |   |   |           |-- certifi
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- dependency_groups
+|   |   |       |   |   |           |   +-- LICENSE.txt
+|   |   |       |   |   |           |-- distlib
+|   |   |       |   |   |           |   +-- LICENSE.txt
+|   |   |       |   |   |           |-- distro
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- idna
+|   |   |       |   |   |           |   +-- LICENSE.md
+|   |   |       |   |   |           |-- msgpack
+|   |   |       |   |   |           |   +-- COPYING
+|   |   |       |   |   |           |-- packaging
+|   |   |       |   |   |           |   |-- LICENSE
+|   |   |       |   |   |           |   |-- LICENSE.APACHE
+|   |   |       |   |   |           |   +-- LICENSE.BSD
+|   |   |       |   |   |           |-- pkg_resources
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- platformdirs
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- pygments
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- pyproject_hooks
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- requests
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- resolvelib
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- rich
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- tomli
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- tomli_w
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           |-- truststore
+|   |   |       |   |   |           |   +-- LICENSE
+|   |   |       |   |   |           +-- urllib3
+|   |   |       |   |   |               +-- LICENSE.txt
+|   |   |       |   |   |-- AUTHORS.txt
+|   |   |       |   |   +-- LICENSE.txt
+|   |   |       |   |-- entry_points.txt
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   |-- REQUESTED
+|   |   |       |   +-- WHEEL
+|   |   |       |-- psycopg2
+|   |   |       |   |-- __pycache__
+|   |   |       |   |   |-- __init__.cpython-314.pyc
+|   |   |       |   |   |-- _ipaddress.cpython-314.pyc
+|   |   |       |   |   |-- _json.cpython-314.pyc
+|   |   |       |   |   |-- _range.cpython-314.pyc
+|   |   |       |   |   |-- errorcodes.cpython-314.pyc
+|   |   |       |   |   |-- errors.cpython-314.pyc
+|   |   |       |   |   |-- extensions.cpython-314.pyc
+|   |   |       |   |   |-- extras.cpython-314.pyc
+|   |   |       |   |   |-- pool.cpython-314.pyc
+|   |   |       |   |   |-- sql.cpython-314.pyc
+|   |   |       |   |   +-- tz.cpython-314.pyc
+|   |   |       |   |-- __init__.py
+|   |   |       |   |-- _ipaddress.py
+|   |   |       |   |-- _json.py
+|   |   |       |   |-- _psycopg.cp314-win_amd64.pyd
+|   |   |       |   |-- _range.py
+|   |   |       |   |-- errorcodes.py
+|   |   |       |   |-- errors.py
+|   |   |       |   |-- extensions.py
+|   |   |       |   |-- extras.py
+|   |   |       |   |-- pool.py
+|   |   |       |   |-- sql.py
+|   |   |       |   +-- tz.py
+|   |   |       |-- psycopg2_binary.libs
+|   |   |       |   |-- libcrypto-3-x64-a541aa02e9207ebe82a6024a9b4cbecb.dll
+|   |   |       |   |-- libpq-f42384d3c1939d42a6a0d0621313fd37.dll
+|   |   |       |   +-- libssl-3-x64-2b03928d9b6537a6d961c5bc118ed43e.dll
+|   |   |       |-- psycopg2_binary-2.9.12.dist-info
+|   |   |       |   |-- licenses
+|   |   |       |   |   +-- LICENSE
+|   |   |       |   |-- DELVEWHEEL
+|   |   |       |   |-- INSTALLER
+|   |   |       |   |-- METADATA
+|   |   |       |   |-- RECORD
+|   |   |       |   |-- REQUESTED
+|   |   |       |   |-- top_level.txt
+|   |   |       |   +-- WHEEL
+|   |   |       +-- python_dotenv-1.2.2.dist-info
+|   |   |           |-- licenses
+|   |   |           |   +-- LICENSE
+|   |   |           |-- entry_points.txt
+|   |   |           |-- INSTALLER
+|   |   |           |-- METADATA
+|   |   |           |-- RECORD
+|   |   |           |-- REQUESTED
+|   |   |           |-- top_level.txt
+|   |   |           +-- WHEEL
+|   |   |-- Scripts
+|   |   |   |-- activate
+|   |   |   |-- activate.bat
+|   |   |   |-- activate.fish
+|   |   |   |-- Activate.ps1
+|   |   |   |-- deactivate.bat
+|   |   |   |-- dotenv.exe
+|   |   |   |-- pip.exe
+|   |   |   |-- pip3.14.exe
+|   |   |   |-- pip3.exe
+|   |   |   |-- python.exe
+|   |   |   +-- pythonw.exe
+|   |   |-- .gitignore
+|   |   +-- pyvenv.cfg
+|   |-- __pycache__
+|   |   +-- log_ingestor.cpython-314.pyc
+|   |-- adapters
+|   |   |-- __pycache__
+|   |   |   |-- PostgresRepository.cpython-314.pyc
+|   |   |   |-- PostgresRunLogger.cpython-314.pyc
+|   |   |   +-- ProcessJsonSource.cpython-314.pyc
+|   |   |-- PostgresRepository.py
+|   |   |-- PostgresRunLogger.py
+|   |   |-- ProcessJsonSource.py
+|   |   +-- WindowsEventSource.py
+|   |-- ports
+|   |   |-- __pycache__
+|   |   |   |-- ILogRepository.cpython-314.pyc
+|   |   |   |-- ILogSource.cpython-314.pyc
+|   |   |   +-- IRunLogger.cpython-314.pyc
+|   |   |-- ILogRepository.py
+|   |   |-- ILogSource.py
+|   |   +-- IRunLogger.py
+|   |-- .env
+|   |-- config.json
+|   |-- log_ingestor.py
+|   |-- main.py
+|   +-- requirements.txt
+|-- public
+|   +-- data
+|       +-- windows_logs
+|           |-- Application.json
+|           |-- Directory_Service.json
+|           |-- DNS_Server.json
+|           |-- index.json
+|           |-- Microsoft-Windows-AAD-4Operational.json
+|           |-- Microsoft-Windows-Application_Server-Applications-4Operational.json
+|           |-- Microsoft-Windows-AppReadiness-4Admin.json
+|           |-- Microsoft-Windows-AppReadiness-4Operational.json
+|           |-- Microsoft-Windows-AppXDeploymentServer-4Operational.json
+|           |-- Microsoft-Windows-AppxPackaging-4Operational.json
+|           |-- Microsoft-Windows-Backup.json
+|           |-- Microsoft-Windows-Bits-Client-4Operational.json
+|           |-- Microsoft-Windows-CodeIntegrity-4Operational.json
+|           |-- Microsoft-Windows-DeviceSetupManager-4Admin.json
+|           |-- Microsoft-Windows-Dhcp-Client-4Admin.json
+|           |-- Microsoft-Windows-Diagnosis-DPS-4Operational_2025-12_parte1.json
+|           |-- Microsoft-Windows-Diagnosis-DPS-4Operational_2025-12_parte2.json
+|           |-- Microsoft-Windows-Diagnosis-PCW-4Operational_2025-12.json
+|           |-- Microsoft-Windows-Diagnosis-PCW-4Operational_2026-03_parte1.json
+|           |-- Microsoft-Windows-Diagnosis-PCW-4Operational_2026-03_parte2.json
+|           |-- Microsoft-Windows-Diagnosis-PCW-4Operational_2026-04.json
+|           |-- Microsoft-Windows-Diagnosis-Scheduled-4Operational.json
+|           |-- microsoft-windows-diagnosis-scripted-4operational.json
+|           |-- Microsoft-Windows-FileServices-ServerManager-EventProvider-4Operational.json
+|           |-- Microsoft-Windows-HelloForBusiness-4Operational.json
+|           |-- Microsoft-Windows-HomeGroup_Control_Panel-4Operational.json
+|           |-- Microsoft-Windows-Hyper-V-Hypervisor-Operational.json
+|           |-- Microsoft-Windows-Hyper-V-VMMS-Admin.json
+|           |-- Microsoft-Windows-Kernel-Boot-4Operational.json
+|           |-- Microsoft-Windows-Kernel-EventTracing-4Admin.json
+|           |-- Microsoft-Windows-Kernel-IO-4Operational.json
+|           |-- Microsoft-Windows-Kernel-PnP-4Configuration.json
+|           |-- Microsoft-Windows-Known_Folders_API_Service_2025-10.json
+|           |-- Microsoft-Windows-Known_Folders_API_Service_2025-11.json
+|           |-- Microsoft-Windows-Known_Folders_API_Service_2025-12.json
+|           |-- Microsoft-Windows-Known_Folders_API_Service_2026-01.json
+|           |-- Microsoft-Windows-Known_Folders_API_Service_2026-02.json
+|           |-- Microsoft-Windows-Known_Folders_API_Service_2026-03.json
+|           |-- Microsoft-Windows-Known_Folders_API_Service_2026-04.json
+|           |-- Microsoft-Windows-Known_Folders_API_Service_2026-05.json
+|           |-- Microsoft-Windows-NlaSvc-4Operational.json
+|           |-- Microsoft-Windows-Ntfs-4Operational_2025-08.json
+|           |-- Microsoft-Windows-Ntfs-4Operational_2025-09.json
+|           |-- Microsoft-Windows-Ntfs-4Operational_2025-10.json
+|           |-- Microsoft-Windows-Ntfs-4Operational_2025-11.json
+|           |-- Microsoft-Windows-Ntfs-4Operational_2025-12.json
+|           |-- Microsoft-Windows-Ntfs-4Operational_2026-01_parte1.json
+|           |-- Microsoft-Windows-Ntfs-4Operational_2026-01_parte2.json
+|           |-- Microsoft-Windows-Ntfs-4Operational_2026-02.json
+|           |-- Microsoft-Windows-Ntfs-4Operational_2026-03.json
+|           |-- Microsoft-Windows-Ntfs-4Operational_2026-04.json
+|           |-- Microsoft-Windows-Ntfs-4Operational_2026-05.json
+|           |-- Microsoft-Windows-Ntfs-4WHC.json
+|           |-- Microsoft-Windows-PowerShell-4Operational.json
+|           |-- Microsoft-Windows-RemoteDesktopServices-RdpCoreTS-4Operational.json
+|           |-- Microsoft-Windows-RemoteDesktopServices-SessionServices-4Operational.json
+|           |-- Microsoft-Windows-Security-LessPrivilegedAppContainer-4Operational.json
+|           |-- Microsoft-Windows-Security-Mitigations-4KernelMode_2026-04_parte1.json
+|           |-- Microsoft-Windows-Security-Mitigations-4KernelMode_2026-04_parte2.json
+|           |-- Microsoft-Windows-Security-Mitigations-4KernelMode_2026-05.json
+|           |-- Microsoft-Windows-ServerManager-ConfigureSMRemoting-4Operational.json
+|           |-- Microsoft-Windows-ServerManager-MgmtProvider-4Operational_2025-12.json
+|           |-- Microsoft-Windows-ServerManager-MgmtProvider-4Operational_2026-01.json
+|           |-- Microsoft-Windows-ServerManager-MgmtProvider-4Operational_2026-02.json
+|           |-- Microsoft-Windows-ServerManager-MgmtProvider-4Operational_2026-03.json
+|           |-- Microsoft-Windows-ServerManager-MgmtProvider-4Operational_2026-04.json
+|           |-- Microsoft-Windows-ServerManager-MgmtProvider-4Operational_2026-05.json
+|           |-- Microsoft-Windows-SettingSync-4Debug_2026-04.json
+|           |-- Microsoft-Windows-SettingSync-4Debug_2026-05.json
+|           |-- Microsoft-Windows-SmbClient-4Connectivity.json
+|           |-- Microsoft-Windows-SmbClient-4Security.json
+|           |-- Microsoft-Windows-SMBServer-4Operational.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-04_parte1.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-04_parte2.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-04_parte3.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-04_parte4.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-04_parte5.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-04_parte6.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-05_parte1.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-05_parte10.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-05_parte11.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-05_parte2.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-05_parte3.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-05_parte4.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-05_parte5.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-05_parte6.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-05_parte7.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-05_parte8.json
+|           |-- Microsoft-Windows-SMBServer-4Security_2026-05_parte9.json
+|           |-- Microsoft-Windows-StateRepository-4Operational.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte1.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte10.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte11.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte12.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte13.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte2.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte3.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte4.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte5.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte6.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte7.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte8.json
+|           |-- Microsoft-Windows-Storage-ClassPnP-4Operational_2026-05_parte9.json
+|           |-- Microsoft-Windows-StorageManagement-4Operational_2025-12.json
+|           |-- Microsoft-Windows-StorageManagement-4Operational_2026-01.json
+|           |-- Microsoft-Windows-StorageManagement-4Operational_2026-02.json
+|           |-- Microsoft-Windows-StorageManagement-4Operational_2026-03.json
+|           |-- Microsoft-Windows-StorageManagement-4Operational_2026-04.json
+|           |-- Microsoft-Windows-StorageManagement-4Operational_2026-05.json
+|           |-- Microsoft-Windows-StorageSpaces-Driver-4Operational.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-01_parte1.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-01_parte2.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-01_parte3.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-01_parte4.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-01_parte5.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-01_parte6.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-02_parte1.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-02_parte2.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-03_parte1.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-03_parte2.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-03_parte3.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-03_parte4.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-04_parte1.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-04_parte2.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-04_parte3.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-04_parte4.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-05_parte1.json
+|           |-- Microsoft-Windows-Storage-Storport-4Operational_2026-05_parte2.json
+|           |-- Microsoft-Windows-Store-4Operational_2025-05.json
+|           |-- Microsoft-Windows-Store-4Operational_2025-06.json
+|           |-- Microsoft-Windows-Store-4Operational_2025-07.json
+|           |-- Microsoft-Windows-Store-4Operational_2025-08.json
+|           |-- Microsoft-Windows-Store-4Operational_2025-09.json
+|           |-- Microsoft-Windows-Store-4Operational_2025-10.json
+|           |-- Microsoft-Windows-Store-4Operational_2025-11.json
+|           |-- Microsoft-Windows-Store-4Operational_2025-12.json
+|           |-- Microsoft-Windows-Store-4Operational_2026-01.json
+|           |-- Microsoft-Windows-Store-4Operational_2026-02.json
+|           |-- Microsoft-Windows-Store-4Operational_2026-03.json
+|           |-- Microsoft-Windows-Store-4Operational_2026-04.json
+|           |-- Microsoft-Windows-Store-4Operational_2026-05.json
+|           |-- Microsoft-Windows-SystemDataArchiver-4Diagnostic_2026-05_parte1.json
+|           |-- Microsoft-Windows-SystemDataArchiver-4Diagnostic_2026-05_parte2.json
+|           |-- Microsoft-Windows-SystemDataArchiver-4Diagnostic_2026-05_parte3.json
+|           |-- Microsoft-Windows-SystemDataArchiver-4Diagnostic_2026-05_parte4.json
+|           |-- Microsoft-Windows-SystemDataArchiver-4Diagnostic_2026-05_parte5.json
+|           |-- Microsoft-Windows-TaskScheduler-4Operational.json
+|           |-- Microsoft-Windows-TerminalServices-LocalSessionManager-4Operational.json
+|           |-- Microsoft-Windows-TerminalServices-Printers-4Admin.json
+|           |-- Microsoft-Windows-UniversalTelemetryClient-4Operational.json
+|           |-- Microsoft-Windows-User_Device_Registration-4Admin.json
+|           |-- Microsoft-Windows-WFP-4Operational.json
+|           |-- Microsoft-Windows-Windows_Defender-4Operational.json
+|           |-- Microsoft-Windows-WindowsUpdateClient-4Operational.json
+|           |-- Microsoft-Windows-WinRM-4Operational.json
+|           |-- Microsoft-Windows-WMI-Activity-4Operational_2026-05_parte1.json
+|           |-- Microsoft-Windows-WMI-Activity-4Operational_2026-05_parte2.json
+|           |-- Security_2026-05_parte1.json
+|           |-- Security_2026-05_parte10.json
+|           |-- Security_2026-05_parte100.json
+|           |-- Security_2026-05_parte101.json
+|           |-- Security_2026-05_parte102.json
+|           |-- Security_2026-05_parte103.json
+|           |-- Security_2026-05_parte104.json
+|           |-- Security_2026-05_parte105.json
+|           |-- Security_2026-05_parte106.json
+|           |-- Security_2026-05_parte107.json
+|           |-- Security_2026-05_parte108.json
+|           |-- Security_2026-05_parte109.json
+|           |-- Security_2026-05_parte11.json
+|           |-- Security_2026-05_parte110.json
+|           |-- Security_2026-05_parte111.json
+|           |-- Security_2026-05_parte112.json
+|           |-- Security_2026-05_parte113.json
+|           |-- Security_2026-05_parte114.json
+|           |-- Security_2026-05_parte115.json
+|           |-- Security_2026-05_parte116.json
+|           |-- Security_2026-05_parte117.json
+|           |-- Security_2026-05_parte118.json
+|           |-- Security_2026-05_parte119.json
+|           |-- Security_2026-05_parte12.json
+|           |-- Security_2026-05_parte120.json
+|           |-- Security_2026-05_parte121.json
+|           |-- Security_2026-05_parte122.json
+|           |-- Security_2026-05_parte123.json
+|           |-- Security_2026-05_parte124.json
+|           |-- Security_2026-05_parte125.json
+|           |-- Security_2026-05_parte126.json
+|           |-- Security_2026-05_parte127.json
+|           |-- Security_2026-05_parte128.json
+|           |-- Security_2026-05_parte129.json
+|           |-- Security_2026-05_parte13.json
+|           |-- Security_2026-05_parte130.json
+|           |-- Security_2026-05_parte131.json
+|           |-- Security_2026-05_parte132.json
+|           |-- Security_2026-05_parte133.json
+|           |-- Security_2026-05_parte134.json
+|           |-- Security_2026-05_parte135.json
+|           |-- Security_2026-05_parte136.json
+|           |-- Security_2026-05_parte137.json
+|           |-- Security_2026-05_parte138.json
+|           |-- Security_2026-05_parte139.json
+|           |-- Security_2026-05_parte14.json
+|           |-- Security_2026-05_parte140.json
+|           |-- Security_2026-05_parte141.json
+|           |-- Security_2026-05_parte142.json
+|           |-- Security_2026-05_parte143.json
+|           |-- Security_2026-05_parte144.json
+|           |-- Security_2026-05_parte145.json
+|           |-- Security_2026-05_parte146.json
+|           |-- Security_2026-05_parte147.json
+|           |-- Security_2026-05_parte148.json
+|           |-- Security_2026-05_parte149.json
+|           |-- Security_2026-05_parte15.json
+|           |-- Security_2026-05_parte150.json
+|           |-- Security_2026-05_parte151.json
+|           |-- Security_2026-05_parte152.json
+|           |-- Security_2026-05_parte153.json
+|           |-- Security_2026-05_parte154.json
+|           |-- Security_2026-05_parte155.json
+|           |-- Security_2026-05_parte156.json
+|           |-- Security_2026-05_parte157.json
+|           |-- Security_2026-05_parte158.json
+|           |-- Security_2026-05_parte159.json
+|           |-- Security_2026-05_parte16.json
+|           |-- Security_2026-05_parte160.json
+|           |-- Security_2026-05_parte161.json
+|           |-- Security_2026-05_parte162.json
+|           |-- Security_2026-05_parte163.json
+|           |-- Security_2026-05_parte164.json
+|           |-- Security_2026-05_parte165.json
+|           |-- Security_2026-05_parte166.json
+|           |-- Security_2026-05_parte167.json
+|           |-- Security_2026-05_parte168.json
+|           |-- Security_2026-05_parte169.json
+|           |-- Security_2026-05_parte17.json
+|           |-- Security_2026-05_parte170.json
+|           |-- Security_2026-05_parte171.json
+|           |-- Security_2026-05_parte172.json
+|           |-- Security_2026-05_parte173.json
+|           |-- Security_2026-05_parte174.json
+|           |-- Security_2026-05_parte175.json
+|           |-- Security_2026-05_parte176.json
+|           |-- Security_2026-05_parte177.json
+|           |-- Security_2026-05_parte178.json
+|           |-- Security_2026-05_parte179.json
+|           |-- Security_2026-05_parte18.json
+|           |-- Security_2026-05_parte180.json
+|           |-- Security_2026-05_parte181.json
+|           |-- Security_2026-05_parte182.json
+|           |-- Security_2026-05_parte183.json
+|           |-- Security_2026-05_parte184.json
+|           |-- Security_2026-05_parte185.json
+|           |-- Security_2026-05_parte186.json
+|           |-- Security_2026-05_parte187.json
+|           |-- Security_2026-05_parte188.json
+|           |-- Security_2026-05_parte189.json
+|           |-- Security_2026-05_parte19.json
+|           |-- Security_2026-05_parte190.json
+|           |-- Security_2026-05_parte191.json
+|           |-- Security_2026-05_parte192.json
+|           |-- Security_2026-05_parte193.json
+|           |-- Security_2026-05_parte194.json
+|           |-- Security_2026-05_parte195.json
+|           |-- Security_2026-05_parte196.json
+|           |-- Security_2026-05_parte197.json
+|           |-- Security_2026-05_parte198.json
+|           |-- Security_2026-05_parte2.json
+|           |-- Security_2026-05_parte20.json
+|           |-- Security_2026-05_parte21.json
+|           |-- Security_2026-05_parte22.json
+|           |-- Security_2026-05_parte23.json
+|           |-- Security_2026-05_parte24.json
+|           |-- Security_2026-05_parte25.json
+|           |-- Security_2026-05_parte26.json
+|           |-- Security_2026-05_parte27.json
+|           |-- Security_2026-05_parte28.json
+|           |-- Security_2026-05_parte29.json
+|           |-- Security_2026-05_parte3.json
+|           |-- Security_2026-05_parte30.json
+|           |-- Security_2026-05_parte31.json
+|           |-- Security_2026-05_parte32.json
+|           |-- Security_2026-05_parte33.json
+|           |-- Security_2026-05_parte34.json
+|           |-- Security_2026-05_parte35.json
+|           |-- Security_2026-05_parte36.json
+|           |-- Security_2026-05_parte37.json
+|           |-- Security_2026-05_parte38.json
+|           |-- Security_2026-05_parte39.json
+|           |-- Security_2026-05_parte4.json
+|           |-- Security_2026-05_parte40.json
+|           |-- Security_2026-05_parte41.json
+|           |-- Security_2026-05_parte42.json
+|           |-- Security_2026-05_parte43.json
+|           |-- Security_2026-05_parte44.json
+|           |-- Security_2026-05_parte45.json
+|           |-- Security_2026-05_parte46.json
+|           |-- Security_2026-05_parte47.json
+|           |-- Security_2026-05_parte48.json
+|           |-- Security_2026-05_parte49.json
+|           |-- Security_2026-05_parte5.json
+|           |-- Security_2026-05_parte50.json
+|           |-- Security_2026-05_parte51.json
+|           |-- Security_2026-05_parte52.json
+|           |-- Security_2026-05_parte53.json
+|           |-- Security_2026-05_parte54.json
+|           |-- Security_2026-05_parte55.json
+|           |-- Security_2026-05_parte56.json
+|           |-- Security_2026-05_parte57.json
+|           |-- Security_2026-05_parte58.json
+|           |-- Security_2026-05_parte59.json
+|           |-- Security_2026-05_parte6.json
+|           |-- Security_2026-05_parte60.json
+|           |-- Security_2026-05_parte61.json
+|           |-- Security_2026-05_parte62.json
+|           |-- Security_2026-05_parte63.json
+|           |-- Security_2026-05_parte64.json
+|           |-- Security_2026-05_parte65.json
+|           |-- Security_2026-05_parte66.json
+|           |-- Security_2026-05_parte67.json
+|           |-- Security_2026-05_parte68.json
+|           |-- Security_2026-05_parte69.json
+|           |-- Security_2026-05_parte7.json
+|           |-- Security_2026-05_parte70.json
+|           |-- Security_2026-05_parte71.json
+|           |-- Security_2026-05_parte72.json
+|           |-- Security_2026-05_parte73.json
+|           |-- Security_2026-05_parte74.json
+|           |-- Security_2026-05_parte75.json
+|           |-- Security_2026-05_parte76.json
+|           |-- Security_2026-05_parte77.json
+|           |-- Security_2026-05_parte78.json
+|           |-- Security_2026-05_parte79.json
+|           |-- Security_2026-05_parte8.json
+|           |-- Security_2026-05_parte80.json
+|           |-- Security_2026-05_parte81.json
+|           |-- Security_2026-05_parte82.json
+|           |-- Security_2026-05_parte83.json
+|           |-- Security_2026-05_parte84.json
+|           |-- Security_2026-05_parte85.json
+|           |-- Security_2026-05_parte86.json
+|           |-- Security_2026-05_parte87.json
+|           |-- Security_2026-05_parte88.json
+|           |-- Security_2026-05_parte89.json
+|           |-- Security_2026-05_parte9.json
+|           |-- Security_2026-05_parte90.json
+|           |-- Security_2026-05_parte91.json
+|           |-- Security_2026-05_parte92.json
+|           |-- Security_2026-05_parte93.json
+|           |-- Security_2026-05_parte94.json
+|           |-- Security_2026-05_parte95.json
+|           |-- Security_2026-05_parte96.json
+|           |-- Security_2026-05_parte97.json
+|           |-- Security_2026-05_parte98.json
+|           |-- Security_2026-05_parte99.json
+|           |-- Setup.json
+|           |-- System_2026-03_parte1.json
+|           |-- System_2026-03_parte10.json
+|           |-- System_2026-03_parte11.json
+|           |-- System_2026-03_parte12.json
+|           |-- System_2026-03_parte13.json
+|           |-- System_2026-03_parte14.json
+|           |-- System_2026-03_parte15.json
+|           |-- System_2026-03_parte16.json
+|           |-- System_2026-03_parte17.json
+|           |-- System_2026-03_parte18.json
+|           |-- System_2026-03_parte19.json
+|           |-- System_2026-03_parte2.json
+|           |-- System_2026-03_parte20.json
+|           |-- System_2026-03_parte21.json
+|           |-- System_2026-03_parte22.json
+|           |-- System_2026-03_parte23.json
+|           |-- System_2026-03_parte24.json
+|           |-- System_2026-03_parte25.json
+|           |-- System_2026-03_parte26.json
+|           |-- System_2026-03_parte27.json
+|           |-- System_2026-03_parte28.json
+|           |-- System_2026-03_parte29.json
+|           |-- System_2026-03_parte3.json
+|           |-- System_2026-03_parte30.json
+|           |-- System_2026-03_parte31.json
+|           |-- System_2026-03_parte32.json
+|           |-- System_2026-03_parte4.json
+|           |-- System_2026-03_parte5.json
+|           |-- System_2026-03_parte6.json
+|           |-- System_2026-03_parte7.json
+|           |-- System_2026-03_parte8.json
+|           |-- System_2026-03_parte9.json
+|           |-- System_2026-04_parte1.json
+|           |-- System_2026-04_parte2.json
+|           |-- System_2026-05.json
+|           +-- Windows_PowerShell.json
+|-- src
+|   |-- components
+|   |   |-- charts
+|   |   |   |-- DailyBarChart.tsx
+|   |   |   |-- KpiCard.tsx
+|   |   |   +-- StatusDonutCard.tsx
+|   |   |-- CriticalityBadge.tsx
+|   |   |-- DebugPanel.tsx
+|   |   |-- Error.tsx
+|   |   |-- Loading.tsx
+|   |   |-- LogFilter.tsx
+|   |   |-- LogTable.tsx
+|   |   |-- ProgressBar.tsx
+|   |   |-- Sidebar.tsx
+|   |   |-- StatCard.tsx
+|   |   |-- StatRow.tsx
+|   |   |-- StatusBadge.tsx
+|   |   |-- ThemeButton.tsx
+|   |   +-- Toast.tsx
+|   |-- features
+|   |   |-- home
+|   |   |   |-- components
+|   |   |   |   |-- CriticalEventsFeed.tsx
+|   |   |   |   +-- GlobalKpiRow.tsx
+|   |   |   |-- HomePage.tsx
+|   |   |   +-- usehomeStats.ts
+|   |   |-- process
+|   |   |   |-- components
+|   |   |   |   +-- ProcessKpiCards.tsx
+|   |   |   |-- ProcessDashboard.tsx
+|   |   |   |-- ProcessList.tsx
+|   |   |   +-- useProcessStats.ts
+|   |   |-- settings
+|   |   |   |-- converterFormModal.tsx
+|   |   |   |-- logTypeFormModal.tsx
+|   |   |   |-- modal.tsx
+|   |   |   |-- settingsPage.tsx
+|   |   |   +-- sourceFormModal.tsx
+|   |   +-- windows-event
+|   |       |-- components
+|   |       |   |-- CriticalityDistribution.tsx
+|   |       |   |-- CriticalityStackedBarChart.tsx
+|   |       |   +-- TopProviders.tsx
+|   |       |-- useWindowsStats.ts
+|   |       |-- WindowsDashboard.tsx
+|   |       +-- WindowsList.tsx
+|   |-- hooks
+|   |   |-- useAuth.tsx
+|   |   |-- useDashboardStats.ts
+|   |   |-- useFileUpload.ts
+|   |   |-- useLogs.ts
+|   |   |-- useLogsFilters.ts
+|   |   |-- useProgressiveLogs.ts
+|   |   |-- useTheme.tsx
+|   |   +-- useWindowSize.ts
+|   |-- lib
+|   |   |-- data
+|   |   |   |-- mappers
+|   |   |   |   |-- PaymentLogMapper.ts
+|   |   |   |   |-- ProcessLogMapper.ts
+|   |   |   |   +-- WindowsEventLogMapper.ts
+|   |   |   +-- LogMapperRegistry.ts
+|   |   |-- plugins
+|   |   |   |-- converterRegistry.ts
+|   |   |   |-- evtxConverterPlugin.ts
+|   |   |   |-- IConverterPlugin.ts
+|   |   |   +-- pluginSetup.ts
+|   |   |-- repository
+|   |   |   +-- LogRepository.ts
+|   |   |-- storage
+|   |   |   +-- logPaths.ts
+|   |   |-- styles
+|   |   |   |-- buttonStyles.ts
+|   |   |   +-- inputStyles.ts
+|   |   |-- types
+|   |   |   |-- ColumnDefinition.ts
+|   |   |   |-- Log.ts
+|   |   |   +-- RawLog.ts
+|   |   |-- utils
+|   |   |   +-- formatProviderName.ts
+|   |   |-- normalizeDateToView.ts
+|   |   +-- Variables.ts
+|   |-- pages
+|   |   +-- Login.tsx
+|   |-- App.tsx
+|   |-- global.d.ts
+|   |-- main.tsx
+|   |-- style.css
+|   +-- vite-env.d.ts
+|-- .env
+|-- .gitignore
+|-- eslint.config.js
+|-- event_descriptions.json
+|-- evtx_converter_v2.py
+|-- generate_index.py
+|-- generate-tree.ps1
+|-- index.html
+|-- init.ps1
+|-- package.json
+|-- package-lock.json
+|-- README.md
+|-- tree.txt
+|-- tsconfig.json
++-- vite.config.ts

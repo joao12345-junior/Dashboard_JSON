@@ -1,4 +1,14 @@
-import { createContext, useCallback, useState, useContext } from "react";
+// src/hooks/useAuth.tsx
+import {
+	createContext,
+	useCallback,
+	useState,
+	useContext,
+	type ReactNode,
+} from "react";
+import { loadApiConfig } from "../lib/storage/logPaths";
+
+// ── Tipos ─────────────────────────────────────────────────────────────────────
 
 type AuthCredentials = {
 	username: string;
@@ -7,33 +17,57 @@ type AuthCredentials = {
 
 type AuthContextValue = {
 	isAuthenticated: boolean;
-	login: (credentials: AuthCredentials) => boolean;
+	login: (credentials: AuthCredentials) => Promise<boolean>;
 	logout: () => void;
 };
 
-const AUTH_SESSION_KEY = "log_dashboard_auth";
+// ── Constantes ────────────────────────────────────────────────────────────────
+
+const AUTH_TOKEN_KEY = "logdash:auth:token:v1";
+
+// ── Utilitários ───────────────────────────────────────────────────────────────
+
+/** Retorna o token JWT armazenado, ou null se não existir. */
+export function getAuthToken(): string | null {
+	return sessionStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+// ── Context ───────────────────────────────────────────────────────────────────
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
 	const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-		() => sessionStorage.getItem(AUTH_SESSION_KEY) === "true",
+		() => sessionStorage.getItem(AUTH_TOKEN_KEY) !== null,
 	);
 
-	const login = useCallback(({ username, password }: AuthCredentials) => {
-		const valid =
-			username === import.meta.env.VITE_ADMIN_CREDENTIALS_USER &&
-			password === import.meta.env.VITE_ADMIN_CREDENTIALS_PASSWORD;
+	const login = useCallback(
+		async ({ username, password }: AuthCredentials): Promise<boolean> => {
+			const { url } = loadApiConfig();
 
-		if (valid) {
-			sessionStorage.setItem(AUTH_SESSION_KEY, "true");
-			setIsAuthenticated(true);
-		}
-		return valid;
-	}, []);
+			try {
+				const response = await fetch(`${url}/api/auth/login`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ username, password }),
+				});
+
+				if (!response.ok) return false;
+
+				const { token } = (await response.json()) as { token: string };
+				sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+				setIsAuthenticated(true);
+				return true;
+			} catch {
+				// Falha de rede ou Flask offline
+				return false;
+			}
+		},
+		[],
+	);
 
 	const logout = useCallback(() => {
-		sessionStorage.removeItem(AUTH_SESSION_KEY);
+		sessionStorage.removeItem(AUTH_TOKEN_KEY);
 		setIsAuthenticated(false);
 	}, []);
 

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Log } from "../lib/types/Log";
 import { LogRepository, FileLoadResult } from "../lib/repository/LogRepository";
 import { loadApiConfig, loadEnabledSources } from "../lib/storage/logPaths";
+import { getAuthToken } from "../hooks/useAuth";
 
 export interface LoadProgress {
 	loadedFiles: number;
@@ -59,6 +60,7 @@ const EMPTY_DEBUG: DebugInfo = {
 
 export function useProgressiveLogs(
 	localFiles: File[] = [],
+	isAuthenticated: boolean = false,
 ): UseProgressiveLogsReturn {
 	const [staticLogs, setStaticLogs] = useState<Log[]>([]);
 	const [manualLogs, setManualLogs] = useState<Log[]>([]);
@@ -257,8 +259,9 @@ export function useProgressiveLogs(
 	// Carregamento da API
 	useEffect(() => {
 		let cancelled = false;
-		let config = loadApiConfig();
+		const config = loadApiConfig();
 		if (!config.enabled) return;
+		if (!isAuthenticated) return; // não tenta antes do login
 
 		async function loadFromApi() {
 			const [process_logs, windows_logs] = await Promise.all([
@@ -272,7 +275,7 @@ export function useProgressiveLogs(
 		return () => {
 			cancelled = true;
 		};
-	}, [tick]);
+	}, [tick, isAuthenticated]); // isAuthenticated como dependência
 
 	const logs = useMemo(
 		() => [...staticLogs, ...manualLogs, ...apiLogs],

@@ -3,6 +3,7 @@
 import { Log } from "../types/Log";
 import { detectLogType, getMapper } from "../data/LogMapperRegistry";
 import type { LogSource } from "../storage/logPaths";
+import { getAuthToken } from "../../hooks/useAuth";
 
 // ── Tipos públicos ────────────────────────────────────────────────────────────
 
@@ -324,20 +325,27 @@ export const LogRepository = {
 		}
 	},
 	async fetchFromAPI(logType: string, apiUrl: string): Promise<Log[]> {
-		const start = performance.now();
+		const token = getAuthToken();
+		if (!token) {
+			console.warn(
+				"[LogRepository] Token não encontrado — usuário não autenticado",
+			);
+			return [];
+		}
 
 		try {
-			const response = await fetch(`${apiUrl}/api/logs?type=${logType}`);
+			const response = await fetch(`${apiUrl}/api/logs?type=${logType}`, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
 
 			if (!response.ok) {
-				throw new Error("[LogRepository] Erro ao ter uma resposta da API");
+				throw new Error(`[LogRepository] HTTP ${response.status}`);
 			}
 
 			const parsed = await response.json();
-			if (!parsed)
-				throw new Error(
-					"[LogRepository] Erro ao fazer o parse da resposta da API",
-				);
+			if (!parsed) throw new Error("[LogRepository] Parse inválido");
 
 			const raws = parsed as Record<string, unknown>[];
 			return raws.map((raw) => mapRawToLog(raw, logType));

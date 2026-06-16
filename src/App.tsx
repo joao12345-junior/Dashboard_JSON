@@ -112,7 +112,7 @@ function AppContent() {
 	} = useFileUpload({ mode: "accumulate" });
 
 	const { logs, staticLogs, manualLogs, progress, debug, reload } =
-		useProgressiveLogs(logFiles);
+		useProgressiveLogs(logFiles, isAuthenticated);
 
 	// ── Filtros persistentes — elevados para sobreviver à navegação ────────────
 	const [processFilters, setProcessFilters] = useState<ProcessFilterState>(
