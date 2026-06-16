@@ -59,6 +59,25 @@ def require_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+def require_sync_key(f):
+    """
+    Decorator para endpoints de sync interno.
+    Usa chave estática em vez de JWT — adequado para tasks agendadas no 201.
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if request.method == "OPTIONS":
+            return f(*args, **kwargs)
+
+        sync_key = request.headers.get("X-Sync-Key", "")
+        expected = os.getenv("SYNC_API_KEY", "")
+
+        if not expected or sync_key != expected:
+            return jsonify({"error": "Chave de sync inválida"}), 401
+
+        return f(*args, **kwargs)
+    return decorated
+
 @auth_bp.route("/api/auth/login", methods=["POST", "OPTIONS"])
 def login():
     if request.method == "OPTIONS":

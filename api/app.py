@@ -19,5 +19,8 @@ app.register_blueprint(ingest_bp)
 from routes.auth import auth_bp
 app.register_blueprint(auth_bp)
 
+from routes.site_monitor import site_monitor_bp
+app.register_blueprint(site_monitor_bp)
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8765, debug=True, use_reloader=False)
