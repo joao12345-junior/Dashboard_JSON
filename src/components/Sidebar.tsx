@@ -45,6 +45,13 @@ const NAV_SECTIONS = [
 		],
 	},
 	{
+		label: "Site Optare",
+		items: [
+			{ page: "site-dashboard" as Page, label: "Dashboard", icon: "🌐" },
+			{ page: "site-list" as Page, label: "Registros", icon: "☰" },
+		],
+	},
+	{
 		label: "Configurações",
 		items: [{ page: "settings" as Page, label: "Ajustes", icon: "⚙" }],
 	},

@@ -7,17 +7,21 @@ import { useProgressiveLogs } from "./hooks/useProgressiveLogs";
 import { useFileUpload } from "./hooks/useFileUpload";
 import { DebugPanel } from "./components/DebugPanel";
 import { Toast } from "./components/Toast";
+import { useSiteData } from "./features/site/hooks/useSiteData";
 
 import { HomePage } from "./features/home/HomePage";
 import { ProcessDashboard } from "./features/process/ProcessDashboard";
 import { ProcessList } from "./features/process/ProcessList";
 import { WindowsDashboard } from "./features/windows-event/WindowsDashboard";
 import { WindowsList } from "./features/windows-event/WindowsList";
+import { SiteDashboard } from "./features/site/SiteDashboard";
+import { SiteList } from "./features/site/SiteList";
 import { Settings } from "./features/settings/settingsPage";
 
 import type { LoadProgress, DebugInfo } from "./hooks/useProgressiveLogs";
 import type { Log } from "./lib/types/Log";
 import { START_STATUS } from "./lib/Variables";
+import type { SiteData } from "./features/site/hooks/useSiteData";
 
 export type Page =
 	| "home"
@@ -25,6 +29,8 @@ export type Page =
 	| "process-list"
 	| "windows-dashboard"
 	| "windows-list"
+	| "site-dashboard"
+	| "site-list"
 	| "settings";
 
 /**
@@ -62,6 +68,7 @@ export interface SharedPageProps {
 	logs: Log[];
 	staticLogs: Log[];
 	manualLogs: Log[];
+	siteData: SiteData;
 	progress: LoadProgress;
 	debug: DebugInfo;
 	reload: () => void;
@@ -114,6 +121,8 @@ function AppContent() {
 	const { logs, staticLogs, manualLogs, progress, debug, reload } =
 		useProgressiveLogs(logFiles, isAuthenticated);
 
+	const siteData = useSiteData();
+
 	// ── Filtros persistentes — elevados para sobreviver à navegação ────────────
 	const [processFilters, setProcessFilters] = useState<ProcessFilterState>(
 		INITIAL_PROCESS_FILTERS,
@@ -137,6 +146,7 @@ function AppContent() {
 		logs,
 		staticLogs,
 		manualLogs,
+		siteData,
 		progress,
 		debug,
 		reload,
@@ -171,6 +181,10 @@ function AppContent() {
 				return <WindowsDashboard {...sharedProps} />;
 			case "windows-list":
 				return <WindowsList {...sharedProps} />;
+			case "site-dashboard":
+				return <SiteDashboard {...sharedProps} />;
+			case "site-list":
+				return <SiteList {...sharedProps} />;
 			case "settings":
 				return <Settings {...sharedProps} />;
 		}
