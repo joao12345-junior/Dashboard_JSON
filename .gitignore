@@ -16,6 +16,10 @@ dist-ssr
 .env
 *.rar
 
+**/__pycache__/
+*.pyc
+tree.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
