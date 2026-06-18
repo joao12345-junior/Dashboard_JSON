@@ -57,9 +57,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				const { token } = (await response.json()) as { token: string };
 				sessionStorage.setItem(AUTH_TOKEN_KEY, token);
 				setIsAuthenticated(true);
+
+				// Dispara ingestão em background — não bloqueia o login
+				fetch(`${url}/api/ingest`, {
+					method: "POST",
+					headers: { Authorization: `Bearer ${token}` },
+				}).catch(() => {
+					// Falha silenciosa — ingestor é best-effort
+				});
+
 				return true;
 			} catch {
-				// Falha de rede ou Flask offline
 				return false;
 			}
 		},
