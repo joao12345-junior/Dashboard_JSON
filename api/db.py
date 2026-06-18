@@ -13,8 +13,8 @@ db_password = os.getenv("DB_PASSWORD")
 db_sslmode = os.getenv("DB_SSLMODE", "require")
 
 pool = ThreadedConnectionPool(
-    minconn=1,
-    maxconn=5,
+    minconn=2,
+    maxconn=15,
     host=db_host,
     port=db_port,
     dbname=db_name,
