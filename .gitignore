@@ -31,3 +31,5 @@ tree.txt
 *.njsproj
 *.sln
 *.sw?
+
+ingestor/config.json
