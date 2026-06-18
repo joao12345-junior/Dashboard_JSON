@@ -32,25 +32,43 @@ function formatTime(iso: string): string {
 // ── Mini gráfico de barras de disponibilidade ─────────────────────────────────
 function AvailabilityBarChart({ records }: { records: AvailabilityRecord[] }) {
 	// Agrupa por dia, calcula % uptime por dia
-	const byDay = new Map<string, { up: number; total: number }>();
+	const byDay = new Map<
+		string,
+		{ up: number; total: number; date: Date; label: string }
+	>();
 
 	records.forEach((r) => {
-		const day = new Date(r.checked_at).toLocaleDateString("pt-BR", {
+		const date = new Date(r.checked_at);
+
+		const key = date.toISOString().slice(0, 10);
+
+		const label = date.toLocaleDateString("pt-BR", {
 			timeZone: "America/Sao_Paulo",
 			day: "2-digit",
 			month: "2-digit",
+			year: "2-digit",
 		});
-		const existing = byDay.get(day) ?? { up: 0, total: 0 };
-		byDay.set(day, {
+
+		const existing = byDay.get(key) ?? {
+			up: 0,
+			total: 0,
+			date,
+			label,
+		};
+
+		byDay.set(key, {
 			up: existing.up + (r.is_up ? 1 : 0),
 			total: existing.total + 1,
+			date: existing.date,
+			label: existing.label,
 		});
 	});
 
 	const days = Array.from(byDay.entries())
-		.slice(-14) // últimos 14 dias
-		.map(([day, { up, total }]) => ({
-			day,
+		.sort(([, a], [, b]) => a.date.getTime() - b.date.getTime())
+		.slice(-14)
+		.map(([, { label, up, total }]) => ({
+			day: label,
 			percent: Math.round((up / total) * 100),
 		}));
 

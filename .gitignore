@@ -33,3 +33,4 @@ tree.txt
 *.sw?
 
 ingestor/config.json
+api/__pycache__/db.cpython-314.pyc

@@ -121,14 +121,28 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 		});
 	}, [records, statusFilter, dateFilter]);
 
+	const ROW_HEIGHT = 48;
+
+	const tdBaseStyle: React.CSSProperties = {
+		padding: "0 16px",
+		height: ROW_HEIGHT,
+		verticalAlign: "middle",
+		overflow: "hidden",
+		textOverflow: "ellipsis",
+		whiteSpace: "nowrap",
+	};
+
 	return (
 		<div
 			style={{
-				borderRadius: 10,
-				border: "1px solid var(--border)",
 				backgroundColor: "var(--card)",
+				border: "1px solid var(--border)",
+				borderRadius: 8,
 				overflow: "hidden",
-				boxShadow: "var(--shadow-sm)",
+				display: "flex",
+				flexDirection: "column",
+				flex: 1,
+				minHeight: 0,
 			}}
 		>
 			{/* Header */}
@@ -136,6 +150,7 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 				style={{
 					padding: "16px 20px",
 					borderBottom: "1px solid var(--border)",
+					flexShrink: 0,
 				}}
 			>
 				<div
@@ -232,11 +247,28 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 			</div>
 
 			{/* Tabela */}
-			<div style={{ overflowX: "auto" }}>
+			<div
+				style={{
+					flex: 1,
+					minHeight: 0,
+					overflow: "auto",
+				}}
+			>
 				<table
-					style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}
+					style={{
+						width: "100%",
+						borderCollapse: "collapse",
+						tableLayout: "fixed",
+					}}
 				>
-					<thead>
+					<thead
+						style={{
+							position: "sticky",
+							top: 0,
+							zIndex: 2,
+							backgroundColor: "var(--muted)",
+						}}
+					>
 						<tr style={{ borderBottom: "1px solid var(--border)" }}>
 							{[
 								"Data / Hora",
@@ -248,13 +280,15 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 								<th
 									key={h}
 									style={{
-										padding: "10px 20px",
+										padding: "10px 16px",
 										textAlign: "left",
 										fontSize: 10,
 										fontWeight: 700,
 										color: "var(--muted-foreground)",
 										textTransform: "uppercase",
-										letterSpacing: "0.08em",
+										letterSpacing: "0.1em",
+										backgroundColor: "var(--muted)",
+										borderBottom: "1px solid var(--border)",
 										whiteSpace: "nowrap",
 									}}
 								>
@@ -279,21 +313,39 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 								</td>
 							</tr>
 						) : (
-							filtered.map((r) => (
+							filtered.map((r, index) => (
 								<tr
 									key={r.id}
-									style={{ borderBottom: "1px solid var(--border)" }}
+									style={{
+										height: ROW_HEIGHT,
+										borderBottom: "1px solid var(--border)",
+										backgroundColor:
+											index % 2 === 0
+												? "var(--card)"
+												: "color-mix(in oklch, var(--muted) 40%, var(--card))",
+									}}
+									onMouseEnter={(e) => {
+										e.currentTarget.style.backgroundColor = "var(--accent)";
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.backgroundColor =
+											index % 2 === 0
+												? "var(--card)"
+												: "color-mix(in oklch, var(--muted) 40%, var(--card))";
+									}}
 								>
 									<td
 										style={{
-											padding: "10px 20px",
-											color: "var(--muted-foreground)",
-											whiteSpace: "nowrap",
+											...tdBaseStyle,
 										}}
 									>
 										{formatDate(r.checked_at)}
 									</td>
-									<td style={{ padding: "10px 20px" }}>
+									<td
+										style={{
+											...tdBaseStyle,
+										}}
+									>
 										<span
 											style={{
 												fontSize: 11,
@@ -313,15 +365,16 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 									</td>
 									<td
 										style={{
-											padding: "10px 20px",
-											color: "var(--foreground)",
-											fontWeight: 600,
+											...tdBaseStyle,
+											overflow: "visible",
 										}}
 									>
 										{r.status_code ?? "—"}
 									</td>
 									<td
-										style={{ padding: "10px 20px", color: "var(--foreground)" }}
+										style={{
+											...tdBaseStyle,
+										}}
 									>
 										<span
 											style={{
@@ -337,9 +390,7 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 									</td>
 									<td
 										style={{
-											padding: "10px 20px",
-											color: "var(--muted-foreground)",
-											fontSize: 12,
+											...tdBaseStyle,
 										}}
 									>
 										{r.url}
@@ -352,13 +403,17 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 			</div>
 			<div
 				style={{
-					padding: "10px 20px",
+					padding: "8px 16px",
 					borderTop: "1px solid var(--border)",
+					backgroundColor: "var(--muted)",
 					fontSize: 11,
 					color: "var(--muted-foreground)",
+					textAlign: "right",
+					flexShrink: 0,
 				}}
 			>
-				{filtered.length} de {records.length} registros
+				{filtered.length.toLocaleString("pt-BR")} de{" "}
+				{records.length.toLocaleString("pt-BR")} registros
 			</div>
 		</div>
 	);
