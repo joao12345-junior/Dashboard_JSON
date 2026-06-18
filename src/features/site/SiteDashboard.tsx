@@ -215,7 +215,8 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 	const isMobile = windowWidth < 768;
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 
-	const { availability, sentryEvents, loading, error, lastRefresh } = siteData;
+	const { availability, sentryEvents, loading, error, lastRefresh, refresh } =
+		siteData;
 
 	const lastCheck = availability[0];
 	const upCount = availability.filter((r) => r.is_up).length;
@@ -310,6 +311,21 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 					</div>
 					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
 						<ThemeToggleButton />
+						<button
+							onClick={refresh}
+							style={{
+								padding: "8px 16px",
+								borderRadius: 6,
+								border: "1px solid var(--border)",
+								backgroundColor: "transparent",
+								color: "var(--foreground)",
+								fontSize: 13,
+								cursor: "pointer",
+								fontFamily: "inherit",
+							}}
+						>
+							↺ Recarregar
+						</button>
 					</div>
 				</div>
 
