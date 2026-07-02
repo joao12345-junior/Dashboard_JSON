@@ -66,7 +66,7 @@ function AvailabilityBarChart({ records }: { records: AvailabilityRecord[] }) {
 
 	const days = Array.from(byDay.entries())
 		.sort(([, a], [, b]) => a.date.getTime() - b.date.getTime())
-		.slice(-14)
+		.slice(-15)
 		.map(([, { label, up, total }]) => ({
 			day: label,
 			percent: Math.round((up / total) * 100),
@@ -596,7 +596,14 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 											>
 												{e.level}
 											</span>
-											<div style={{ flex: 1, minWidth: 0 }}>
+											<div
+												style={{
+													display: "flex",
+													alignItems: "center",
+													gap: 8,
+													minWidth: 0,
+												}}
+											>
 												<div
 													style={{
 														fontSize: 13,
@@ -605,6 +612,7 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 														whiteSpace: "nowrap",
 														overflow: "hidden",
 														textOverflow: "ellipsis",
+														flex: 1,
 													}}
 												>
 													{e.title}
@@ -618,6 +626,22 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 												>
 													{e.culprit} · {e.count}× · {formatDate(e.last_seen)}
 												</div>
+												{e.permalink && (
+													<a
+														href={e.permalink}
+														target="_blank"
+														rel="noopener noreferrer"
+														style={{
+															fontSize: 11,
+															color: OPTARE_RED,
+															textDecoration: "none",
+															fontWeight: 600,
+															flexShrink: 0,
+														}}
+													>
+														Ver →
+													</a>
+												)}
 											</div>
 										</div>
 									))}

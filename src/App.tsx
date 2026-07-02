@@ -8,10 +8,12 @@ import { useFileUpload } from "./hooks/useFileUpload";
 import { DebugPanel } from "./components/DebugPanel";
 import { Toast } from "./components/Toast";
 import { useSiteData } from "./features/site/hooks/useSiteData";
+import { useNewDataDetector } from "./hooks/useNewDataDetector";
+import { NewDataBanner } from "./components/NewDataBanner";
 
 import { HomePage } from "./features/home/HomePage";
-import { ProcessDashboard } from "./features/process/ProcessDashboard";
-import { ProcessList } from "./features/process/ProcessList";
+import { ProcessDashboard } from "./features/backup/BackupDashboard";
+import { ProcessList } from "./features/backup/BackupList";
 import { WindowsDashboard } from "./features/windows-event/WindowsDashboard";
 import { WindowsList } from "./features/windows-event/WindowsList";
 import { SiteDashboard } from "./features/site/SiteDashboard";
@@ -123,6 +125,8 @@ function AppContent() {
 
 	const siteData = useSiteData();
 
+	const { hasNewData, dismiss, acknowledge } = useNewDataDetector();
+
 	// ── Filtros persistentes — elevados para sobreviver à navegação ────────────
 	const [processFilters, setProcessFilters] = useState<ProcessFilterState>(
 		INITIAL_PROCESS_FILTERS,
@@ -195,6 +199,15 @@ function AppContent() {
 			{renderPage()}
 			<DebugPanel progress={progress} debug={debug} />
 			<Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
+			{hasNewData && (
+				<NewDataBanner
+					onRefresh={() => {
+						acknowledge();
+						reload();
+					}}
+					onDismiss={dismiss}
+				/>
+			)}
 		</>
 	);
 }

@@ -42,7 +42,7 @@ export function useProcessStats(logs: ProcessLog[]): ProcessStats {
 
 		const dailyStats = Object.entries(byDate)
 			.sort(([a], [b]) => a.localeCompare(b))
-			.slice(-30)
+			.slice(-15)
 			.map(([, stats]) => stats);
 
 		return { total, errors, active, finished, errorRate, dailyStats };

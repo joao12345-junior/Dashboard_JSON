@@ -17,6 +17,7 @@ export interface SentryEvent {
 	title: string;
 	level: string;
 	culprit: string;
+	permalink: string | null;
 	first_seen: string;
 	last_seen: string;
 	count: number;

@@ -2,6 +2,7 @@
 import os
 from flask import Flask
 from flask_cors import CORS
+from waitress import serve
 
 app = Flask(__name__)
 
@@ -10,7 +11,7 @@ CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
 from routes.logs import logs_bp
 app.register_blueprint(logs_bp)
 
-from routes.health import logs_bp as health_bp
+from routes.health import health_bp
 app.register_blueprint(health_bp)
 
 from routes.ingest import ingest_bp
@@ -23,4 +24,8 @@ from routes.site_monitor import site_monitor_bp
 app.register_blueprint(site_monitor_bp)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8765, debug=True, use_reloader=False)
+    is_dev = os.getenv("FLASK_ENV") == "development"
+    if is_dev:
+        app.run(host='0.0.0.0', port=8765, debug=True, use_reloader=False)
+    else:
+        serve(app, host='0.0.0.0', port=8765, threads=8)

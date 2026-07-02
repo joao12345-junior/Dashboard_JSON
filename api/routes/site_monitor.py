@@ -104,14 +104,15 @@ def sync_sentry():
                 cur.execute(
                     """
                     INSERT INTO optsislog.sentry_events
-                        (id, title, level, culprit, first_seen, last_seen, count)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        (id, title, level, culprit, first_seen, last_seen, count, permalink)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (id) DO UPDATE SET
                         title      = EXCLUDED.title,
                         level      = EXCLUDED.level,
                         culprit    = EXCLUDED.culprit,
                         last_seen  = EXCLUDED.last_seen,
                         count      = EXCLUDED.count,
+                        permalink = EXCLUDED.permalink,
                         synced_at  = NOW()
                     """,
                     (
@@ -122,11 +123,14 @@ def sync_sentry():
                         issue.get("firstSeen"),
                         issue.get("lastSeen"),
                         issue.get("count"),
+                        issue.get("permalink")
                     ),
                 )
                 synced += 1
             conn.commit()
-        return jsonify({"synced": synced}), 200
+        return jsonify({
+            "synced": synced,
+        }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
@@ -169,7 +173,7 @@ def get_sentry_events():
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, title, level, culprit, first_seen, last_seen, count, synced_at
+                SELECT id, title, level, culprit, permalink, first_seen, last_seen, count, synced_at 
                 FROM optsislog.sentry_events
                 ORDER BY last_seen DESC
                 LIMIT 100

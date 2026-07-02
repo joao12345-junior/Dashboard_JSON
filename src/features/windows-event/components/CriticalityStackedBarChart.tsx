@@ -89,8 +89,8 @@ export function CriticalityStackedBarChart({
 			<ResponsiveContainer width="100%" height={260}>
 				<BarChart
 					data={data}
-					barSize={data.length > 20 ? 6 : 10}
-					barCategoryGap="20%"
+					barSize={data.length > 30 ? 8 : 12}
+					barCategoryGap="30%"
 				>
 					<CartesianGrid
 						strokeDasharray="3 3"
@@ -99,14 +99,14 @@ export function CriticalityStackedBarChart({
 					/>
 					<XAxis
 						dataKey="date"
-						tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+						tick={{ fontSize: 9, fill: "var(--muted-foreground)" }}
 						axisLine={false}
 						tickLine={false}
 						// Limita o número de ticks visíveis para não poluir o eixo X
-						interval={Math.max(0, Math.floor(data.length / 10) - 1)}
+						interval={Math.max(0, Math.floor(data.length) - 31)}
 					/>
 					<YAxis
-						tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+						tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
 						axisLine={false}
 						tickLine={false}
 						width={36}

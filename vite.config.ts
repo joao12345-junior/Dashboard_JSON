@@ -19,19 +19,31 @@ import fs from "fs";
 function generateIndexPlugin() {
 	function runIndexer() {
 		const scriptPath = path.resolve(__dirname, "generate_index.py");
+		const pythonPath = path.resolve(
+			__dirname,
+			"api",
+			".venv",
+			"Scripts",
+			"python.exe",
+		);
 
 		if (!fs.existsSync(scriptPath)) {
+			console.warn("[generate_index] generate_index.py não encontrado.");
+			return;
+		}
+
+		if (!fs.existsSync(pythonPath)) {
 			console.warn(
-				"[generate_index] generate_index.py não encontrado na raiz do projeto.",
+				"[generate_index] Python não encontrado em api/.venv/Scripts/python.exe",
 			);
 			return;
 		}
 
 		try {
 			console.log("[generate_index] Gerando index.json...");
-			execSync("python generate_index.py", {
+			execSync(`"${pythonPath}" generate_index.py`, {
 				cwd: __dirname,
-				stdio: "inherit", // mostra a saída do Python no terminal do Vite
+				stdio: "inherit",
 			});
 			console.log("[generate_index] index.json gerado com sucesso.");
 		} catch (err) {

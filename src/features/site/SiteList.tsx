@@ -141,8 +141,8 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 				overflow: "hidden",
 				display: "flex",
 				flexDirection: "column",
-				flex: 1,
-				minHeight: 0,
+				maxHeight: "50vh",
+				minHeight: "30vh",
 			}}
 		>
 			{/* Header */}
@@ -447,6 +447,9 @@ function SentryTable({ events }: { events: SentryEvent[] }) {
 				backgroundColor: "var(--card)",
 				overflow: "hidden",
 				boxShadow: "var(--shadow-sm)",
+				maxHeight: "50vh", // ← adiciona isso
+				display: "flex", // ← adiciona isso
+				flexDirection: "column", // ← adiciona isso
 			}}
 		>
 			{/* Header */}
@@ -550,7 +553,13 @@ function SentryTable({ events }: { events: SentryEvent[] }) {
 			</div>
 
 			{/* Tabela */}
-			<div style={{ overflowX: "auto" }}>
+			<div
+				style={{
+					flex: 1, // ← adiciona
+					minHeight: 0, // ← adiciona
+					overflow: "auto", // ← era overflowX: "auto"
+				}}
+			>
 				<table
 					style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}
 				>
@@ -560,6 +569,7 @@ function SentryTable({ events }: { events: SentryEvent[] }) {
 								"Título",
 								"Nível",
 								"Origem",
+								"URL",
 								"Ocorrências",
 								"Primeira vez",
 								"Última vez",
@@ -586,7 +596,7 @@ function SentryTable({ events }: { events: SentryEvent[] }) {
 						{filtered.length === 0 ? (
 							<tr>
 								<td
-									colSpan={6}
+									colSpan={7}
 									style={{
 										padding: 32,
 										textAlign: "center",
@@ -647,6 +657,38 @@ function SentryTable({ events }: { events: SentryEvent[] }) {
 										}}
 									>
 										{e.culprit}
+									</td>
+									<td
+										style={{
+											padding: "10px 20px",
+											color: "var(--muted-foreground)",
+											fontSize: 12,
+											whiteSpace: "nowrap",
+										}}
+									>
+										{e.permalink ? (
+											<a
+												href={e.permalink}
+												target="_blank"
+												rel="noopener noreferrer"
+												style={{
+													color: OPTARE_RED,
+													textDecoration: "none",
+													fontWeight: 600,
+												}}
+											>
+												{e.permalink}
+											</a>
+										) : (
+											<span
+												style={{
+													color: "var(--muted-foreground)",
+													opacity: 0.5,
+												}}
+											>
+												—
+											</span>
+										)}
 									</td>
 									<td
 										style={{

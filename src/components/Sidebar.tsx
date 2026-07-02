@@ -31,7 +31,7 @@ const NAV_SECTIONS = [
 		items: [{ page: "home" as Page, label: "Home", icon: "⬡" }],
 	},
 	{
-		label: "Logs de Processo",
+		label: "Logs Backup",
 		items: [
 			{ page: "process-dashboard" as Page, label: "Dashboard", icon: "▦" },
 			{ page: "process-list" as Page, label: "Registros", icon: "☰" },

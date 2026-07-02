@@ -31,6 +31,7 @@ tree.txt
 *.njsproj
 *.sln
 *.sw?
+*.txt
 
 ingestor/config.json
 api/__pycache__/db.cpython-314.pyc

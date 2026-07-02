@@ -5,6 +5,29 @@ from routes.auth import require_auth
 
 logs_bp = Blueprint("logs", __name__)
 
+@logs_bp.route("/api/logs/last-activity")
+@require_auth
+def last_activity():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    (SELECT MAX(created_at) FROM optsislog.process_logs) as backup,
+                    (SELECT MAX(created_at) FROM optsislog.windows_event_logs) as windows,
+                    (SELECT MAX(checked_at) FROM optsislog.site_availability) as site
+            """)
+            row = cur.fetchone()
+            return jsonify({
+                "backup": row[0].isoformat() if row[0] else None,
+                "windows": row[1].isoformat() if row[1] else None,
+                "site": row[2].isoformat() if row[2] else None,
+            }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        release_connection(conn)
+
 @logs_bp.route("/api/logs")
 @require_auth
 def get_logs():

@@ -49,7 +49,7 @@ export function DailyBarChart({ data }: DailyBarChartProps) {
 						axisLine={false}
 						tickLine={false}
 						// Mostra só a cada N ticks para não poluir o eixo X
-						interval={Math.max(0, Math.floor(data.length / 8) - 1)}
+						interval={Math.max(0, Math.floor(data.length) - 30)}
 					/>
 					<YAxis
 						tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}

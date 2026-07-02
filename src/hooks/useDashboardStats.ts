@@ -56,7 +56,7 @@ export function useDashboardStats(logs: Log[]): DashboardMetrics {
 
 		const dailyStats = Object.entries(byDate)
 			.sort(([a], [b]) => a.localeCompare(b))
-			.slice(-30)
+			.slice(-15)
 			.map(([, stats]) => stats);
 
 		// "fill" em vez de "color" — Recharts injeta esse campo no shape automaticamente
