@@ -82,23 +82,16 @@ export function LoginPage() {
 				}}
 			>
 				<div style={{ textAlign: "center", marginBottom: 32 }}>
-					<div
+					<img
+						src="/image/favicon/LogDashFavicon.png"
+						alt="LogDash"
 						style={{
 							width: 52,
 							height: 52,
 							borderRadius: 12,
-							backgroundColor: "var(--primary)",
-							display: "inline-flex",
-							alignItems: "center",
-							justifyContent: "center",
-							color: "var(--primary-foreground)",
-							fontSize: 20,
-							fontWeight: 900,
 							marginBottom: 14,
 						}}
-					>
-						L
-					</div>
+					/>
 					<div
 						style={{
 							fontSize: 18,
