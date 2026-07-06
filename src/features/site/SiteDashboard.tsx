@@ -387,6 +387,7 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 								backgroundColor: "var(--card)",
 								overflow: "hidden",
 								boxShadow: "var(--shadow-sm)",
+								minHeight: "200px"
 							}}
 						>
 							<div
