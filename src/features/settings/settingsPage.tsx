@@ -15,14 +15,7 @@ import {
 import type { LogSource } from "../../lib/storage/logPaths";
 import { getRegisteredTypes } from "../../lib/data/LogMapperRegistry";
 import type { LogTypeDescriptor } from "../../lib/data/LogMapperRegistry";
-import {
-	getAllPlugins,
-	registerPlugin,
-	unregisterPlugin,
-} from "../../lib/plugins/converterRegistry";
-import type { IConverterPlugin } from "../../lib/plugins/IConverterPlugin";
 import { SourceFormModal } from "./sourceFormModal";
-import { ConverterFormModal } from "./converterFormModal";
 import { LogTypeFormModal } from "./logTypeFormModal";
 import { loadApiConfig, saveApiConfig } from "../../lib/storage/logPaths";
 import type { ApiConfig } from "../../lib/storage/logPaths";
@@ -45,16 +38,6 @@ export function Settings({
 	const [sourceModalOpen, setSourceModalOpen] = useState(false);
 	const [editingSource, setEditingSource] = useState<LogSource | null>(null);
 	const [apiConfig, setApiConfig] = useState<ApiConfig>(() => loadApiConfig());
-
-	// ── Plugins/Conversores ──────────────────────────────────────────────────
-	// Estado derivado do ConverterRegistry — re-sincroniza após operações
-	const [plugins, setPlugins] = useState<IConverterPlugin[]>(() =>
-		getAllPlugins(),
-	);
-	const [converterModalOpen, setConverterModalOpen] = useState(false);
-	const [editingPlugin, setEditingPlugin] = useState<IConverterPlugin | null>(
-		null,
-	);
 
 	// Tipos salvos pelo usuário, persistidos no localStorage
 	const [customLogTypes, setCustomLogTypes] = useState<string[]>(() =>
@@ -92,7 +75,6 @@ export function Settings({
 	];
 
 	function refreshPluginState() {
-		setPlugins(getAllPlugins());
 		setAvailableTypes(getRegisteredTypes());
 	}
 
@@ -129,20 +111,6 @@ export function Settings({
 	function handleSaveApiConfig(config: ApiConfig) {
 		setApiConfig(config);
 		saveApiConfig(config);
-	}
-
-	// ── Handlers: Conversores ────────────────────────────────────────────────
-
-	function handleSavePlugin(plugin: IConverterPlugin) {
-		registerPlugin(plugin);
-		refreshPluginState();
-		setConverterModalOpen(false);
-		setEditingPlugin(null);
-	}
-
-	function handleDeletePlugin(id: string) {
-		const removed = unregisterPlugin(id);
-		if (removed) refreshPluginState();
 	}
 
 	// ── Handlers: Tipos de Log ───────────────────────────────────────────────
@@ -231,7 +199,7 @@ export function Settings({
 						>
 							{progress.isLoading
 								? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
-								: `${logs.length.toLocaleString("pt-BR")} registros · ${sources.filter((s) => s.enabled).length} fonte(s) ativa(s) · ${plugins.length} conversor(es)`}
+								: `${logs.length.toLocaleString("pt-BR")} registros · ${sources.filter((s) => s.enabled).length} fonte(s) ativa(s)`}
 						</p>
 					</div>
 
@@ -329,50 +297,6 @@ export function Settings({
 						})
 					)}
 				</SettingsSection>
-
-				{/* ── Seção: Conversores ── */}
-				<SettingsSection
-					title="Conversores de Log"
-					description="Plugins que transformam formatos externos em JSON compatível com o LogDash. Cada conversor registra automaticamente o tipo de log correspondente na lista acima."
-					actions={
-						<button
-							style={btnPrimary}
-							onClick={() => {
-								setEditingPlugin(null);
-								setConverterModalOpen(true);
-							}}
-						>
-							+ Novo Conversor
-						</button>
-					}
-				>
-					{plugins.length === 0 ? (
-						<EmptyState
-							message="Nenhum conversor registrado."
-							actionLabel="Adicionar um conversor"
-							onAction={() => {
-								setEditingPlugin(null);
-								setConverterModalOpen(true);
-							}}
-						/>
-					) : (
-						plugins.map((plugin) => (
-							<PluginCard
-								key={plugin.id}
-								plugin={plugin}
-								onEdit={() => {
-									setEditingPlugin(plugin);
-									setConverterModalOpen(true);
-								}}
-								onDelete={
-									plugin.builtIn
-										? undefined
-										: () => handleDeletePlugin(plugin.id)
-								}
-							/>
-						))
-					)}
-				</SettingsSection>
 				<SettingsSection
 					title="Tipos de Logs Registrados"
 					description="Lista de tipos de logs atualmente reconhecidos pelo LogDash, com base nas fontes ativas e plugins instalados."
@@ -426,19 +350,6 @@ export function Settings({
 					.filter((s) => s.alias !== editingSource?.alias)
 					.map((s) => s.alias)}
 				availableTypes={sourceAvailableTypes}
-			/>
-
-			<ConverterFormModal
-				isOpen={converterModalOpen}
-				onClose={() => {
-					setConverterModalOpen(false);
-					setEditingPlugin(null);
-				}}
-				onSave={handleSavePlugin}
-				existingPlugin={editingPlugin}
-				existingIds={plugins
-					.filter((p) => p.id !== editingPlugin?.id)
-					.map((p) => p.id)}
 			/>
 
 			<LogTypeFormModal
@@ -690,174 +601,6 @@ function SourceCard({
 				>
 					Remover
 				</button>
-			</div>
-		</div>
-	);
-}
-
-// ── PluginCard ────────────────────────────────────────────────────────────────
-
-function PluginCard({
-	plugin,
-	onEdit,
-	onDelete,
-}: {
-	plugin: IConverterPlugin;
-	onEdit: () => void;
-	onDelete?: () => void;
-}) {
-	return (
-		<div
-			style={{
-				display: "flex",
-				alignItems: "flex-start",
-				gap: 12,
-				padding: "12px 16px",
-				borderRadius: 8,
-				border: "1px solid var(--border)",
-				backgroundColor: "var(--background)",
-				flexWrap: "wrap",
-			}}
-		>
-			<div style={{ flex: 1, minWidth: 0 }}>
-				<div
-					style={{
-						display: "flex",
-						alignItems: "center",
-						gap: 8,
-						flexWrap: "wrap",
-					}}
-				>
-					<span
-						style={{
-							fontSize: 14,
-							fontWeight: 600,
-							color: "var(--foreground)",
-						}}
-					>
-						{plugin.name}
-					</span>
-
-					{/* Extensões aceitas */}
-					{plugin.inputExtensions.map((ext) => (
-						<span
-							key={ext}
-							style={{
-								fontSize: 10,
-								fontWeight: 700,
-								color: "var(--muted-foreground)",
-								backgroundColor: "var(--muted)",
-								padding: "2px 7px",
-								borderRadius: 20,
-								fontFamily: "monospace",
-							}}
-						>
-							{ext}
-						</span>
-					))}
-
-					{plugin.builtIn && (
-						<span
-							style={{
-								fontSize: 10,
-								fontWeight: 700,
-								color: "var(--muted-foreground)",
-								border: "1px solid var(--border)",
-								padding: "2px 7px",
-								borderRadius: 20,
-								textTransform: "uppercase",
-								letterSpacing: "0.05em",
-							}}
-						>
-							built-in
-						</span>
-					)}
-
-					<span
-						style={{
-							fontSize: 10,
-							color: "var(--muted-foreground)",
-							marginLeft: "auto",
-						}}
-					>
-						v{plugin.version}
-					</span>
-				</div>
-
-				<p
-					style={{
-						fontSize: 12,
-						color: "var(--muted-foreground)",
-						margin: "4px 0 0",
-						lineHeight: 1.5,
-					}}
-				>
-					{plugin.description}
-				</p>
-
-				<div
-					style={{
-						marginTop: 6,
-						display: "flex",
-						alignItems: "center",
-						gap: 6,
-					}}
-				>
-					<span style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
-						Comando:
-					</span>
-					<code
-						style={{
-							fontSize: 11,
-							backgroundColor: "var(--muted)",
-							padding: "2px 8px",
-							borderRadius: 4,
-							color: "var(--foreground)",
-						}}
-					>
-						{plugin.serverCommand}
-					</code>
-				</div>
-
-				{/* Metadados extras — exibidos se existirem */}
-				{plugin.metadata && Object.keys(plugin.metadata).length > 0 && (
-					<div
-						style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 6 }}
-					>
-						{Object.entries(plugin.metadata).map(([key, value]) => (
-							<span
-								key={key}
-								style={{
-									fontSize: 10,
-									color: "var(--muted-foreground)",
-									backgroundColor: "var(--muted)",
-									padding: "2px 8px",
-									borderRadius: 4,
-								}}
-							>
-								{key}: {value}
-							</span>
-						))}
-					</div>
-				)}
-			</div>
-
-			<div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-				<button onClick={onEdit} style={btnSecondary}>
-					{plugin.builtIn ? "Ver detalhes" : "Editar"}
-				</button>
-				{onDelete && (
-					<button
-						onClick={onDelete}
-						style={{
-							...btnSecondary,
-							color: "var(--destructive, oklch(0.6 0.22 25))",
-							borderColor: "var(--destructive, oklch(0.6 0.22 25))",
-						}}
-					>
-						Remover
-					</button>
-				)}
 			</div>
 		</div>
 	);

@@ -1,7 +1,7 @@
 // src/features/site/useSiteData.ts
 import { useState, useEffect, useCallback } from "react";
 import { loadApiConfig } from "../../../lib/storage/logPaths";
-import { getAuthToken } from "../../../hooks/useAuth";
+import { getAuthToken, useAuth } from "../../../hooks/useAuth";
 
 export interface AvailabilityRecord {
 	id: number;
@@ -41,12 +41,13 @@ export function useSiteData(): SiteData {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+	const { isAuthenticated } = useAuth();
 
 	const fetch = useCallback(async () => {
-		const { url } = loadApiConfig();
 		const token = getAuthToken();
 		if (!token) return;
 
+		const { url } = loadApiConfig();
 		setLoading(true);
 		setError(null);
 
@@ -80,10 +81,12 @@ export function useSiteData(): SiteData {
 
 	// Fetch inicial + intervalo de 5 minutos
 	useEffect(() => {
+		if (!isAuthenticated) return;
+
 		fetch();
 		const interval = setInterval(fetch, REFRESH_INTERVAL_MS);
 		return () => clearInterval(interval);
-	}, [fetch]);
+	}, [isAuthenticated, fetch]);
 
 	return {
 		availability,

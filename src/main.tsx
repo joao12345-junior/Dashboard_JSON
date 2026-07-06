@@ -3,8 +3,6 @@ import { createRoot } from "react-dom/client";
 import "./style.css";
 import App from "./App.js";
 
-import { setupPlugins } from "./lib/plugins/pluginSetup";
-
 createRoot(document.getElementById("root") as HTMLElement).render(
 	<StrictMode>
 		<App />

@@ -123,22 +123,11 @@ export function Sidebar({
 						}}
 					>
 						<div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-							<div
-								style={{
-									width: 34,
-									height: 34,
-									borderRadius: 8,
-									backgroundColor: "var(--primary)",
-									display: "flex",
-									alignItems: "center",
-									justifyContent: "center",
-									color: "var(--primary-foreground)",
-									fontSize: 15,
-									fontWeight: 900,
-								}}
-							>
-								L
-							</div>
+							<img
+								src="/image/favicon/LogDashFavicon.png"
+								alt="LogDash"
+								style={{ width: 28, height: 28 }}
+							/>
 							<div>
 								<div
 									style={{
