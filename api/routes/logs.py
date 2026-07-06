@@ -9,6 +9,7 @@ logs_bp = Blueprint("logs", __name__)
 @require_auth
 def last_activity():
     conn = get_connection()
+    connection_ok = True
     try:
         with conn.cursor() as cur:
             cur.execute("""
@@ -24,9 +25,10 @@ def last_activity():
                 "site": row[2].isoformat() if row[2] else None,
             }), 200
     except Exception as e:
+        connection_ok = False
         return jsonify({"error": str(e)}), 500
     finally:
-        release_connection(conn)
+        release_connection(conn, is_healthy=connection_ok)
 
 @logs_bp.route("/api/logs")
 @require_auth
@@ -36,14 +38,18 @@ def get_logs():
         return jsonify({"error": "parâmetro 'type' é obrigatório"}), 400
 
     conn = get_connection()
+    connection_ok = True
     try:
         if log_type == 'process':
             return _fetch_process_logs(conn)
         if log_type == 'windows-event':
             return _fetch_windows_event_logs(conn)
         return jsonify({"error": f"type '{log_type}' inválido"}), 400
+    except Exception:
+        connection_ok = False
+        raise
     finally:
-        release_connection(conn)
+        release_connection(conn, is_healthy=connection_ok)
 
 # Sem release_connection aqui — o get_logs cuida disso
 def _fetch_process_logs(conn):

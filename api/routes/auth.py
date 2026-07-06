@@ -94,6 +94,7 @@ def login():
         return jsonify({"error": "username e password são obrigatórios"}), 400
 
     conn = get_connection()
+    connection_ok = True
     try:
         with conn.cursor() as cur:
             cur.execute(
@@ -102,9 +103,10 @@ def login():
             )
             row = cur.fetchone()
     except Exception as e:
+        connection_ok = False
         return jsonify({"error": f"Erro ao consultar banco: {e}"}), 500
     finally:
-        release_connection(conn)
+        release_connection(conn, is_healthy=connection_ok)
 
     # Tempo constante mesmo se usuário não existe — evita timing attack
     if row is None:

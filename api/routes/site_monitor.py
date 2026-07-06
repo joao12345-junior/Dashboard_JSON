@@ -65,6 +65,7 @@ def check_availability():
     """Verifica disponibilidade do site e salva no banco."""
     result = _check_site_availability()
     conn = get_connection()
+    connection_ok = True
     try:
         with conn.cursor() as cur:
             cur.execute(
@@ -83,9 +84,11 @@ def check_availability():
             conn.commit()
         return jsonify(result), 200
     except Exception as e:
+        connection_ok = False
+        conn.rollback()
         return jsonify({"error": str(e)}), 500
     finally:
-        release_connection(conn)
+        release_connection(conn, is_healthy=connection_ok)
 
 
 @site_monitor_bp.route("/api/site/sync-sentry", methods=["POST"])
@@ -97,44 +100,59 @@ def sync_sentry():
         return jsonify({"synced": 0}), 200
 
     conn = get_connection()
+    connection_ok = True
     synced = 0
+    failed = []
+
     try:
         with conn.cursor() as cur:
             for issue in issues:
-                cur.execute(
-                    """
-                    INSERT INTO optsislog.sentry_events
-                        (id, title, level, culprit, first_seen, last_seen, count, permalink)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (id) DO UPDATE SET
-                        title      = EXCLUDED.title,
-                        level      = EXCLUDED.level,
-                        culprit    = EXCLUDED.culprit,
-                        last_seen  = EXCLUDED.last_seen,
-                        count      = EXCLUDED.count,
-                        permalink = EXCLUDED.permalink,
-                        synced_at  = NOW()
-                    """,
-                    (
-                        issue.get("id"),
-                        issue.get("title"),
-                        issue.get("level"),
-                        issue.get("culprit"),
-                        issue.get("firstSeen"),
-                        issue.get("lastSeen"),
-                        issue.get("count"),
-                        issue.get("permalink")
-                    ),
-                )
-                synced += 1
+                issue_id = issue.get("id")
+                try:
+                    cur.execute("SAVEPOINT sp_issue")    
+                    cur.execute(
+                        """
+                        INSERT INTO optsislog.sentry_events
+                            (id, title, level, culprit, first_seen, last_seen, count, permalink)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (id) DO UPDATE SET
+                            title      = EXCLUDED.title,
+                            level      = EXCLUDED.level,
+                            culprit    = EXCLUDED.culprit,
+                            last_seen  = EXCLUDED.last_seen,
+                            count      = EXCLUDED.count,
+                            permalink = EXCLUDED.permalink,
+                            synced_at  = NOW()
+                        """,
+                        (
+                            issue_id,
+                            issue.get("title"),
+                            issue.get("level"),
+                            issue.get("culprit"),
+                            issue.get("firstSeen"),
+                            issue.get("lastSeen"),
+                            issue.get("count"),
+                            issue.get("permalink")
+                        ),
+                    )
+                    cur.execute("RELEASE SAVEPOINT sp_issue")
+                    synced += 1
+                except Exception as issue_error:
+                    cur.execute("ROLLBACK TO SAVEPOINT sp_issue")
+                    failed.append({"id": issue_id, "error": str(issue_error)})
+                    print(f"[sync_sentry] Falha ao sincronizar issue {issue_id}: {issue_error}")
             conn.commit()
+
         return jsonify({
             "synced": synced,
+            "failed": failed
         }), 200
     except Exception as e:
+        connection_ok = False
+        conn.rollback()
         return jsonify({"error": str(e)}), 500
     finally:
-        release_connection(conn)
+        release_connection(conn, is_healthy=connection_ok)
 
 
 @site_monitor_bp.route("/api/site/availability", methods=["GET"])
@@ -142,6 +160,8 @@ def sync_sentry():
 def get_availability():
     """Retorna histórico de disponibilidade do site."""
     conn = get_connection()
+    connection_ok = True
+
     try:
         with conn.cursor() as cur:
             cur.execute(
@@ -159,9 +179,10 @@ def get_availability():
                 row["checked_at"] = row["checked_at"].isoformat()
             return jsonify(result), 200
     except Exception as e:
+        connection_ok = False
         return jsonify({"error": str(e)}), 500
     finally:
-        release_connection(conn)
+        release_connection(conn, is_healthy=connection_ok)
 
 
 @site_monitor_bp.route("/api/site/sentry-events", methods=["GET"])
@@ -169,6 +190,8 @@ def get_availability():
 def get_sentry_events():
     """Retorna eventos do Sentry salvos no banco."""
     conn = get_connection()
+    connection_ok = True
+
     try:
         with conn.cursor() as cur:
             cur.execute(
@@ -188,6 +211,7 @@ def get_sentry_events():
                         row[field] = row[field].isoformat()
             return jsonify(result), 200
     except Exception as e:
+        connection_ok = False
         return jsonify({"error": str(e)}), 500
     finally:
-        release_connection(conn)
+        release_connection(conn, is_healthy=connection_ok)
