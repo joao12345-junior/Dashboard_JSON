@@ -8,7 +8,7 @@ export interface HomeStats {
 	totalWarnings: number;
 
 	byType: {
-		process: { errors: number; warnings: number; total: number };
+		process: { errors: number; total: number };
 		windowsEvent: { high: number; medium: number; total: number };
 	};
 
@@ -36,7 +36,7 @@ function isCritical(log: Log): boolean {
  */
 function isMediumCritical(log: Log): boolean {
 	if (log.logType === "windows-event") return log.criticality === "Medium";
-	return log.status === 0;
+	return false;
 }
 
 const byDateTimeDesc = (a: Log, b: Log): number =>
@@ -52,7 +52,6 @@ export function useHomeStats(logs: Log[]): HomeStats {
 		);
 
 		const processErrors = processLogs.filter((l) => l.status === 2).length;
-		const processWarnings = processLogs.filter((l) => l.status === 0).length;
 		const windowsHigh = windowsLogs.filter(
 			(l) => l.criticality === "High",
 		).length;
@@ -69,11 +68,10 @@ export function useHomeStats(logs: Log[]): HomeStats {
 		return {
 			totalLogs: logs.length,
 			totalErrors: processErrors + windowsHigh,
-			totalWarnings: processWarnings + windowsMedium,
+			totalWarnings: windowsMedium,
 			byType: {
 				process: {
 					errors: processErrors,
-					warnings: processWarnings,
 					total: processLogs.length,
 				},
 				windowsEvent: {

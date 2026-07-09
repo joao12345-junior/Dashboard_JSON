@@ -36,11 +36,11 @@ export function GlobalKpiRow({
 			label: "Avisos",
 			value: totalWarnings,
 			accentColor: "var(--chart-5)",
-			detail: `${byType.process.warnings} processo · ${byType.windowsEvent.medium} Windows`,
+			detail: `Somente Windows`,
 			navigate: null as Page | null,
 		},
 		{
-			label: "Logs de Processo",
+			label: "Logs de Backup",
 			value: byType.process.total,
 			accentColor: "var(--primary)",
 			detail: "Ver registros →",

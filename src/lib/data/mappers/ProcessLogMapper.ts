@@ -27,6 +27,12 @@ function normalizeDate(raw: string): string {
 	return `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
 
+function normalizeTime(raw: string): string {
+	const parts = raw.split(".").reverse().pop();
+	if (parts == undefined) return "Erro ao normalizar tempo";
+	return parts;
+}
+
 function parseStatus(value: unknown): number {
 	const num = Number(value ?? 0);
 	return [0, 1, 2].includes(num) ? num : 0;
@@ -76,7 +82,7 @@ export const ProcessLogMapper = {
 			muted: true,
 			noWrap: true,
 			hideOnMobile: true,
-			render: (log: Log) => log.time,
+			render: (log: Log) => normalizeTime(log.time),
 		},
 	] satisfies ColumnDefinition[],
 };
