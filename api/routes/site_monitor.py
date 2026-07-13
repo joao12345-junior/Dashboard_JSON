@@ -1,29 +1,57 @@
 # api/routes/site_monitor.py
 import os
+import logging
 import requests
 from datetime import datetime, timezone
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from flask import Blueprint, jsonify
+from psycopg2.extras import RealDictCursor
 from db import get_connection, release_connection
 from routes.auth import require_auth, require_sync_key
 
 site_monitor_bp = Blueprint("site_monitor", __name__)
+logger = logging.getLogger(__name__)
 
-SITE_URL = "https://optare.com.br"
 SENTRY_ORG = os.getenv("SENTRY_ORG", "optare")
 SENTRY_PROJECT = os.getenv("SENTRY_PROJECT", "javascript-nextjs")
 SENTRY_AUTH_TOKEN = os.getenv("SENTRY_AUTH_TOKEN")
 
+CHECK_MAX_WORKERS = 5  # teto fixo, independente de quantas URLs existirem
 
-def _check_site_availability() -> dict:
-    """Faz GET no site e retorna status, tempo de resposta e se está no ar."""
+def _get_active_monitored_urls() -> list[dict]:
+    """Busca URLs ativas. Conexão liberada antes de iniciar os checks HTTP."""
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT id, url, timeout_seconds
+                FROM optsislog.monitored_urls
+                WHERE active = true
+                """
+            )
+            return cur.fetchall()
+    except Exception:
+        connection_ok = False
+        raise
+    finally:
+        release_connection(conn, is_healthy=connection_ok)
+
+
+def _check_url(monitored_url: dict) -> dict:
+    """Faz GET numa URL monitorada e retorna o resultado do check."""
     start = datetime.now(timezone.utc)
     try:
-        response = requests.get(SITE_URL, timeout=10)
+        response = requests.get(
+            monitored_url["url"], timeout=monitored_url["timeout_seconds"]
+        )
         response_time_ms = int(
             (datetime.now(timezone.utc) - start).total_seconds() * 1000
         )
         return {
-            "url": SITE_URL,
+            "monitored_url_id": monitored_url["id"],
+            "url": monitored_url["url"],
             "status_code": response.status_code,
             "response_time_ms": response_time_ms,
             "is_up": response.status_code < 500,
@@ -33,11 +61,72 @@ def _check_site_availability() -> dict:
             (datetime.now(timezone.utc) - start).total_seconds() * 1000
         )
         return {
-            "url": SITE_URL,
+            "monitored_url_id": monitored_url["id"],
+            "url": monitored_url["url"],
             "status_code": None,
             "response_time_ms": response_time_ms,
             "is_up": False,
         }
+
+
+def _save_check_result(result: dict) -> bool:
+    """Grava um resultado de check em conexão própria (thread-safe)."""
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO optsislog.site_availability
+                    (url, status_code, response_time_ms, is_up, monitored_url_id)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (
+                    result["url"],
+                    result["status_code"],
+                    result["response_time_ms"],
+                    result["is_up"],
+                    result["monitored_url_id"],
+                ),
+            )
+            conn.commit()
+        return True
+    except Exception as e:
+        connection_ok = False
+        conn.rollback()
+        logger.error(f"[site_check] Falha ao salvar {result['url']}: {e}")
+        return False
+    finally:
+        release_connection(conn, is_healthy=connection_ok)
+
+
+@site_monitor_bp.route("/api/site/check", methods=["POST"])
+@require_sync_key
+def check_availability():
+    """Verifica disponibilidade de todas as URLs ativas, em paralelo, e salva no banco."""
+    try:
+        monitored_urls = _get_active_monitored_urls()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    if not monitored_urls:
+        return jsonify({"checked": 0, "results": []}), 200
+
+    results = []
+    failed_saves = []
+    with ThreadPoolExecutor(max_workers=CHECK_MAX_WORKERS) as executor:
+        futures = {executor.submit(_check_url, mu): mu for mu in monitored_urls}
+        for future in as_completed(futures):
+            result = future.result()
+            if not _save_check_result(result):
+                failed_saves.append(result["url"])
+            results.append(result)
+
+    return jsonify({
+        "checked": len(results),
+        "results": results,
+        "failed_saves": failed_saves,
+    }), 200
 
 
 def _fetch_sentry_issues() -> list[dict]:
@@ -57,39 +146,6 @@ def _fetch_sentry_issues() -> list[dict]:
         return response.json()
     except requests.exceptions.RequestException:
         return []
-
-
-@site_monitor_bp.route("/api/site/check", methods=["POST"])
-@require_sync_key
-def check_availability():
-    """Verifica disponibilidade do site e salva no banco."""
-    result = _check_site_availability()
-    conn = get_connection()
-    connection_ok = True
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO optsislog.site_availability
-                    (url, status_code, response_time_ms, is_up)
-                VALUES (%s, %s, %s, %s)
-                """,
-                (
-                    result["url"],
-                    result["status_code"],
-                    result["response_time_ms"],
-                    result["is_up"],
-                ),
-            )
-            conn.commit()
-        return jsonify(result), 200
-    except Exception as e:
-        connection_ok = False
-        conn.rollback()
-        return jsonify({"error": str(e)}), 500
-    finally:
-        release_connection(conn, is_healthy=connection_ok)
-
 
 @site_monitor_bp.route("/api/site/sync-sentry", methods=["POST"])
 @require_sync_key
@@ -153,7 +209,6 @@ def sync_sentry():
         return jsonify({"error": str(e)}), 500
     finally:
         release_connection(conn, is_healthy=connection_ok)
-
 
 @site_monitor_bp.route("/api/site/availability", methods=["GET"])
 @require_auth
