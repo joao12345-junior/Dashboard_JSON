@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Log } from "../lib/types/Log";
 import { LogRepository, FileLoadResult } from "../lib/repository/LogRepository";
 import { loadApiConfig, loadEnabledSources } from "../lib/storage/logPaths";
-import { getAuthToken } from "../hooks/useAuth";
 
 export interface LoadProgress {
 	loadedFiles: number;
@@ -265,8 +264,8 @@ export function useProgressiveLogs(
 
 		async function loadFromApi() {
 			const [process_logs, windows_logs] = await Promise.all([
-				LogRepository.fetchFromAPI("process", config.url),
-				LogRepository.fetchFromAPI("windows-event", config.url),
+				LogRepository.fetchFromAPI("process", config.api),
+				LogRepository.fetchFromAPI("windows-event", config.api),
 			]);
 			if (!cancelled) setApiLogs([...process_logs, ...windows_logs]);
 		}

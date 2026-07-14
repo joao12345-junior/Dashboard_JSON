@@ -128,7 +128,6 @@ def check_availability():
         "failed_saves": failed_saves,
     }), 200
 
-
 def _fetch_sentry_issues() -> list[dict]:
     """Busca issues não resolvidos do projeto no Sentry."""
     if not SENTRY_AUTH_TOKEN:
@@ -224,7 +223,7 @@ def get_availability():
                 SELECT id, url, status_code, response_time_ms, is_up, checked_at
                 FROM optsislog.site_availability
                 ORDER BY checked_at DESC
-                LIMIT 100
+                LIMIT 200
                 """
             )
             columns = [desc[0] for desc in cur.description]

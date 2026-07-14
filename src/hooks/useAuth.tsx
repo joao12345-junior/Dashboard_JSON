@@ -43,10 +43,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	const login = useCallback(
 		async ({ username, password }: AuthCredentials): Promise<boolean> => {
-			const { url } = loadApiConfig();
+			const { api } = loadApiConfig();
 
 			try {
-				const response = await fetch(`${url}/api/auth/login`, {
+				const response = await fetch(`${api}/api/auth/login`, {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({ username, password }),

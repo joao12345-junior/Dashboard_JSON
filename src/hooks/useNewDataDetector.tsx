@@ -23,12 +23,12 @@ export function useNewDataDetector() {
 	const baseline = useRef<LastActivity | null>(null);
 
 	const fetchActivity = useCallback(async (): Promise<LastActivity | null> => {
-		const { url } = loadApiConfig();
+		const { api } = loadApiConfig();
 		const token = getAuthToken();
 		if (!token) return null;
 
 		try {
-			const res = await window.fetch(`${url}/api/logs/last-activity`, {
+			const res = await window.fetch(`${api}/api/logs/last-activity`, {
 				headers: { Authorization: `Bearer ${token}` },
 			});
 			if (!res.ok) return null;

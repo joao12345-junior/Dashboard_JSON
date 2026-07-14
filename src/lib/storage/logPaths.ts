@@ -36,7 +36,8 @@ export interface LogSource {
 }
 
 export interface ApiConfig {
-	url: string;
+	api: string;
+	urls: string[];
 	enabled: boolean;
 }
 
@@ -78,7 +79,11 @@ const DEFAULT_SOURCES: LogSource[] = [
 // 	enabled: true,
 // };
 const DEFAULT_API_CONFIG: ApiConfig = {
-	url: "http://localhost:8765",
+	api: "http://localhost:8765",
+	urls: [
+		"https://optare.com.br",
+		"https://optare-atendimento.onrender.com/health",
+	],
 	enabled: true,
 };
 
@@ -165,7 +170,7 @@ export function loadApiConfig(): ApiConfig {
 		const raw = localStorage.getItem(API_CONFIG_KEY);
 		if (!raw) return DEFAULT_API_CONFIG;
 		const parsed = JSON.parse(raw) as ApiConfig;
-		if (!parsed.url) return DEFAULT_API_CONFIG;
+		if (!parsed.api) return DEFAULT_API_CONFIG;
 		return parsed;
 	} catch {
 		return DEFAULT_API_CONFIG;

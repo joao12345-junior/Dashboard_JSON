@@ -47,16 +47,16 @@ export function useSiteData(): SiteData {
 		const token = getAuthToken();
 		if (!token) return;
 
-		const { url } = loadApiConfig();
+		const { api } = loadApiConfig();
 		setLoading(true);
 		setError(null);
 
 		try {
 			const [availRes, sentryRes] = await Promise.all([
-				window.fetch(`${url}/api/site/availability`, {
+				window.fetch(`${api}/api/site/availability`, {
 					headers: { Authorization: `Bearer ${token}` },
 				}),
-				window.fetch(`${url}/api/site/sentry-events`, {
+				window.fetch(`${api}/api/site/sentry-events`, {
 					headers: { Authorization: `Bearer ${token}` },
 				}),
 			]);
