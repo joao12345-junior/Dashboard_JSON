@@ -1,6 +1,7 @@
 import { useAuth } from "../hooks/useAuth";
 import React, { useState, useCallback } from "react";
 import { ThemeToggleButton } from "../components/ThemeButton";
+import { useTheme } from "../hooks/useTheme";
 
 // ─── LoginPage ────────────────────────────────────────────────────────────────
 export function LoginPage() {
@@ -9,6 +10,7 @@ export function LoginPage() {
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
+	const isDark = useTheme().isDark;
 
 	const handleSubmit = useCallback(async () => {
 		if (!username.trim() || !password.trim()) {
@@ -83,13 +85,18 @@ export function LoginPage() {
 			>
 				<div style={{ textAlign: "center", marginBottom: 32 }}>
 					<img
-						src="/image/favicon/LogDashFavicon.png"
-						alt="LogDash"
+						src={
+							isDark
+								? "/image/favicon/LogDashFavicon-dark.svg"
+								: "/image/favicon/LogDashFavicon-light.svg"
+						}
+						alt="LogDash Logo"
 						style={{
 							width: 52,
 							height: 52,
 							borderRadius: 12,
 							marginBottom: 14,
+							flexShrink: 0, // Impede o flexbox de esmagar o logo
 						}}
 					/>
 					<div

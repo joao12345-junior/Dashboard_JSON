@@ -1,5 +1,6 @@
 // src/components/Sidebar.tsx
 import { Page } from "../App";
+import { useTheme } from "../hooks/useTheme";
 import { StatRow } from "./StatRow";
 
 interface SidebarStats {
@@ -65,6 +66,7 @@ export function Sidebar({
 	onNavigate,
 	stats,
 }: SidebarProps) {
+	const isDark = useTheme().isDark;
 	const sidebarStyle: React.CSSProperties = isMobile
 		? {
 				position: "fixed",
@@ -124,9 +126,17 @@ export function Sidebar({
 					>
 						<div style={{ display: "flex", alignItems: "center", gap: 10 }}>
 							<img
-								src="/image/favicon/LogDashFavicon.png"
-								alt="LogDash"
-								style={{ width: 28, height: 28 }}
+								src={
+									isDark
+										? "/image/favicon/LogDashFavicon-dark.svg"
+										: "/image/favicon/LogDashFavicon-light.svg"
+								}
+								alt="LogDash Logo"
+								style={{
+									width: "60px",
+									height: "60px",
+									flexShrink: 0, // Impede o flexbox de esmagar o logo
+								}}
 							/>
 							<div>
 								<div
@@ -147,7 +157,7 @@ export function Sidebar({
 										letterSpacing: "0.1em",
 									}}
 								>
-									v3.0.0
+									v4.0.0
 								</div>
 							</div>
 						</div>
