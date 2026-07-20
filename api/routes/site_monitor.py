@@ -223,7 +223,7 @@ def get_availability():
                 SELECT id, url, status_code, response_time_ms, is_up, checked_at
                 FROM optsislog.site_availability
                 ORDER BY checked_at DESC
-                LIMIT 200
+                LIMIT 500
                 """
             )
             columns = [desc[0] for desc in cur.description]
