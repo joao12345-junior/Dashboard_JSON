@@ -46,6 +46,13 @@ const NAV_SECTIONS = [
 		],
 	},
 	{
+		label: "Logs Gerais",
+		items: [
+			{ page: "app-dashboard" as Page, label: "Dashboard", icon: "▦" },
+			{ page: "app-list" as Page, label: "Registros", icon: "☰" },
+		],
+	},
+	{
 		label: "Site Optare",
 		items: [
 			{ page: "site-dashboard" as Page, label: "Dashboard", icon: "🌐" },

@@ -7,6 +7,7 @@ interface LastActivity {
 	backup: string | null;
 	windows: string | null;
 	site: string | null;
+	app: string | null;
 }
 
 const POLL_INTERVAL_MS = 60 * 1000; // 1 minuto
@@ -53,7 +54,8 @@ export function useNewDataDetector() {
 			const changed =
 				current.backup !== baseline.current.backup ||
 				current.windows !== baseline.current.windows ||
-				current.site !== baseline.current.site;
+				current.site !== baseline.current.site ||
+				current.app !== baseline.current.app;
 
 			if (changed) setHasNewData(true);
 		}, POLL_INTERVAL_MS);

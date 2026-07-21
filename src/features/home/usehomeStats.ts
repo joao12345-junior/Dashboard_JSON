@@ -1,6 +1,6 @@
 // src/features/home/useHomeStats.ts
 import { useMemo } from "react";
-import { Log, ProcessLog, WindowsEventLog } from "../../lib/types/Log";
+import { Log, ProcessLog, WindowsEventLog, AppLog } from "../../lib/types/Log";
 
 export interface HomeStats {
 	totalLogs: number;
@@ -10,6 +10,7 @@ export interface HomeStats {
 	byType: {
 		process: { errors: number; total: number };
 		windowsEvent: { high: number; medium: number; total: number };
+		app: { errors: number; avisos: number; total: number };
 	};
 
 	criticalEvents: Log[];
@@ -26,6 +27,7 @@ export interface HomeStats {
 
 function isCritical(log: Log): boolean {
 	if (log.logType === "windows-event") return log.criticality === "High";
+	if (log.logType === "app") return log.tipo === "erro";
 	return log.status === 2;
 }
 
@@ -36,6 +38,7 @@ function isCritical(log: Log): boolean {
  */
 function isMediumCritical(log: Log): boolean {
 	if (log.logType === "windows-event") return log.criticality === "Medium";
+	if (log.logType === "app") return log.tipo === "aviso";
 	return false;
 }
 
@@ -50,14 +53,19 @@ export function useHomeStats(logs: Log[]): HomeStats {
 		const windowsLogs = logs.filter(
 			(l): l is WindowsEventLog => l.logType === "windows-event",
 		);
+		const appLogs = logs.filter((l): l is AppLog => l.logType === "app");
 
 		const processErrors = processLogs.filter((l) => l.status === 2).length;
+
 		const windowsHigh = windowsLogs.filter(
 			(l) => l.criticality === "High",
 		).length;
 		const windowsMedium = windowsLogs.filter(
 			(l) => l.criticality === "Medium",
 		).length;
+
+		const appErrors = appLogs.filter((l) => l.tipo === "erro").length;
+		const appAvisos = appLogs.filter((l) => l.tipo === "aviso").length;
 
 		// Sem .slice() — retorna todos. Paginação é responsabilidade do componente.
 		const criticalEvents = logs.filter(isCritical).sort(byDateTimeDesc);
@@ -67,8 +75,8 @@ export function useHomeStats(logs: Log[]): HomeStats {
 
 		return {
 			totalLogs: logs.length,
-			totalErrors: processErrors + windowsHigh,
-			totalWarnings: windowsMedium,
+			totalErrors: processErrors + windowsHigh + appErrors,
+			totalWarnings: windowsMedium + appAvisos,
 			byType: {
 				process: {
 					errors: processErrors,
@@ -78,6 +86,11 @@ export function useHomeStats(logs: Log[]): HomeStats {
 					high: windowsHigh,
 					medium: windowsMedium,
 					total: windowsLogs.length,
+				},
+				app: {
+					errors: appErrors,
+					avisos: appAvisos,
+					total: appLogs.length,
 				},
 			},
 			criticalEvents,

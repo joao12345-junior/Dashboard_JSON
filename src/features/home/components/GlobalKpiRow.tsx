@@ -29,14 +29,14 @@ export function GlobalKpiRow({
 			label: "Erros Críticos",
 			value: totalErrors,
 			accentColor: "var(--destructive)",
-			detail: `${byType.process.errors} processo · ${byType.windowsEvent.high} Windows`,
+			detail: `${byType.process.errors} processo · ${byType.windowsEvent.high} Windows · ${byType.app.errors} app`,
 			navigate: null as Page | null,
 		},
 		{
 			label: "Avisos",
 			value: totalWarnings,
 			accentColor: "var(--chart-5)",
-			detail: `Somente Windows`,
+			detail: `${byType.windowsEvent.medium} Windows · ${byType.app.avisos} app`,
 			navigate: null as Page | null,
 		},
 		{
@@ -52,6 +52,13 @@ export function GlobalKpiRow({
 			accentColor: "var(--chart-4)",
 			detail: "Ver registros →",
 			navigate: "windows-list" as Page,
+		},
+		{
+			label: "Logs Gerais",
+			value: byType.app.total,
+			accentColor: "var(--chart-2)",
+			detail: "Ver registros →",
+			navigate: "app-list" as Page,
 		},
 	];
 

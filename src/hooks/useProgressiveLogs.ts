@@ -263,11 +263,13 @@ export function useProgressiveLogs(
 		if (!isAuthenticated) return; // não tenta antes do login
 
 		async function loadFromApi() {
-			const [process_logs, windows_logs] = await Promise.all([
+			const [process_logs, windows_logs, app_logs] = await Promise.all([
 				LogRepository.fetchFromAPI("process", config.api),
 				LogRepository.fetchFromAPI("windows-event", config.api),
+				LogRepository.fetchFromAPI("app", config.api),
 			]);
-			if (!cancelled) setApiLogs([...process_logs, ...windows_logs]);
+			if (!cancelled)
+				setApiLogs([...process_logs, ...windows_logs, ...app_logs]);
 		}
 
 		loadFromApi();

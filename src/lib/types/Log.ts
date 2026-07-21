@@ -44,6 +44,13 @@ export interface WindowsEventLog extends BaseLog {
 	provider: string;
 }
 
+export interface AppLog extends BaseLog {
+	logType: "app";
+	origem: string;
+	tipo: "debug" | "info" | "aviso" | "erro";
+	detalhes?: string;
+}
+
 /**
  * União discriminada — o campo logType identifica qual tipo é qual.
  *
@@ -51,4 +58,4 @@ export interface WindowsEventLog extends BaseLog {
  * (logType: "process" | "windows-event") permite ao compilador
  * saber exatamente qual interface está em uso em cada contexto.
  */
-export type Log = ProcessLog | WindowsEventLog;
+export type Log = ProcessLog | WindowsEventLog | AppLog;

@@ -16,7 +16,7 @@ import { Page } from "../../../App";
  * O TypeScript vai apontar erro em qualquer lugar que receba um valor
  * inválido — muito mais seguro do que comparar strings soltas.
  */
-type SourceFilter = "all" | "process" | "windows";
+type SourceFilter = "all" | "process" | "windows" | "app";
 
 interface CriticalEventsFeedProps {
 	events: Log[];
@@ -65,6 +65,8 @@ export function CriticalEventsFeed({
 		if (sourceFilter === "all") return events;
 		if (sourceFilter === "process")
 			return events.filter((l) => l.logType === "process");
+		if (sourceFilter === "app")
+			return events.filter((l) => l.logType === "app");
 		return events.filter((l) => l.logType === "windows-event");
 	}, [events, sourceFilter]);
 
@@ -170,6 +172,7 @@ export function CriticalEventsFeed({
 									{ value: "all", label: "Todos" },
 									{ value: "process", label: "Backup" },
 									{ value: "windows", label: "Windows" },
+									{ value: "app", label: "Gerais" },
 								] as { value: SourceFilter; label: string }[]
 							).map(({ value, label }) => (
 								<button
@@ -281,7 +284,9 @@ export function CriticalEventsFeed({
 									onNavigate(
 										log.logType === "windows-event"
 											? "windows-list"
-											: "process-list",
+											: log.logType === "app"
+												? "app-list"
+												: "process-list",
 									)
 								}
 								style={{
@@ -334,7 +339,9 @@ export function CriticalEventsFeed({
 									title={
 										log.logType === "windows-event"
 											? `${log.computer} · ${log.channel}`
-											: "Log de Processo"
+											: log.logType === "app"
+												? log.origem
+												: "Log de Processo"
 									}
 									style={{
 										...tdStyle,
@@ -348,7 +355,9 @@ export function CriticalEventsFeed({
 								>
 									{log.logType === "windows-event"
 										? `${log.computer} · ${log.channel}`
-										: "Log de Processo"}
+										: log.logType === "app"
+											? log.origem
+											: "Log de Processo"}
 								</td>
 
 								{/* Coluna: data e hora */}

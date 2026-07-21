@@ -19,6 +19,8 @@ import { WindowsList } from "./features/windows-event/WindowsList";
 import { SiteDashboard } from "./features/site/SiteDashboard";
 import { SiteList } from "./features/site/SiteList";
 import { Settings } from "./features/settings/settingsPage";
+import { AppDashboard } from "./features/app-logs/AppDashboard";
+import { AppList } from "./features/app-logs/AppList";
 
 import type { LoadProgress, DebugInfo } from "./hooks/useProgressiveLogs";
 import type { Log } from "./lib/types/Log";
@@ -33,6 +35,8 @@ export type Page =
 	| "windows-list"
 	| "site-dashboard"
 	| "site-list"
+	| "app-dashboard"
+	| "app-list"
 	| "settings";
 
 /**
@@ -55,6 +59,12 @@ export interface WindowsFilterState {
 	criticality: "all" | "High" | "Medium" | "Low";
 	provider: string;
 	levelLabel: string;
+}
+
+export interface AppFilterState {
+	message: string;
+	date: string;
+	tipo: "all" | "debug" | "info" | "aviso" | "erro";
 }
 
 /**
@@ -91,6 +101,10 @@ export interface SharedPageProps {
 	windowsFilters: WindowsFilterState;
 	onWindowsFilterUpdate: (key: keyof WindowsFilterState, value: string) => void;
 	onWindowsFilterReset: () => void;
+
+	appFilters: AppFilterState;
+	onAppFilterUpdate: (key: keyof AppFilterState, value: string) => void;
+	onAppFilterReset: () => void;
 }
 
 const INITIAL_PROCESS_FILTERS: ProcessFilterState = {
@@ -105,6 +119,12 @@ const INITIAL_WINDOWS_FILTERS: WindowsFilterState = {
 	criticality: "all",
 	provider: "",
 	levelLabel: "",
+};
+
+const INITIAL_APP_FILTERS: AppFilterState = {
+	message: "",
+	date: "",
+	tipo: "all",
 };
 
 function AppContent() {
@@ -135,6 +155,9 @@ function AppContent() {
 	const [windowsFilters, setWindowsFilters] = useState<WindowsFilterState>(
 		INITIAL_WINDOWS_FILTERS,
 	);
+
+	const [appFilters, setAppFilters] =
+		useState<AppFilterState>(INITIAL_APP_FILTERS);
 
 	// ── Toast global ───────────────────────────────────────────────────────────
 	useEffect(() => {
@@ -168,6 +191,11 @@ function AppContent() {
 		onWindowsFilterUpdate: (key, value) =>
 			setWindowsFilters((prev) => ({ ...prev, [key]: value })),
 		onWindowsFilterReset: () => setWindowsFilters(INITIAL_WINDOWS_FILTERS),
+
+		appFilters,
+		onAppFilterUpdate: (key, value) =>
+			setAppFilters((prev) => ({ ...prev, [key]: value })),
+		onAppFilterReset: () => setAppFilters(INITIAL_APP_FILTERS),
 	};
 
 	// switch em vez de Record — renderiza só a página ativa.
@@ -189,6 +217,10 @@ function AppContent() {
 				return <SiteDashboard {...sharedProps} />;
 			case "site-list":
 				return <SiteList {...sharedProps} />;
+			case "app-dashboard":
+				return <AppDashboard {...sharedProps} />;
+			case "app-list":
+				return <AppList {...sharedProps} />;
 			case "settings":
 				return <Settings {...sharedProps} />;
 		}

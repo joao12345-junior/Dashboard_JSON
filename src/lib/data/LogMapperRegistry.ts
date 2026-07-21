@@ -4,6 +4,7 @@ import { ProcessLogMapper } from "./mappers/ProcessLogMapper";
 import { WindowsEventLogMapper } from "./mappers/WindowsEventLogMapper";
 import { Log } from "../types/Log";
 import { ColumnDefinition } from "../types/ColumnDefinition";
+import { AppLogMapper } from "./mappers/AppLogMapper";
 
 export interface LogMapperContract {
 	toLog: (raw: Record<string, unknown>) => Log;
@@ -48,6 +49,7 @@ export interface LogTypeDescriptor {
 const mappers: Record<string, LogMapperContract> = {
 	process: ProcessLogMapper as LogMapperContract,
 	"windows-event": WindowsEventLogMapper as LogMapperContract,
+	app: AppLogMapper as LogMapperContract,
 };
 
 const descriptors: Record<string, LogTypeDescriptor> = {
@@ -63,6 +65,13 @@ const descriptors: Record<string, LogTypeDescriptor> = {
 		label: "Windows Event Log",
 		description:
 			"Logs convertidos de .evtx pelo evtx_converter_v2.py com campos _enriched.",
+		builtIn: true,
+	},
+	app: {
+		key: "app",
+		label: "Logs Gerais",
+		description:
+			"Logs gerais de aplicações externas (ex.: OptRevit) inseridos direto no banco (origem, tipo, mensagem).",
 		builtIn: true,
 	},
 };
