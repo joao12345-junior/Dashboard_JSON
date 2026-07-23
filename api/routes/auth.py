@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import Blueprint, request, jsonify, make_response
 from db import get_connection, release_connection
+import random
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -180,6 +181,19 @@ def login():
 
         access_token = _generate_access_token(username)
         refresh_token = _issue_refresh_token(conn, username)
+
+        # Limpeza amortizada: ~1 a cada 50 logins dispara o expurgo de
+        # refresh tokens vencidos. Roda DEPOIS de emitir os tokens dessa
+        # requisição — não atrasa o login de quem teve o azar de cair
+        # no sorteio, e uma falha aqui não pode derrubar o login em si.
+        if random.randint(1, 50) == 1:
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT optsislog.cleanup_refresh_tokens()")
+                conn.commit()
+            except Exception as cleanup_error:
+                conn.rollback()
+                # Não propaga — login já foi validado, expurgo é best-effort.
 
         response = make_response(jsonify({"token": access_token}), 200)
         _set_refresh_cookie(response, refresh_token)
