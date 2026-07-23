@@ -1,14 +1,16 @@
 # app.py
 import os
+from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
 from waitress import serve
 
+# Precisa vir ANTES de qualquer os.getenv() que dependa do .env —
+# senão os.getenv cai no default, silenciosamente, sem erro nenhum.
+load_dotenv()
+
 app = Flask(__name__)
 
-# ALLOWED_ORIGINS no .env: uma ou mais origens separadas por vírgula.
-# Dev:  http://localhost:5173
-# Prod: a URL exata de onde o frontend é servido no servidor 201
 ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
