@@ -22,7 +22,7 @@ export function LoadingState() {
 				}}
 			/>
 			<span style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
-				Carregando logs...
+				Carregando...
 			</span>
 		</div>
 	);

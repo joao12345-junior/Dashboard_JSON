@@ -24,18 +24,25 @@ type AuthContextValue = {
 };
 
 // ── Estado de módulo ──────────────────────────────────────────────────────────
-// O access token vive só em memória — nunca em localStorage/sessionStorage.
-// Isso é intencional: reduz a superfície de roubo via XSS (nada de token
-// sentado num storage que qualquer script na página consegue ler).
-// O preço é que ele não sobrevive a um F5 sozinho — por isso a reidratação
-// silenciosa no useEffect do AuthProvider, usando o cookie httpOnly.
 
 let accessToken: string | null = null;
-
-// Callback registrado pelo AuthProvider — authorizedFetch usa isso pra
-// notificar a UI quando o refresh falha de vez (sessão realmente expirada),
-// já que uma função de módulo não tem acesso direto ao setState do React.
 let onSessionExpired: (() => void) | null = null;
+
+/**
+ * Deduplicação de refresh concorrente.
+ *
+ * Sem isso, N chamadas simultâneas que tomam 401 (comum: useProgressiveLogs
+ * dispara 3 fetches em paralelo, useSiteData mais 3) cada uma tenta seu
+ * próprio /api/auth/refresh. Como o refresh token é rotacionado a cada uso
+ * (o antigo é revogado assim que um novo é emitido), a segunda chamada em
+ * diante bate num token já revogado pelo primeiro — corrida real, não
+ * hipotética, foi o que aconteceu no F5 que você testou.
+ *
+ * Com isFlightRefresh: a primeira chamada inicia o refresh de verdade;
+ * todas as outras que chegam enquanto ele está em andamento recebem a
+ * MESMA Promise, em vez de disparar uma chamada de rede própria.
+ */
+let inFlightRefresh: Promise<string | null> | null = null;
 
 export function getAuthToken(): string | null {
 	return accessToken;
@@ -50,7 +57,7 @@ async function requestAccessToken(
 	try {
 		const response = await fetch(url, {
 			method: "POST",
-			credentials: "include", // obrigatório — é o que faz o cookie ir/voltar
+			credentials: "include",
 			headers: credentials ? { "Content-Type": "application/json" } : undefined,
 			body: credentials ? JSON.stringify(credentials) : undefined,
 		});
@@ -70,18 +77,20 @@ async function requestAccessToken(
 }
 
 /**
- * fetch autenticado com retry automático em 401.
- *
- * Fluxo: tenta com o access token atual. Se voltar 401 (expirado),
- * tenta UMA renovação via /api/auth/refresh e repete a chamada original
- * com o token novo. Se o refresh também falhar, a sessão morreu de
- * verdade — notifica o AuthProvider pra derrubar pra tela de login.
- *
- * Por que só uma tentativa de retry, não um loop?
- * Se o refresh renovado também voltar 401, insistir não vai ajudar —
- * o problema não é token velho, é outra coisa (revogado, banco fora do ar).
- * Loop aqui só esconderia o erro real atrás de tentativas inúteis.
+ * Ponto único de refresh — usado tanto pela reidratação inicial quanto
+ * pelo retry automático do authorizedFetch. Garante uma chamada de rede
+ * por vez, não uma por chamador.
  */
+function refreshAccessToken(): Promise<string | null> {
+	if (inFlightRefresh) return inFlightRefresh;
+
+	inFlightRefresh = requestAccessToken().finally(() => {
+		inFlightRefresh = null;
+	});
+
+	return inFlightRefresh;
+}
+
 export async function authorizedFetch(
 	input: string,
 	init: RequestInit = {},
@@ -98,7 +107,7 @@ export async function authorizedFetch(
 	let response = await doFetch(accessToken);
 
 	if (response.status === 401) {
-		const newToken = await requestAccessToken();
+		const newToken = await refreshAccessToken();
 		if (newToken) {
 			response = await doFetch(newToken);
 		} else {
@@ -124,12 +133,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		};
 	}, []);
 
-	// Reidratação silenciosa: na primeira carga da página, tenta trocar o
-	// cookie httpOnly (se existir e for válido) por um access token novo.
-	// Isso é o que substitui "ler token do localStorage" — sem isso, todo
-	// F5 jogaria o usuário pra tela de login mesmo com sessão válida.
 	useEffect(() => {
-		requestAccessToken()
+		refreshAccessToken()
 			.then((token) => setIsAuthenticated(token !== null))
 			.finally(() => setIsInitializing(false));
 	}, []);
@@ -153,8 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				credentials: "include",
 			});
 		} catch {
-			// Falha de rede no logout não deveria travar o usuário na sessão —
-			// o estado local já foi limpo acima, o que importa pro frontend.
+			// idem: falha de rede no logout não deveria travar o usuário logado
 		}
 	}, []);
 

@@ -1,7 +1,7 @@
 // src/hooks/useNewDataDetector.ts
 import { useState, useEffect, useRef, useCallback } from "react";
 import { loadApiConfig } from "../lib/storage/logPaths";
-import { authorizedFetch } from "./useAuth";
+import { authorizedFetch, useAuth } from "./useAuth";
 
 interface LastActivity {
 	backup: string | null;
@@ -10,18 +10,12 @@ interface LastActivity {
 	app: string | null;
 }
 
-const POLL_INTERVAL_MS = 60 * 1000; // 1 minuto
+const POLL_INTERVAL_MS = 60 * 1000;
 
-/**
- * Detecta novos dados no servidor comparando timestamps
- * da última atividade com o que foi carregado na sessão atual.
- *
- * Responsabilidade única: detectar mudança — não recarregar dados.
- * Quem decide recarregar é o componente consumidor.
- */
 export function useNewDataDetector() {
 	const [hasNewData, setHasNewData] = useState(false);
 	const baseline = useRef<LastActivity | null>(null);
+	const { isAuthenticated } = useAuth();
 
 	const fetchActivity = useCallback(async (): Promise<LastActivity | null> => {
 		const { api } = loadApiConfig();
@@ -38,7 +32,8 @@ export function useNewDataDetector() {
 	const dismiss = useCallback(() => setHasNewData(false), []);
 
 	useEffect(() => {
-		// Primeira chamada: estabelece o baseline (o que o usuário já vê)
+		if (!isAuthenticated) return;
+
 		fetchActivity().then((data) => {
 			if (data) baseline.current = data;
 		});
@@ -57,10 +52,9 @@ export function useNewDataDetector() {
 		}, POLL_INTERVAL_MS);
 
 		return () => clearInterval(interval);
-	}, [fetchActivity]);
+	}, [isAuthenticated, fetchActivity]);
 
 	const acknowledge = useCallback(async () => {
-		// Atualiza o baseline para o estado atual após o usuário recarregar
 		const current = await fetchActivity();
 		if (current) baseline.current = current;
 		setHasNewData(false);
