@@ -215,8 +215,21 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 	const isMobile = windowWidth < 768;
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 
-	const { availability, sentryEvents, loading, error, lastRefresh, refresh } =
-		siteData;
+	const {
+		availability,
+		sentryEvents,
+		monitoredUrls,
+		selectedUrlId,
+		setSelectedUrlId,
+		loading,
+		error,
+		lastRefresh,
+		refresh,
+	} = siteData;
+
+	const selectedLabel = selectedUrlId
+		? monitoredUrls.find((mu) => mu.id === selectedUrlId)?.label
+		: null;
 
 	const lastCheck = availability[0];
 	const upCount = availability.filter((r) => r.is_up).length;
@@ -294,7 +307,7 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 									margin: 0,
 								}}
 							>
-								Site Optare
+								{selectedLabel ?? "Site Optare"}
 							</h1>
 						</div>
 						<p
@@ -310,6 +323,31 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 						</p>
 					</div>
 					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+						<select
+							value={selectedUrlId ?? "all"}
+							onChange={(e) =>
+								setSelectedUrlId(
+									e.target.value === "all" ? null : Number(e.target.value),
+								)
+							}
+							style={{
+								padding: "8px 12px",
+								borderRadius: 6,
+								border: "1px solid var(--border)",
+								backgroundColor: "var(--card)",
+								color: "var(--foreground)",
+								fontSize: 13,
+								cursor: "pointer",
+								fontFamily: "inherit",
+							}}
+						>
+							<option value="all">Todos os sites</option>
+							{monitoredUrls.map((mu) => (
+								<option key={mu.id} value={mu.id}>
+									{mu.label}
+								</option>
+							))}
+						</select>
 						<ThemeToggleButton />
 						<button
 							onClick={refresh}
@@ -387,7 +425,7 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 								backgroundColor: "var(--card)",
 								overflow: "hidden",
 								boxShadow: "var(--shadow-sm)",
-								minHeight: "200px"
+								minHeight: "200px",
 							}}
 						>
 							<div

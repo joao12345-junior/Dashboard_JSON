@@ -1,7 +1,7 @@
 // src/hooks/useNewDataDetector.ts
 import { useState, useEffect, useRef, useCallback } from "react";
 import { loadApiConfig } from "../lib/storage/logPaths";
-import { getAuthToken } from "./useAuth";
+import { authorizedFetch } from "./useAuth";
 
 interface LastActivity {
 	backup: string | null;
@@ -25,13 +25,9 @@ export function useNewDataDetector() {
 
 	const fetchActivity = useCallback(async (): Promise<LastActivity | null> => {
 		const { api } = loadApiConfig();
-		const token = getAuthToken();
-		if (!token) return null;
 
 		try {
-			const res = await window.fetch(`${api}/api/logs/last-activity`, {
-				headers: { Authorization: `Bearer ${token}` },
-			});
+			const res = await authorizedFetch(`${api}/api/logs/last-activity`);
 			if (!res.ok) return null;
 			return await res.json();
 		} catch {

@@ -29,7 +29,7 @@ export function AppLogFilters({
 		<div
 			style={{
 				display: "grid",
-				gridTemplateColumns: isMobile ? "1fr" : "1fr 180px 160px auto",
+				gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 160px 160px auto",
 				gap: 12,
 				alignItems: "end",
 				padding: "16px 20px",
@@ -56,6 +56,17 @@ export function AppLogFilters({
 					type="date"
 					value={filters.date}
 					onChange={(e) => onUpdate("date", e.target.value)}
+					style={inputStyle}
+				/>
+			</div>
+
+			<div>
+				<label style={labelStyle}>Origem</label>
+				<input
+					type="text"
+					placeholder="Filtrar por origem..."
+					value={filters.origem}
+					onChange={(e) => onUpdate("origem", e.target.value)}
 					style={inputStyle}
 				/>
 			</div>

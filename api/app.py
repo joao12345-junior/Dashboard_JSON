@@ -6,7 +6,20 @@ from waitress import serve
 
 app = Flask(__name__)
 
-CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
+# ALLOWED_ORIGINS no .env: uma ou mais origens separadas por vírgula.
+# Dev:  http://localhost:5173
+# Prod: a URL exata de onde o frontend é servido no servidor 201
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+    if origin.strip()
+]
+
+CORS(
+    app,
+    resources={r"/api/*": {"origins": ALLOWED_ORIGINS}},
+    supports_credentials=True,
+)
 
 from routes.logs import logs_bp
 app.register_blueprint(logs_bp)

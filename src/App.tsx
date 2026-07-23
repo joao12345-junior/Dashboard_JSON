@@ -27,6 +27,8 @@ import type { Log } from "./lib/types/Log";
 import { START_STATUS } from "./lib/Variables";
 import type { SiteData } from "./features/site/hooks/useSiteData";
 
+import { LoadingState } from "./components/Loading";
+
 export type Page =
 	| "home"
 	| "process-dashboard"
@@ -65,6 +67,7 @@ export interface AppFilterState {
 	message: string;
 	date: string;
 	tipo: "all" | "debug" | "info" | "aviso" | "erro";
+	origem: string;
 }
 
 /**
@@ -125,10 +128,11 @@ const INITIAL_APP_FILTERS: AppFilterState = {
 	message: "",
 	date: "",
 	tipo: "all",
+	origem: "",
 };
 
 function AppContent() {
-	const { isAuthenticated } = useAuth();
+	const { isAuthenticated, isInitializing } = useAuth();
 	const [page, setPage] = useState<Page>("home");
 	const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -167,6 +171,7 @@ function AppContent() {
 		);
 	}, [progress.isDone]);
 
+	if (isInitializing) return <LoadingState />;
 	if (!isAuthenticated) return <LoginPage />;
 
 	const sharedProps: SharedPageProps = {

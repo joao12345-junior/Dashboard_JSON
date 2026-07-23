@@ -39,10 +39,13 @@ export function AppList({
 				const matchMessage = log.message
 					.toLowerCase()
 					.includes(appFilters.message.toLowerCase());
+				const matchOrigem = log.origem
+					.toLowerCase()
+					.includes(appFilters.origem.toLowerCase());
 				const matchDate = appFilters.date ? log.date === appFilters.date : true;
 				const matchTipo =
 					appFilters.tipo === "all" ? true : log.tipo === appFilters.tipo;
-				return matchMessage && matchDate && matchTipo;
+				return matchMessage && matchOrigem && matchDate && matchTipo;
 			})
 			.sort((a, b) =>
 				`${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`),

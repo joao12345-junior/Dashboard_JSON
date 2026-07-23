@@ -4,7 +4,7 @@ import logging
 import requests
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from psycopg2.extras import RealDictCursor
 from db import get_connection, release_connection
 from routes.auth import require_auth, require_sync_key
@@ -99,6 +99,27 @@ def _save_check_result(result: dict) -> bool:
     finally:
         release_connection(conn, is_healthy=connection_ok)
 
+@site_monitor_bp.route("/api/site/monitored-urls", methods=["GET"])
+@require_auth
+def get_monitored_urls():
+    """Lista os sites monitorados — alimenta o seletor de filtro no frontend."""
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT id, label, url, active
+                FROM optsislog.monitored_urls
+                ORDER BY label
+                """
+            )
+            return jsonify(cur.fetchall()), 200
+    except Exception as e:
+        connection_ok = False
+        return jsonify({"error": str(e)}), 500
+    finally:
+        release_connection(conn, is_healthy=connection_ok)
 
 @site_monitor_bp.route("/api/site/check", methods=["POST"])
 @require_sync_key
@@ -212,20 +233,33 @@ def sync_sentry():
 @site_monitor_bp.route("/api/site/availability", methods=["GET"])
 @require_auth
 def get_availability():
-    """Retorna histórico de disponibilidade do site."""
+    """Retorna histórico de disponibilidade. Filtra por site se monitored_url_id vier na query."""
+    monitored_url_id = request.args.get("monitored_url_id", type=int)
     conn = get_connection()
     connection_ok = True
 
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT id, url, status_code, response_time_ms, is_up, checked_at
-                FROM optsislog.site_availability
-                ORDER BY checked_at DESC
-                LIMIT 500
-                """
-            )
+            if monitored_url_id is not None:
+                cur.execute(
+                    """
+                    SELECT id, url, status_code, response_time_ms, is_up, checked_at, monitored_url_id
+                    FROM optsislog.site_availability
+                    WHERE monitored_url_id = %s
+                    ORDER BY checked_at DESC
+                    LIMIT 500
+                    """,
+                    (monitored_url_id,),
+                )
+            else:
+                cur.execute(
+                    """
+                    SELECT id, url, status_code, response_time_ms, is_up, checked_at, monitored_url_id
+                    FROM optsislog.site_availability
+                    ORDER BY checked_at DESC
+                    LIMIT 500
+                    """
+                )
             columns = [desc[0] for desc in cur.description]
             rows = cur.fetchall()
             result = [dict(zip(columns, row)) for row in rows]

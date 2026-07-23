@@ -3,7 +3,7 @@
 import { Log } from "../types/Log";
 import { detectLogType, getMapper } from "../data/LogMapperRegistry";
 import type { LogSource } from "../storage/logPaths";
-import { getAuthToken } from "../../hooks/useAuth";
+import { authorizedFetch } from "../../hooks/useAuth";
 
 // ── Tipos públicos ────────────────────────────────────────────────────────────
 
@@ -325,20 +325,10 @@ export const LogRepository = {
 		}
 	},
 	async fetchFromAPI(logType: string, apiUrl: string): Promise<Log[]> {
-		const token = getAuthToken();
-		if (!token) {
-			console.warn(
-				"[LogRepository] Token não encontrado — usuário não autenticado",
-			);
-			return [];
-		}
-
 		try {
-			const response = await fetch(`${apiUrl}/api/logs?type=${logType}`, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
+			const response = await authorizedFetch(
+				`${apiUrl}/api/logs?type=${logType}`,
+			);
 
 			if (!response.ok) {
 				throw new Error(`[LogRepository] HTTP ${response.status}`);
