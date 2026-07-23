@@ -7,6 +7,7 @@ interface AppLogFiltersProps {
 	onUpdate: (key: keyof AppFilterState, value: string) => void;
 	onReset: () => void;
 	isMobile: boolean;
+	origensDisponiveis: string[];
 }
 
 export function AppLogFilters({
@@ -14,6 +15,7 @@ export function AppLogFilters({
 	onUpdate,
 	onReset,
 	isMobile,
+	origensDisponiveis,
 }: AppLogFiltersProps) {
 	const labelStyle: React.CSSProperties = {
 		display: "block",
@@ -64,11 +66,17 @@ export function AppLogFilters({
 				<label style={labelStyle}>Origem</label>
 				<input
 					type="text"
+					list="app-log-origens"
 					placeholder="Filtrar por origem..."
 					value={filters.origem}
 					onChange={(e) => onUpdate("origem", e.target.value)}
 					style={inputStyle}
 				/>
+				<datalist id="app-log-origens">
+					{origensDisponiveis.map((origem) => (
+						<option key={origem} value={origem} />
+					))}
+				</datalist>
 			</div>
 
 			<div>

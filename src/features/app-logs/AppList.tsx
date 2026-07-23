@@ -33,6 +33,11 @@ export function AppList({
 		[logs],
 	);
 
+	const origensDisponiveis = useMemo(
+		() => Array.from(new Set(appLogs.map((l) => l.origem))).sort(),
+		[appLogs],
+	);
+
 	const filteredLogs = useMemo(() => {
 		return appLogs
 			.filter((log) => {
@@ -145,6 +150,7 @@ export function AppList({
 								onUpdate={onAppFilterUpdate}
 								onReset={onAppFilterReset}
 								isMobile={isMobile}
+								origensDisponiveis={origensDisponiveis}
 							/>
 						</div>
 						<LogTable
