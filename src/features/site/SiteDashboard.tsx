@@ -227,9 +227,12 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 		refresh,
 	} = siteData;
 
-	const selectedLabel = selectedUrlId
-		? monitoredUrls.find((mu) => mu.id === selectedUrlId)?.label
-		: null;
+	const selectedLabel =
+		monitoredUrls.find((mu) => mu.id === selectedUrlId)?.label ??
+		"Carregando...";
+
+	const selectedSite =
+		monitoredUrls.find((mu) => mu.id === selectedUrlId) ?? null;
 
 	const lastCheck = availability[0];
 	const upCount = availability.filter((r) => r.is_up).length;
@@ -325,11 +328,7 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
 						<select
 							value={selectedUrlId ?? "all"}
-							onChange={(e) =>
-								setSelectedUrlId(
-									e.target.value === "all" ? null : Number(e.target.value),
-								)
-							}
+							onChange={(e) => setSelectedUrlId(Number(e.target.value))}
 							style={{
 								padding: "8px 12px",
 								borderRadius: 6,
@@ -341,7 +340,6 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 								fontFamily: "inherit",
 							}}
 						>
-							<option value="all">Todos os sites</option>
 							{monitoredUrls.map((mu) => (
 								<option key={mu.id} value={mu.id}>
 									{mu.label}
@@ -405,16 +403,18 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 								value={avgResponse !== null ? `${avgResponse}ms` : "—"}
 								sub="tempo de resposta HTTP"
 							/>
-							<KpiCard
-								label="Erros no Sentry"
-								value={String(sentryEvents.length)}
-								sub={
-									sentryEvents.length === 0
-										? "nenhum issue ativo"
-										: "issues não resolvidos"
-								}
-								accent={sentryEvents.length > 0}
-							/>
+							{selectedSite?.has_sentry && (
+								<KpiCard
+									label="Erros no Sentry"
+									value={String(sentryEvents.length)}
+									sub={
+										sentryEvents.length === 0
+											? "nenhum issue ativo"
+											: "issues não resolvidos"
+									}
+									accent={sentryEvents.length > 0}
+								/>
+							)}
 						</div>
 
 						{/* Gráfico de disponibilidade */}
@@ -525,184 +525,188 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 						</div>
 
 						{/* Feed de erros do Sentry */}
-						<div
-							style={{
-								borderRadius: 10,
-								border: "1px solid var(--border)",
-								backgroundColor: "var(--card)",
-								overflow: "hidden",
-								boxShadow: "var(--shadow-sm)",
-							}}
-						>
+						{selectedSite?.has_sentry && (
 							<div
 								style={{
-									padding: "16px 20px",
-									borderBottom: "1px solid var(--border)",
-									display: "flex",
-									alignItems: "center",
-									justifyContent: "space-between",
+									borderRadius: 10,
+									border: "1px solid var(--border)",
+									backgroundColor: "var(--card)",
+									overflow: "hidden",
+									boxShadow: "var(--shadow-sm)",
 								}}
 							>
-								<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+								<div
+									style={{
+										padding: "16px 20px",
+										borderBottom: "1px solid var(--border)",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "space-between",
+									}}
+								>
 									<div
-										style={{
-											width: 3,
-											height: 16,
-											borderRadius: 2,
-											backgroundColor: OPTARE_RED,
-										}}
-									/>
-									<div>
-										<div
-											style={{
-												fontSize: 14,
-												fontWeight: 700,
-												color: "var(--foreground)",
-											}}
-										>
-											Erros Recentes
-										</div>
-										<div
-											style={{
-												fontSize: 11,
-												color: "var(--muted-foreground)",
-												marginTop: 2,
-											}}
-										>
-											Issues não resolvidos no Sentry
-										</div>
-									</div>
-								</div>
-								{sentryEvents.length > 0 && (
-									<span
-										style={{
-											fontSize: 11,
-											fontWeight: 700,
-											padding: "3px 10px",
-											borderRadius: 20,
-											backgroundColor: OPTARE_RED_MUTED,
-											color: OPTARE_RED,
-										}}
+										style={{ display: "flex", alignItems: "center", gap: 8 }}
 									>
-										{sentryEvents.length} ativo
-										{sentryEvents.length > 1 ? "s" : ""}
-									</span>
-								)}
-							</div>
-
-							{sentryEvents.length === 0 ? (
-								<div style={{ padding: 32, textAlign: "center" }}>
-									<div style={{ fontSize: 24, marginBottom: 8 }}>✓</div>
-									<div
-										style={{ fontSize: 13, color: "var(--muted-foreground)" }}
-									>
-										Nenhum erro ativo no momento
-									</div>
-								</div>
-							) : (
-								<div style={{ display: "flex", flexDirection: "column" }}>
-									{sentryEvents.slice(0, 5).map((e, i) => (
 										<div
-											key={e.id}
 											style={{
-												padding: "14px 20px",
-												borderBottom:
-													i < Math.min(sentryEvents.length, 5) - 1
-														? "1px solid var(--border)"
-														: "none",
-												display: "flex",
-												alignItems: "flex-start",
-												gap: 12,
+												width: 3,
+												height: 16,
+												borderRadius: 2,
+												backgroundColor: OPTARE_RED,
 											}}
-										>
-											<span
-												style={{
-													fontSize: 10,
-													fontWeight: 700,
-													padding: "3px 8px",
-													borderRadius: 4,
-													flexShrink: 0,
-													marginTop: 1,
-													backgroundColor:
-														e.level === "error"
-															? "color-mix(in oklch, var(--destructive) 12%, transparent)"
-															: "color-mix(in oklch, oklch(0.75 0.15 80) 20%, transparent)",
-													color:
-														e.level === "error"
-															? "var(--destructive)"
-															: "oklch(0.55 0.12 80)",
-												}}
-											>
-												{e.level}
-											</span>
+										/>
+										<div>
 											<div
 												style={{
-													display: "flex",
-													alignItems: "center",
-													gap: 8,
-													minWidth: 0,
+													fontSize: 14,
+													fontWeight: 700,
+													color: "var(--foreground)",
 												}}
 											>
-												<div
-													style={{
-														fontSize: 13,
-														fontWeight: 600,
-														color: "var(--foreground)",
-														whiteSpace: "nowrap",
-														overflow: "hidden",
-														textOverflow: "ellipsis",
-														flex: 1,
-													}}
-												>
-													{e.title}
-												</div>
-												<div
-													style={{
-														fontSize: 11,
-														color: "var(--muted-foreground)",
-														marginTop: 2,
-													}}
-												>
-													{e.culprit} · {e.count}× · {formatDate(e.last_seen)}
-												</div>
-												{e.permalink && (
-													<a
-														href={e.permalink}
-														target="_blank"
-														rel="noopener noreferrer"
-														style={{
-															fontSize: 11,
-															color: OPTARE_RED,
-															textDecoration: "none",
-															fontWeight: 600,
-															flexShrink: 0,
-														}}
-													>
-														Ver →
-													</a>
-												)}
+												Erros Recentes
+											</div>
+											<div
+												style={{
+													fontSize: 11,
+													color: "var(--muted-foreground)",
+													marginTop: 2,
+												}}
+											>
+												Issues não resolvidos no Sentry
 											</div>
 										</div>
-									))}
-									{sentryEvents.length > 5 && (
-										<div
-											onClick={() => onNavigate("site-list")}
+									</div>
+									{sentryEvents.length > 0 && (
+										<span
 											style={{
-												padding: "12px 20px",
-												fontSize: 12,
+												fontSize: 11,
+												fontWeight: 700,
+												padding: "3px 10px",
+												borderRadius: 20,
+												backgroundColor: OPTARE_RED_MUTED,
 												color: OPTARE_RED,
-												fontWeight: 600,
-												cursor: "pointer",
-												textAlign: "center",
-												borderTop: "1px solid var(--border)",
 											}}
 										>
-											Ver todos os {sentryEvents.length} erros →
-										</div>
+											{sentryEvents.length} ativo
+											{sentryEvents.length > 1 ? "s" : ""}
+										</span>
 									)}
 								</div>
-							)}
-						</div>
+
+								{sentryEvents.length === 0 ? (
+									<div style={{ padding: 32, textAlign: "center" }}>
+										<div style={{ fontSize: 24, marginBottom: 8 }}>✓</div>
+										<div
+											style={{ fontSize: 13, color: "var(--muted-foreground)" }}
+										>
+											Nenhum erro ativo no momento
+										</div>
+									</div>
+								) : (
+									<div style={{ display: "flex", flexDirection: "column" }}>
+										{sentryEvents.slice(0, 5).map((e, i) => (
+											<div
+												key={e.id}
+												style={{
+													padding: "14px 20px",
+													borderBottom:
+														i < Math.min(sentryEvents.length, 5) - 1
+															? "1px solid var(--border)"
+															: "none",
+													display: "flex",
+													alignItems: "flex-start",
+													gap: 12,
+												}}
+											>
+												<span
+													style={{
+														fontSize: 10,
+														fontWeight: 700,
+														padding: "3px 8px",
+														borderRadius: 4,
+														flexShrink: 0,
+														marginTop: 1,
+														backgroundColor:
+															e.level === "error"
+																? "color-mix(in oklch, var(--destructive) 12%, transparent)"
+																: "color-mix(in oklch, oklch(0.75 0.15 80) 20%, transparent)",
+														color:
+															e.level === "error"
+																? "var(--destructive)"
+																: "oklch(0.55 0.12 80)",
+													}}
+												>
+													{e.level}
+												</span>
+												<div
+													style={{
+														display: "flex",
+														alignItems: "center",
+														gap: 8,
+														minWidth: 0,
+													}}
+												>
+													<div
+														style={{
+															fontSize: 13,
+															fontWeight: 600,
+															color: "var(--foreground)",
+															whiteSpace: "nowrap",
+															overflow: "hidden",
+															textOverflow: "ellipsis",
+															flex: 1,
+														}}
+													>
+														{e.title}
+													</div>
+													<div
+														style={{
+															fontSize: 11,
+															color: "var(--muted-foreground)",
+															marginTop: 2,
+														}}
+													>
+														{e.culprit} · {e.count}× · {formatDate(e.last_seen)}
+													</div>
+													{e.permalink && (
+														<a
+															href={e.permalink}
+															target="_blank"
+															rel="noopener noreferrer"
+															style={{
+																fontSize: 11,
+																color: OPTARE_RED,
+																textDecoration: "none",
+																fontWeight: 600,
+																flexShrink: 0,
+															}}
+														>
+															Ver →
+														</a>
+													)}
+												</div>
+											</div>
+										))}
+										{sentryEvents.length > 5 && (
+											<div
+												onClick={() => onNavigate("site-list")}
+												style={{
+													padding: "12px 20px",
+													fontSize: 12,
+													color: OPTARE_RED,
+													fontWeight: 600,
+													cursor: "pointer",
+													textAlign: "center",
+													borderTop: "1px solid var(--border)",
+												}}
+											>
+												Ver todos os {sentryEvents.length} erros →
+											</div>
+										)}
+									</div>
+								)}
+							</div>
+						)}
 					</>
 				)}
 			</main>

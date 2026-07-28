@@ -833,11 +833,7 @@ export function SiteList({ onNavigate, siteData }: SharedPageProps) {
 					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
 						<select
 							value={selectedUrlId ?? "all"}
-							onChange={(e) =>
-								setSelectedUrlId(
-									e.target.value === "all" ? null : Number(e.target.value),
-								)
-							}
+							onChange={(e) => setSelectedUrlId(Number(e.target.value))}
 							style={{
 								padding: "8px 12px",
 								borderRadius: 6,
@@ -849,7 +845,6 @@ export function SiteList({ onNavigate, siteData }: SharedPageProps) {
 								fontFamily: "inherit",
 							}}
 						>
-							<option value="all">Todos os sites</option>
 							{monitoredUrls.map((mu) => (
 								<option key={mu.id} value={mu.id}>
 									{mu.label}

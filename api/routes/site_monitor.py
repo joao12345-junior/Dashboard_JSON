@@ -109,7 +109,7 @@ def get_monitored_urls():
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
                 """
-                SELECT id, label, url, active
+                SELECT id, label, url, active, has_sentry
                 FROM optsislog.monitored_urls
                 ORDER BY label
                 """

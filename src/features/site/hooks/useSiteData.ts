@@ -30,6 +30,7 @@ export interface MonitoredUrl {
 	label: string;
 	url: string;
 	active: boolean;
+	has_sentry: boolean;
 }
 
 export interface SiteData {
@@ -56,51 +57,74 @@ export function useSiteData(): SiteData {
 	const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 	const { isAuthenticated } = useAuth();
 
-	// selectedUrlId como dependência: toda troca de filtro dispara um novo fetch,
-	// já buscando o histórico já filtrado no servidor — não filtra no cliente.
+	// Busca a lista de sites monitorados uma vez, e escolhe o primeiro como
+	// default assim que chega — não existe mais opção "todos".
+	useEffect(() => {
+		if (!isAuthenticated) return;
+
+		const { api } = loadApiConfig();
+		authorizedFetch(`${api}/api/site/monitored-urls`)
+			.then(async (res) => {
+				if (!res.ok) throw new Error("Erro ao buscar sites monitorados");
+				return res.json();
+			})
+			.then((urls: MonitoredUrl[]) => {
+				setMonitoredUrls(urls);
+				setSelectedUrlId((current) => current ?? urls[0]?.id ?? null);
+			})
+			.catch((err) =>
+				setError(err instanceof Error ? err.message : "Erro ao buscar sites"),
+			);
+	}, [isAuthenticated]);
+
+	const selectedSite =
+		monitoredUrls.find((mu) => mu.id === selectedUrlId) ?? null;
+
 	const fetchData = useCallback(async () => {
+		if (!selectedUrlId) return; // ainda esperando o default carregar
+
 		const { api } = loadApiConfig();
 		setLoading(true);
 		setError(null);
 
-		const availUrl = selectedUrlId
-			? `${api}/api/site/availability?monitored_url_id=${selectedUrlId}`
-			: `${api}/api/site/availability`;
-
 		try {
-			const [availRes, sentryRes, urlsRes] = await Promise.all([
-				authorizedFetch(availUrl),
-				authorizedFetch(`${api}/api/site/sentry-events`),
-				authorizedFetch(`${api}/api/site/monitored-urls`),
+			const availPromise = authorizedFetch(
+				`${api}/api/site/availability?monitored_url_id=${selectedUrlId}`,
+			);
+			// só busca Sentry se o site selecionado realmente tiver integração —
+			// evita mostrar erros de outro serviço, e evita chamada desnecessária.
+			const sentryPromise = selectedSite?.has_sentry
+				? authorizedFetch(`${api}/api/site/sentry-events`)
+				: Promise.resolve(null);
+
+			const [availRes, sentryRes] = await Promise.all([
+				availPromise,
+				sentryPromise,
 			]);
 
-			if (!availRes.ok || !sentryRes.ok || !urlsRes.ok)
+			if (!availRes.ok || (sentryRes && !sentryRes.ok))
 				throw new Error("Erro ao buscar dados do site");
 
-			const [availData, sentryData, urlsData] = await Promise.all([
-				availRes.json(),
-				sentryRes.json(),
-				urlsRes.json(),
-			]);
+			const availData = await availRes.json();
+			const sentryData = sentryRes ? await sentryRes.json() : [];
 
 			setAvailability(availData);
 			setSentryEvents(sentryData);
-			setMonitoredUrls(urlsData);
 			setLastRefresh(new Date());
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Erro desconhecido");
 		} finally {
 			setLoading(false);
 		}
-	}, [selectedUrlId]);
+	}, [selectedUrlId, selectedSite?.has_sentry]);
 
 	useEffect(() => {
-		if (!isAuthenticated) return;
+		if (!isAuthenticated || !selectedUrlId) return;
 
 		fetchData();
 		const interval = setInterval(fetchData, REFRESH_INTERVAL_MS);
 		return () => clearInterval(interval);
-	}, [isAuthenticated, fetchData]);
+	}, [isAuthenticated, selectedUrlId, fetchData]);
 
 	return {
 		availability,
