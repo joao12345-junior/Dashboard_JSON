@@ -59,6 +59,9 @@ export function AppList({
 
 	const columns = useMemo(() => getMapper("app").columns ?? [], []);
 
+	console.log(filteredLogs);
+	console.log(columns);
+
 	return (
 		<div
 			style={{
@@ -157,6 +160,7 @@ export function AppList({
 							logs={filteredLogs}
 							columns={columns}
 							isMobile={isMobile}
+							showStatusColumn={false}
 						/>
 					</>
 				)}

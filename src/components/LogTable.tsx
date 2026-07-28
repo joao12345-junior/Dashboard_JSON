@@ -5,6 +5,7 @@ import { Log } from "../lib/types/Log";
 import { StatusBadge } from "./StatusBadge";
 import { CriticalityBadge } from "./CriticalityBadge";
 import { ColumnDefinition } from "../lib/types/ColumnDefinition";
+import { AppTypeBadge } from "../features/app-logs/components/AppTypeBadge";
 
 interface LogTableProps {
 	logs: Log[];
@@ -23,6 +24,7 @@ interface LogTableProps {
 	 * e o scroll vem do container pai (a <main> da página).
 	 */
 	maxBodyHeight?: number;
+	showStatusColumn?: boolean;
 }
 
 const ROW_HEIGHT = 48;
@@ -39,6 +41,7 @@ export function LogTable({
 	columns,
 	isMobile,
 	maxBodyHeight,
+	showStatusColumn = true,
 }: LogTableProps) {
 	const parentRef = useRef<HTMLDivElement>(null);
 
@@ -102,7 +105,10 @@ export function LogTable({
 				/>
 			);
 		}
-		return <StatusBadge status={log.status} />;
+		if (log.logType === "app") {
+			return null;
+		}
+		return <StatusBadge status={log.status ?? 0} />;
 	}
 
 	return (
@@ -157,7 +163,9 @@ export function LogTable({
 									{col.label}
 								</th>
 							))}
-							<th style={{ ...thStyle, width: 140 }}>Status</th>
+							{showStatusColumn && (
+								<th style={{ ...thStyle, width: 140 }}>Status</th>
+							)}
 						</tr>
 					</thead>
 				</table>
@@ -272,20 +280,24 @@ export function LogTable({
 											);
 										})}
 
-										<td
-											title={
-												log.logType === "windows-event"
-													? `${log.criticality} · ${log.levelLabel}`
-													: String(log.status)
-											}
-											style={{
-												...tdBaseStyle,
-												width: 140,
-												overflow: "visible",
-											}}
-										>
-											{renderBadge(log)}
-										</td>
+										{showStatusColumn && (
+											<td
+												title={
+													log.logType === "windows-event"
+														? `${log.criticality} · ${log.levelLabel}`
+														: log.logType === "app"
+															? ""
+															: String(log.status ?? 0)
+												}
+												style={{
+													...tdBaseStyle,
+													width: 140,
+													overflow: "visible",
+												}}
+											>
+												{renderBadge(log)}
+											</td>
+										)}
 									</tr>
 								);
 							})}

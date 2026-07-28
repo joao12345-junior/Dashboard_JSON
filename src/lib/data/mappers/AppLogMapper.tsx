@@ -2,6 +2,7 @@
 import { AppLog } from "../../types/Log";
 import { ColumnDefinition } from "../../types/ColumnDefinition";
 import { normalizeDateToView } from "../../normalizeDateToView";
+import { AppTypeBadge } from "../../../features/app-logs/components/AppTypeBadge";
 
 type RawAppLog = {
 	origem: unknown;
@@ -27,14 +28,6 @@ function parseTipo(value: unknown): AppLog["tipo"] {
 	return "info";
 }
 
-// tipo → status numérico do BaseLog, só pra reaproveitar StatusBadge/useDashboardStats
-// erro → 2 (erro) | aviso → 0 (finalizado/aviso) | info, debug → 1 (ativo/info)
-function tipoToStatus(tipo: AppLog["tipo"]): number {
-	if (tipo === "erro") return 2;
-	if (tipo === "aviso") return 0;
-	return 1;
-}
-
 // "2026-07-21T14:23:05.123Z" → { date: "2026-07-21", time: "14:23:05" }
 function parseTimestamp(timestamp: string): { date: string; time: string } {
 	const [datePart = "", timePart = ""] = timestamp.split("T");
@@ -53,7 +46,6 @@ export const AppLogMapper = {
 			message: parseString(row.mensagem),
 			date,
 			time,
-			status: tipoToStatus(tipo),
 			origem: parseString(row.origem),
 			tipo,
 			detalhes: typeof row.detalhes === "string" ? row.detalhes : undefined,
@@ -77,35 +69,8 @@ export const AppLogMapper = {
 			label: "Tipo",
 			width: 90,
 			noWrap: true,
-			render: (log) => {
-				if (log.logType !== "app") return "";
-
-				const colorByTipo: Record<AppLog["tipo"], string> = {
-					erro: "var(--destructive)",
-					aviso: "var(--chart-5)",
-					info: "var(--primary)",
-					debug: "var(--muted-foreground)",
-				};
-				const color = colorByTipo[log.tipo];
-
-				return (
-					<span
-						style={{
-							display: "inline-block",
-							padding: "2px 10px",
-							borderRadius: 999,
-							backgroundColor: `color-mix(in oklch, ${color} 15%, transparent)`,
-							color,
-							fontSize: 11,
-							fontWeight: 700,
-							textTransform: "uppercase",
-							whiteSpace: "nowrap",
-						}}
-					>
-						{log.tipo}
-					</span>
-				);
-			},
+			render: (log) =>
+				log.logType === "app" ? <AppTypeBadge tipo={log.tipo} /> : "",
 		},
 		{
 			key: "message",

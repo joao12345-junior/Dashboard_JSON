@@ -8,7 +8,7 @@ export interface BaseLog {
 	message: string; // descrição legível do evento
 	date: string; // sempre yyyy-mm-dd após o Mapper
 	time: string; // sempre HH:MM:SS após o Mapper
-	status: number; // 0 = ok/finalizado, 1 = ativo, 2 = erro
+	status?: number; // 0 = ok/finalizado, 1 = ativo, 2 = erro
 	logType: string; // identifica qual mapper gerou este log
 }
 

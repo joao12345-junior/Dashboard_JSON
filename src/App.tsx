@@ -234,7 +234,6 @@ function AppContent() {
 	return (
 		<>
 			{renderPage()}
-			<DebugPanel progress={progress} debug={debug} />
 			<Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
 			{hasNewData && (
 				<NewDataBanner

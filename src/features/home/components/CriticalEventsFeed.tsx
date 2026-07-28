@@ -4,6 +4,7 @@ import { Log } from "../../../lib/types/Log";
 import { StatusBadge } from "../../../components/StatusBadge";
 import { CriticalityBadge } from "../../../components/CriticalityBadge";
 import { Page } from "../../../App";
+import { AppTypeBadge } from "../../app-logs/components/AppTypeBadge";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -314,8 +315,10 @@ export function CriticalEventsFeed({
 											criticality={log.criticality}
 											levelLabel={log.levelLabel}
 										/>
+									) : log.logType === "app" ? (
+										<AppTypeBadge tipo={log.tipo} />
 									) : (
-										<StatusBadge status={log.status} />
+										<StatusBadge status={log.status ?? 0}></StatusBadge>
 									)}
 								</td>
 
