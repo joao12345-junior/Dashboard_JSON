@@ -756,6 +756,9 @@ export function SiteList({ onNavigate, siteData }: SharedPageProps) {
 		refresh,
 	} = siteData;
 
+	const selectedSite =
+		monitoredUrls.find((mu) => mu.id === selectedUrlId) ?? null;
+
 	return (
 		<div
 			style={{
@@ -882,7 +885,7 @@ export function SiteList({ onNavigate, siteData }: SharedPageProps) {
 				{!loading && !error && (
 					<>
 						<AvailabilityTable records={availability} />
-						<SentryTable events={sentryEvents} />
+						{selectedSite?.has_sentry && <SentryTable events={sentryEvents} />}
 					</>
 				)}
 			</main>
