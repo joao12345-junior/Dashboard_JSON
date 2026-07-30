@@ -5,7 +5,7 @@ import { AppLog } from "../../../lib/types/Log";
 // pra não divergir entre os dois lugares que precisam desse badge.
 const COLOR_BY_TIPO: Record<AppLog["tipo"], string> = {
 	erro: "var(--destructive)",
-	aviso: "var(--chart-5)",
+	aviso: "var(--chart-4)",
 	info: "var(--primary)",
 	debug: "var(--muted-foreground)",
 };
