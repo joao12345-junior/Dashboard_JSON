@@ -8,7 +8,7 @@ import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { AppKpiCards } from "./components/AppKpiCards";
 import { AppDailyBarChart } from "./components/AppDailyBarChart";
-import { AppTopOrigens } from "./components/AppTopOrigens";
+import { AppTopProgramas } from "./components/AppTopProgramas";
 import { AppLog } from "../../lib/types/Log";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { SharedPageProps } from "../../App";
@@ -147,7 +147,10 @@ export function AppDashboard({
 							{stats.dailyStats.length > 0 && (
 								<AppDailyBarChart data={stats.dailyStats} />
 							)}
-							<AppTopOrigens origens={stats.topOrigens} total={stats.total} />
+							<AppTopProgramas
+								programas={stats.topProgramas}
+								total={stats.total}
+							/>
 						</div>
 					</div>
 				)}

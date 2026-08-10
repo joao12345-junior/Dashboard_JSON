@@ -7,7 +7,8 @@ interface AppLogFiltersProps {
 	onUpdate: (key: keyof AppFilterState, value: string) => void;
 	onReset: () => void;
 	isMobile: boolean;
-	origensDisponiveis: string[];
+	classesDisponiveis: string[];
+	programasDisponiveis: string[];
 }
 
 export function AppLogFilters({
@@ -15,7 +16,8 @@ export function AppLogFilters({
 	onUpdate,
 	onReset,
 	isMobile,
-	origensDisponiveis,
+	classesDisponiveis,
+	programasDisponiveis,
 }: AppLogFiltersProps) {
 	const labelStyle: React.CSSProperties = {
 		display: "block",
@@ -31,7 +33,9 @@ export function AppLogFilters({
 		<div
 			style={{
 				display: "grid",
-				gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 160px 160px auto",
+				gridTemplateColumns: isMobile
+					? "1fr"
+					: "1fr minmax(140px, 160px) minmax(140px, 160px) 140px 140px auto",
 				gap: 12,
 				alignItems: "end",
 				padding: "16px 20px",
@@ -53,6 +57,39 @@ export function AppLogFilters({
 			</div>
 
 			<div>
+				<label style={labelStyle}>Programa</label>
+				<select
+					value={filters.programa}
+					onChange={(e) => onUpdate("programa", e.target.value)}
+					style={{ ...inputStyle, cursor: "pointer" }}
+				>
+					<option value="all">Todos</option>
+					{programasDisponiveis.map((programa) => (
+						<option key={programa} value={programa}>
+							{programa}
+						</option>
+					))}
+				</select>
+			</div>
+
+			<div>
+				<label style={labelStyle}>Classe</label>
+				<input
+					type="text"
+					list="app-log-classes"
+					placeholder="Filtrar por classe..."
+					value={filters.classe}
+					onChange={(e) => onUpdate("classe", e.target.value)}
+					style={inputStyle}
+				/>
+				<datalist id="app-log-classes">
+					{classesDisponiveis.map((classe) => (
+						<option key={classe} value={classe} />
+					))}
+				</datalist>
+			</div>
+
+			<div>
 				<label style={labelStyle}>Data</label>
 				<input
 					type="date"
@@ -60,23 +97,6 @@ export function AppLogFilters({
 					onChange={(e) => onUpdate("date", e.target.value)}
 					style={inputStyle}
 				/>
-			</div>
-
-			<div>
-				<label style={labelStyle}>Origem</label>
-				<input
-					type="text"
-					list="app-log-origens"
-					placeholder="Filtrar por origem..."
-					value={filters.origem}
-					onChange={(e) => onUpdate("origem", e.target.value)}
-					style={inputStyle}
-				/>
-				<datalist id="app-log-origens">
-					{origensDisponiveis.map((origem) => (
-						<option key={origem} value={origem} />
-					))}
-				</datalist>
 			</div>
 
 			<div>

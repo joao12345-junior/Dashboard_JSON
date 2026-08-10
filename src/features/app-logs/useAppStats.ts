@@ -19,7 +19,7 @@ export interface AppStats {
 	debugs: number;
 	errorRate: number;
 	dailyStats: DailyAppEntry[];
-	topOrigens: { name: string; count: number }[];
+	topProgramas: { name: string; count: number }[];
 }
 
 export function useAppStats(logs: AppLog[]): AppStats {
@@ -31,11 +31,13 @@ export function useAppStats(logs: AppLog[]): AppStats {
 		const debugs = logs.filter((l) => l.tipo === "debug").length;
 		const errorRate = total > 0 ? Math.round((erros / total) * 100) : 0;
 
-		const origemCount: Record<string, number> = {};
+		const programaCount: Record<string, number> = {};
 		const byDate: Record<string, DailyAppEntry> = {};
 
 		for (const log of logs) {
-			origemCount[log.origem] = (origemCount[log.origem] ?? 0) + 1;
+			if (log.programa) {
+				programaCount[log.programa] = (programaCount[log.programa] ?? 0) + 1;
+			}
 
 			if (!byDate[log.date]) {
 				const [, month, day] = log.date.split("-");
@@ -52,7 +54,7 @@ export function useAppStats(logs: AppLog[]): AppStats {
 			byDate[log.date].total += 1;
 		}
 
-		const topOrigens = Object.entries(origemCount)
+		const topProgramas = Object.entries(programaCount)
 			.map(([name, count]) => ({ name, count }))
 			.sort((a, b) => b.count - a.count)
 			.slice(0, 5);
@@ -70,7 +72,7 @@ export function useAppStats(logs: AppLog[]): AppStats {
 			debugs,
 			errorRate,
 			dailyStats,
-			topOrigens,
+			topProgramas,
 		};
 	}, [logs]);
 }

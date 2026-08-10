@@ -46,7 +46,8 @@ export interface WindowsEventLog extends BaseLog {
 
 export interface AppLog extends BaseLog {
 	logType: "app";
-	origem: string;
+	classe: string;
+	programa: string | null;
 	tipo: "debug" | "info" | "aviso" | "erro";
 	detalhes?: string;
 }

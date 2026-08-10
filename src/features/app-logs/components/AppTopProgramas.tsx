@@ -1,12 +1,12 @@
-// src/features/app-logs/components/AppTopOrigens.tsx
+// src/features/app-logs/components/AppTopProgramas.tsx
 import { AppStats } from "../useAppStats";
 
-interface AppTopOrigensProps {
-	origens: AppStats["topOrigens"];
+interface AppTopProgramasProps {
+	programas: AppStats["topProgramas"];
 	total: number;
 }
 
-export function AppTopOrigens({ origens, total }: AppTopOrigensProps) {
+export function AppTopProgramas({ programas, total }: AppTopProgramasProps) {
 	return (
 		<div
 			style={{
@@ -25,7 +25,7 @@ export function AppTopOrigens({ origens, total }: AppTopOrigensProps) {
 				<div
 					style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}
 				>
-					Top Origens
+					Top Programas
 				</div>
 				<div
 					style={{
@@ -34,7 +34,7 @@ export function AppTopOrigens({ origens, total }: AppTopOrigensProps) {
 						marginTop: 2,
 					}}
 				>
-					Módulos com mais logs registrados
+					Programas com mais logs registrados
 				</div>
 			</div>
 
@@ -46,7 +46,7 @@ export function AppTopOrigens({ origens, total }: AppTopOrigensProps) {
 					gap: 14,
 				}}
 			>
-				{origens.length === 0 && (
+				{programas.length === 0 && (
 					<div
 						style={{
 							fontSize: 12,
@@ -58,11 +58,11 @@ export function AppTopOrigens({ origens, total }: AppTopOrigensProps) {
 						Nenhum dado disponível
 					</div>
 				)}
-				{origens.map((origem) => {
-					const pct = total > 0 ? Math.round((origem.count / total) * 100) : 0;
-
+				{programas.map((programa) => {
+					const pct =
+						total > 0 ? Math.round((programa.count / total) * 100) : 0;
 					return (
-						<div key={origem.name}>
+						<div key={programa.name}>
 							<div
 								style={{
 									display: "flex",
@@ -80,7 +80,7 @@ export function AppTopOrigens({ origens, total }: AppTopOrigensProps) {
 										maxWidth: "65%",
 									}}
 								>
-									{origem.name}
+									{programa.name}
 								</span>
 								<span
 									style={{
@@ -90,10 +90,9 @@ export function AppTopOrigens({ origens, total }: AppTopOrigensProps) {
 										flexShrink: 0,
 									}}
 								>
-									{origem.count} ({pct}%)
+									{programa.count} ({pct}%)
 								</span>
 							</div>
-
 							<div
 								style={{
 									height: 5,

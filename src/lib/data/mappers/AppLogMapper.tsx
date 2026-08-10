@@ -5,7 +5,8 @@ import { normalizeDateToView } from "../../normalizeDateToView";
 import { AppTypeBadge } from "../../../features/app-logs/components/AppTypeBadge";
 
 type RawAppLog = {
-	origem: unknown;
+	classe: unknown;
+	programa: unknown;
 	tipo: unknown;
 	mensagem: unknown;
 	detalhes: unknown;
@@ -46,7 +47,8 @@ export const AppLogMapper = {
 			message: parseString(row.mensagem),
 			date,
 			time,
-			origem: parseString(row.origem),
+			classe: parseString(row.classe),
+			programa: typeof row.programa === "string" ? row.programa : null,
 			tipo,
 			detalhes: typeof row.detalhes === "string" ? row.detalhes : undefined,
 		};
@@ -57,12 +59,12 @@ export const AppLogMapper = {
 
 	columns: [
 		{
-			key: "origem",
-			label: "Origem",
+			key: "classe",
+			label: "Classe",
 			width: 160,
 			noWrap: true,
 			hideOnMobile: true,
-			render: (log) => (log.logType === "app" ? log.origem : ""),
+			render: (log) => (log.logType === "app" ? log.classe : ""),
 		},
 		{
 			key: "tipo",
@@ -78,6 +80,14 @@ export const AppLogMapper = {
 			mono: true,
 			noWrap: true,
 			render: (log) => log.message,
+		},
+		{
+			key: "detalhes",
+			label: "Detalhes",
+			mono: true,
+			noWrap: true,
+			hideOnMobile: true,
+			render: (log) => (log.logType === "app" ? (log.detalhes ?? "") : ""),
 		},
 		{
 			key: "date",

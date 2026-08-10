@@ -343,7 +343,7 @@ export function CriticalEventsFeed({
 										log.logType === "windows-event"
 											? `${log.computer} · ${log.channel}`
 											: log.logType === "app"
-												? log.origem
+												? (log.programa ?? log.classe)
 												: "Log de Processo"
 									}
 									style={{
@@ -359,7 +359,7 @@ export function CriticalEventsFeed({
 									{log.logType === "windows-event"
 										? `${log.computer} · ${log.channel}`
 										: log.logType === "app"
-											? log.origem
+											? (log.programa ?? log.classe)
 											: "Log de Processo"}
 								</td>
 

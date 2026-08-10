@@ -60,7 +60,7 @@ def get_logs():
 def _fetch_app_logs(conn):
     with conn.cursor() as cur:
         cur.execute("""
-            SELECT id, origem, tipo, mensagem, detalhes, ocorrido_em, coletado_em
+            SELECT id, classe, programa, tipo, mensagem, detalhes, ocorrido_em, coletado_em
             FROM optsislog.app_logs
             ORDER BY ocorrido_em DESC
         """)

@@ -33,10 +33,21 @@ export function AppList({
 		[logs],
 	);
 
-	const origensDisponiveis = useMemo(
-		() => Array.from(new Set(appLogs.map((l) => l.origem))).sort(),
+	const programasDisponiveis = useMemo(
+		() =>
+			Array.from(
+				new Set(appLogs.map((l) => l.programa).filter((p): p is string => !!p)),
+			).sort(),
 		[appLogs],
 	);
+
+	const classesDisponiveis = useMemo(() => {
+		const source =
+			appFilters.programa === "all"
+				? appLogs
+				: appLogs.filter((l) => l.programa === appFilters.programa);
+		return Array.from(new Set(source.map((l) => l.classe))).sort();
+	}, [appLogs, appFilters.programa]);
 
 	const filteredLogs = useMemo(() => {
 		return appLogs
@@ -44,13 +55,19 @@ export function AppList({
 				const matchMessage = log.message
 					.toLowerCase()
 					.includes(appFilters.message.toLowerCase());
-				const matchOrigem = log.origem
+				const matchClasse = log.classe
 					.toLowerCase()
-					.includes(appFilters.origem.toLowerCase());
+					.includes(appFilters.classe.toLowerCase());
+				const matchPrograma =
+					appFilters.programa === "all"
+						? true
+						: log.programa === appFilters.programa;
 				const matchDate = appFilters.date ? log.date === appFilters.date : true;
 				const matchTipo =
 					appFilters.tipo === "all" ? true : log.tipo === appFilters.tipo;
-				return matchMessage && matchOrigem && matchDate && matchTipo;
+				return (
+					matchMessage && matchClasse && matchPrograma && matchDate && matchTipo
+				);
 			})
 			.sort((a, b) =>
 				`${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`),
@@ -153,7 +170,8 @@ export function AppList({
 								onUpdate={onAppFilterUpdate}
 								onReset={onAppFilterReset}
 								isMobile={isMobile}
-								origensDisponiveis={origensDisponiveis}
+								classesDisponiveis={classesDisponiveis}
+								programasDisponiveis={programasDisponiveis}
 							/>
 						</div>
 						<LogTable

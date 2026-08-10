@@ -67,7 +67,8 @@ export interface AppFilterState {
 	message: string;
 	date: string;
 	tipo: "all" | "debug" | "info" | "aviso" | "erro";
-	origem: string;
+	classe: string;
+	programa: string;
 }
 
 /**
@@ -128,7 +129,8 @@ const INITIAL_APP_FILTERS: AppFilterState = {
 	message: "",
 	date: "",
 	tipo: "all",
-	origem: "",
+	classe: "",
+	programa: "all",
 };
 
 function AppContent() {
@@ -199,7 +201,11 @@ function AppContent() {
 
 		appFilters,
 		onAppFilterUpdate: (key, value) =>
-			setAppFilters((prev) => ({ ...prev, [key]: value })),
+			setAppFilters((prev) =>
+				key === "programa"
+					? { ...prev, programa: value, classe: "" }
+					: { ...prev, [key]: value },
+			),
 		onAppFilterReset: () => setAppFilters(INITIAL_APP_FILTERS),
 	};
 
