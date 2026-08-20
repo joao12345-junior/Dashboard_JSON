@@ -16,6 +16,8 @@ SENTRY_ORG = os.getenv("SENTRY_ORG", "optare")
 SENTRY_PROJECT = os.getenv("SENTRY_PROJECT", "javascript-nextjs")
 SENTRY_AUTH_TOKEN = os.getenv("SENTRY_AUTH_TOKEN")
 
+SITE_AVAILABILITY_RETENTION_DAYS = 15  # revisar quando/se a Settings UI existir
+
 CHECK_MAX_WORKERS = 5  # teto fixo, independente de quantas URLs existirem
 
 def _get_active_monitored_urls() -> list[dict]:
@@ -96,6 +98,35 @@ def _save_check_result(result: dict) -> bool:
         conn.rollback()
         logger.error(f"[site_check] Falha ao salvar {result['url']}: {e}")
         return False
+    finally:
+        release_connection(conn, is_healthy=connection_ok)
+
+@site_monitor_bp.route("/api/site/cleanup", methods=["POST"])
+@require_sync_key
+def cleanup_availability():
+    """Remove registros de site_availability mais antigos que a retenção fixa."""
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                DELETE FROM optsislog.site_availability
+                WHERE checked_at < now() - (%s || ' days')::interval
+                """,
+                (SITE_AVAILABILITY_RETENTION_DAYS,),
+            )
+            deleted_count = cur.rowcount
+            conn.commit()
+        return jsonify({
+            "deleted": deleted_count,
+            "retention_days": SITE_AVAILABILITY_RETENTION_DAYS,
+        }), 200
+    except Exception as e:
+        connection_ok = False
+        conn.rollback()
+        logger.error(f"[cleanup] Erro: {e}")
+        return jsonify({"error": str(e)}), 500
     finally:
         release_connection(conn, is_healthy=connection_ok)
 
