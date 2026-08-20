@@ -82,14 +82,6 @@ export const AppLogMapper = {
 			render: (log) => log.message,
 		},
 		{
-			key: "detalhes",
-			label: "Detalhes",
-			mono: true,
-			noWrap: true,
-			hideOnMobile: true,
-			render: (log) => (log.logType === "app" ? (log.detalhes ?? "") : ""),
-		},
-		{
 			key: "date",
 			label: "Data",
 			width: 110,
