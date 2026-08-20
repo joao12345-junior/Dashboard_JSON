@@ -140,7 +140,7 @@ def get_monitored_urls():
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
                 """
-                SELECT id, label, url, active, has_sentry
+                SELECT id, label, url, active, timeout_seconds, has_sentry
                 FROM optsislog.monitored_urls
                 ORDER BY label
                 """
@@ -148,6 +148,115 @@ def get_monitored_urls():
             return jsonify(cur.fetchall()), 200
     except Exception as e:
         connection_ok = False
+        return jsonify({"error": str(e)}), 500
+    finally:
+        release_connection(conn, is_healthy=connection_ok)
+
+def _validate_monitored_url_payload(data: dict, *, partial: bool = False) -> str | None:
+    """Validação mínima de formato — sem ping de teste, isso acontece no próximo ciclo do check.
+    Retorna mensagem de erro, ou None se válido. partial=True permite campos ausentes (PATCH)."""
+    if not partial or "label" in data:
+        if not data.get("label", "").strip():
+            return "label é obrigatório."
+    if not partial or "url" in data:
+        url = data.get("url", "").strip()
+        if not url:
+            return "url é obrigatória."
+        if not (url.startswith("http://") or url.startswith("https://")):
+            return "url deve começar com http:// ou https://."
+    if "timeout_seconds" in data:
+        try:
+            if int(data["timeout_seconds"]) <= 0:
+                return "timeout_seconds deve ser maior que zero."
+        except (TypeError, ValueError):
+            return "timeout_seconds deve ser um número inteiro."
+    return None
+
+
+@site_monitor_bp.route("/api/site/monitored-urls", methods=["POST"])
+@require_auth
+def create_monitored_url():
+    """Cria um novo site monitorado. timeout_seconds e has_sentry usam default do schema se ausentes."""
+    data = request.get_json(silent=True) or {}
+    error = _validate_monitored_url_payload(data)
+    if error:
+        return jsonify({"error": error}), 400
+
+    fields = {"label": data["label"].strip(), "url": data["url"].strip()}
+    if "timeout_seconds" in data:
+        fields["timeout_seconds"] = data["timeout_seconds"]
+    if "has_sentry" in data:
+        fields["has_sentry"] = data["has_sentry"]
+
+    columns = ", ".join(fields.keys())
+    placeholders = ", ".join(f"%({k})s" for k in fields.keys())
+
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                f"""
+                INSERT INTO optsislog.monitored_urls ({columns})
+                VALUES ({placeholders})
+                RETURNING id, label, url, active, timeout_seconds, has_sentry
+                """,
+                fields,
+            )
+            new_row = cur.fetchone()
+            conn.commit()
+        return jsonify(new_row), 201
+    except Exception as e:
+        connection_ok = False
+        conn.rollback()
+        logger.error(f"[create_monitored_url] Erro: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        release_connection(conn, is_healthy=connection_ok)
+
+
+@site_monitor_bp.route("/api/site/monitored-urls/<int:url_id>", methods=["PATCH"])
+@require_auth
+def update_monitored_url(url_id: int):
+    """Edita campos de um site monitorado, incluindo soft-delete via active=false."""
+    data = request.get_json(silent=True) or {}
+    if not data:
+        return jsonify({"error": "Nenhum campo enviado."}), 400
+
+    error = _validate_monitored_url_payload(data, partial=True)
+    if error:
+        return jsonify({"error": error}), 400
+
+    allowed_fields = {"label", "url", "active", "timeout_seconds", "has_sentry"}
+    updates = {k: v for k, v in data.items() if k in allowed_fields}
+    if not updates:
+        return jsonify({"error": "Nenhum campo válido para atualizar."}), 400
+
+    set_clause = ", ".join(f"{field} = %({field})s" for field in updates)
+
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                f"""
+                UPDATE optsislog.monitored_urls
+                SET {set_clause}
+                WHERE id = %(id)s
+                RETURNING id, label, url, active, timeout_seconds, has_sentry
+                """,
+                {**updates, "id": url_id},
+            )
+            updated_row = cur.fetchone()
+            if updated_row is None:
+                conn.rollback()
+                return jsonify({"error": "Site monitorado não encontrado."}), 404
+            conn.commit()
+        return jsonify(updated_row), 200
+    except Exception as e:
+        connection_ok = False
+        conn.rollback()
+        logger.error(f"[update_monitored_url] Erro: {e}")
         return jsonify({"error": str(e)}), 500
     finally:
         release_connection(conn, is_healthy=connection_ok)

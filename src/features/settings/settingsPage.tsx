@@ -22,6 +22,11 @@ import type { ApiConfig } from "../../lib/storage/logPaths";
 import { getAuthToken } from "../../hooks/useAuth";
 import { Toast } from "../../components/Toast";
 import type { ToastType } from "../../components/Toast";
+import { authorizedFetch } from "../../hooks/useAuth";
+import {
+	MonitoredUrlFormModal,
+	type MonitoredUrlFormValues,
+} from "./monitoredUrlFormModal";
 
 export function Settings({
 	logs,
@@ -31,6 +36,7 @@ export function Settings({
 	handleChange,
 	openPicker,
 	onNavigate,
+	siteData,
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
@@ -145,6 +151,58 @@ export function Settings({
 		const next = customLogTypes.filter((t) => t !== logType);
 		setCustomLogTypes(next);
 		saveLogTypes(next);
+	}
+
+	const { monitoredUrls, refresh, refreshMonitoredUrls } = siteData;
+	const [monitoredUrlModalOpen, setMonitoredUrlModalOpen] = useState(false);
+	const [editingMonitoredUrl, setEditingMonitoredUrl] =
+		useState<MonitoredUrlFormValues | null>(null);
+
+	async function handleSaveMonitoredUrl(values: MonitoredUrlFormValues) {
+		const { api } = loadApiConfig();
+		const isEdit = values.id !== undefined;
+		const url = isEdit
+			? `${api}/api/site/monitored-urls/${values.id}`
+			: `${api}/api/site/monitored-urls`;
+
+		try {
+			const res = await authorizedFetch(url, {
+				method: isEdit ? "PATCH" : "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					label: values.label,
+					url: values.url,
+					timeout_seconds: values.timeout_seconds,
+					has_sentry: values.has_sentry,
+				}),
+			});
+			if (!res.ok) throw new Error("Erro ao salvar site monitorado");
+			refreshMonitoredUrls();
+			refresh(); // caso o site ativo tenha sido afetado (ex: desativado)
+			setMonitoredUrlModalOpen(false);
+			setEditingMonitoredUrl(null);
+		} catch (err) {
+			console.error("[Settings] Erro ao salvar site monitorado:", err);
+		}
+	}
+
+	async function handleToggleMonitoredUrl(id: number, active: boolean) {
+		const { api } = loadApiConfig();
+		try {
+			const res = await authorizedFetch(
+				`${api}/api/site/monitored-urls/${id}`,
+				{
+					method: "PATCH",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ active: !active }),
+				},
+			);
+			if (!res.ok) throw new Error("Erro ao atualizar status");
+			refreshMonitoredUrls();
+			refresh(); // caso o site ativo tenha sido afetado (ex: desativado)
+		} catch (err) {
+			console.error("[Settings] Erro ao alternar status:", err);
+		}
 	}
 
 	return (
@@ -338,6 +396,50 @@ export function Settings({
 						))
 					)}
 				</SettingsSection>
+				<SettingsSection
+					title="Monitoramento de URLs"
+					description="Sites e serviços monitorados pelo LogDash (disponibilidade e, quando aplicável, erros do Sentry)."
+					actions={
+						<button
+							style={btnPrimary}
+							onClick={() => {
+								setEditingMonitoredUrl(null);
+								setMonitoredUrlModalOpen(true);
+							}}
+						>
+							+ Novo Site
+						</button>
+					}
+				>
+					{monitoredUrls.length === 0 ? (
+						<EmptyState
+							message="Nenhum site monitorado."
+							actionLabel="Adicionar um site"
+							onAction={() => {
+								setEditingMonitoredUrl(null);
+								setMonitoredUrlModalOpen(true);
+							}}
+						/>
+					) : (
+						monitoredUrls.map((mu) => (
+							<MonitoredUrlCard
+								key={mu.id}
+								monitoredUrl={mu}
+								onToggle={() => handleToggleMonitoredUrl(mu.id, mu.active)}
+								onEdit={() => {
+									setEditingMonitoredUrl({
+										id: mu.id,
+										label: mu.label,
+										url: mu.url,
+										timeout_seconds: mu.timeout_seconds,
+										has_sentry: mu.has_sentry,
+									});
+									setMonitoredUrlModalOpen(true);
+								}}
+							/>
+						))
+					)}
+				</SettingsSection>
 			</main>
 
 			{/* ── Modais ── */}
@@ -364,6 +466,16 @@ export function Settings({
 				onSave={handleSaveLogType}
 				existingLogType={editingLogType}
 				availableTypes={availableTypes}
+			/>
+
+			<MonitoredUrlFormModal
+				isOpen={monitoredUrlModalOpen}
+				onClose={() => {
+					setMonitoredUrlModalOpen(false);
+					setEditingMonitoredUrl(null);
+				}}
+				onSave={handleSaveMonitoredUrl}
+				existing={editingMonitoredUrl}
 			/>
 		</div>
 	);
@@ -1083,6 +1195,144 @@ function ApiCard({ config, onSave, isMobile }: ApiCardProps) {
 				type={ToastType}
 				onDismiss={() => setToastMessage(null)}
 			/>
+		</div>
+	);
+}
+
+function MonitoredUrlCard({
+	monitoredUrl,
+	onToggle,
+	onEdit,
+}: {
+	monitoredUrl: {
+		id: number;
+		label: string;
+		url: string;
+		active: boolean;
+		timeout_seconds: number;
+		has_sentry: boolean;
+	};
+	onToggle: () => void;
+	onEdit: () => void;
+}) {
+	return (
+		<div
+			style={{
+				display: "flex",
+				alignItems: "center",
+				gap: 12,
+				padding: "12px 16px",
+				borderRadius: 8,
+				border: "1px solid var(--border)",
+				backgroundColor: monitoredUrl.active
+					? "var(--background)"
+					: "var(--muted)",
+				opacity: monitoredUrl.active ? 1 : 0.65,
+				flexWrap: "wrap",
+				transition: "opacity 0.2s",
+			}}
+		>
+			<button
+				onClick={onToggle}
+				title={monitoredUrl.active ? "Desativar" : "Ativar"}
+				style={{
+					width: 36,
+					height: 20,
+					borderRadius: 10,
+					border: "none",
+					backgroundColor: monitoredUrl.active
+						? "var(--primary)"
+						: "var(--muted-foreground)",
+					cursor: "pointer",
+					position: "relative",
+					flexShrink: 0,
+					transition: "background-color 0.2s",
+				}}
+			>
+				<span
+					style={{
+						position: "absolute",
+						top: 2,
+						left: monitoredUrl.active ? 18 : 2,
+						width: 16,
+						height: 16,
+						borderRadius: "50%",
+						backgroundColor: "white",
+						transition: "left 0.2s",
+					}}
+				/>
+			</button>
+
+			<div style={{ flex: 1, minWidth: 0 }}>
+				<div
+					style={{
+						display: "flex",
+						alignItems: "center",
+						gap: 8,
+						flexWrap: "wrap",
+					}}
+				>
+					<span
+						style={{
+							fontSize: 14,
+							fontWeight: 600,
+							color: "var(--foreground)",
+						}}
+					>
+						{monitoredUrl.label}
+					</span>
+					<span
+						style={{
+							fontSize: 10,
+							fontWeight: 700,
+							color: "var(--primary)",
+							backgroundColor:
+								"color-mix(in oklch, var(--primary) 12%, transparent)",
+							padding: "2px 7px",
+							borderRadius: 20,
+							textTransform: "uppercase",
+							letterSpacing: "0.05em",
+							border:
+								"1px solid color-mix(in oklch, var(--primary) 25%, transparent)",
+						}}
+					>
+						{monitoredUrl.timeout_seconds}s timeout
+					</span>
+					{monitoredUrl.has_sentry && (
+						<span
+							style={{
+								fontSize: 10,
+								fontWeight: 700,
+								color: "var(--muted-foreground)",
+								backgroundColor: "var(--muted)",
+								padding: "2px 7px",
+								borderRadius: 20,
+							}}
+						>
+							Sentry
+						</span>
+					)}
+				</div>
+				<div
+					style={{
+						fontSize: 12,
+						color: "var(--muted-foreground)",
+						marginTop: 2,
+						overflow: "hidden",
+						textOverflow: "ellipsis",
+						whiteSpace: "nowrap",
+						fontFamily: "monospace",
+					}}
+				>
+					{monitoredUrl.url}
+				</div>
+			</div>
+
+			<div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+				<button onClick={onEdit} style={btnSecondary}>
+					Editar
+				</button>
+			</div>
 		</div>
 	);
 }

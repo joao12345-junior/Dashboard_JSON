@@ -30,6 +30,7 @@ export interface MonitoredUrl {
 	label: string;
 	url: string;
 	active: boolean;
+	timeout_seconds: number;
 	has_sentry: boolean;
 }
 
@@ -43,6 +44,7 @@ export interface SiteData {
 	error: string | null;
 	lastRefresh: Date | null;
 	refresh: () => void;
+	refreshMonitoredUrls: () => void;
 }
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
@@ -57,31 +59,29 @@ export function useSiteData(): SiteData {
 	const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 	const { isAuthenticated } = useAuth();
 
-	// Busca a lista de sites monitorados uma vez, e escolhe o primeiro como
-	// default assim que chega — não existe mais opção "todos".
+	const fetchMonitoredUrls = useCallback(async () => {
+		const { api } = loadApiConfig();
+		try {
+			const res = await authorizedFetch(`${api}/api/site/monitored-urls`);
+			if (!res.ok) throw new Error("Erro ao buscar sites monitorados");
+			const urls: MonitoredUrl[] = await res.json();
+			setMonitoredUrls(urls);
+			setSelectedUrlId((current) => current ?? urls[0]?.id ?? null);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Erro ao buscar sites");
+		}
+	}, []);
+
 	useEffect(() => {
 		if (!isAuthenticated) return;
-
-		const { api } = loadApiConfig();
-		authorizedFetch(`${api}/api/site/monitored-urls`)
-			.then(async (res) => {
-				if (!res.ok) throw new Error("Erro ao buscar sites monitorados");
-				return res.json();
-			})
-			.then((urls: MonitoredUrl[]) => {
-				setMonitoredUrls(urls);
-				setSelectedUrlId((current) => current ?? urls[0]?.id ?? null);
-			})
-			.catch((err) =>
-				setError(err instanceof Error ? err.message : "Erro ao buscar sites"),
-			);
-	}, [isAuthenticated]);
+		fetchMonitoredUrls();
+	}, [isAuthenticated, fetchMonitoredUrls]);
 
 	const selectedSite =
 		monitoredUrls.find((mu) => mu.id === selectedUrlId) ?? null;
 
 	const fetchData = useCallback(async () => {
-		if (!selectedUrlId) return; // ainda esperando o default carregar
+		if (!selectedUrlId) return;
 
 		const { api } = loadApiConfig();
 		setLoading(true);
@@ -91,8 +91,6 @@ export function useSiteData(): SiteData {
 			const availPromise = authorizedFetch(
 				`${api}/api/site/availability?monitored_url_id=${selectedUrlId}`,
 			);
-			// só busca Sentry se o site selecionado realmente tiver integração —
-			// evita mostrar erros de outro serviço, e evita chamada desnecessária.
 			const sentryPromise = selectedSite?.has_sentry
 				? authorizedFetch(`${api}/api/site/sentry-events`)
 				: Promise.resolve(null);
@@ -120,7 +118,6 @@ export function useSiteData(): SiteData {
 
 	useEffect(() => {
 		if (!isAuthenticated || !selectedUrlId) return;
-
 		fetchData();
 		const interval = setInterval(fetchData, REFRESH_INTERVAL_MS);
 		return () => clearInterval(interval);
@@ -136,5 +133,6 @@ export function useSiteData(): SiteData {
 		error,
 		lastRefresh,
 		refresh: fetchData,
+		refreshMonitoredUrls: fetchMonitoredUrls,
 	};
 }
