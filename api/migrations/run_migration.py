@@ -30,6 +30,12 @@ def get_connection():
 
 def ensure_control_table(conn) -> None:
     with conn.cursor() as cur:
+        # O schema optsislog precisa existir ANTES da tabela de controle.
+        # Na Neon isso nunca foi um problema porque o schema já existia
+        # (criado a mão, antes deste runner existir). Em um banco novo
+        # e vazio (ex: bootstrap em outro provedor) essa etapa manual
+        # nunca aconteceu — então garantimos aqui, de forma idempotente.
+        cur.execute("CREATE SCHEMA IF NOT EXISTS optsislog")
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS optsislog.schema_migrations (
