@@ -1,6 +1,5 @@
 // src/features/site/SiteList.tsx
 import { useState, useMemo } from "react";
-import { Sidebar } from "../../components/Sidebar";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import type { SharedPageProps } from "../../App";
@@ -768,14 +767,6 @@ export function SiteList({ onNavigate, siteData }: SharedPageProps) {
 				backgroundColor: "var(--background)",
 			}}
 		>
-			<Sidebar
-				isOpen={sidebarOpen}
-				onClose={() => setSidebarOpen(false)}
-				isMobile={isMobile}
-				currentPage="site-list"
-				onNavigate={onNavigate}
-			/>
-
 			<main
 				style={{
 					flex: 1,

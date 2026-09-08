@@ -1,6 +1,5 @@
 // src/features/windows-event/WindowsList.tsx
 import { useState, useMemo } from "react";
-import { Sidebar } from "../../components/Sidebar";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { LogTable } from "../../components/LogTable";
 import { ErrorState } from "../../components/Error";
@@ -81,14 +80,6 @@ export function WindowsList({
 				backgroundColor: "var(--background)",
 			}}
 		>
-			<Sidebar
-				isOpen={sidebarOpen}
-				onClose={() => setSidebarOpen(false)}
-				isMobile={isMobile}
-				currentPage="windows-list"
-				onNavigate={onNavigate}
-			/>
-
 			<main
 				style={{
 					flex: 1,

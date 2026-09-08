@@ -1,7 +1,6 @@
 // src/features/home/HomePage.tsx
 import { useState } from "react";
 import { useHomeStats } from "./usehomeStats";
-import { Sidebar } from "../../components/Sidebar";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { ErrorState } from "../../components/Error";
 import { ProgressBar } from "../../components/ProgressBar";
@@ -40,14 +39,6 @@ export function HomePage({
 				backgroundColor: "var(--background)",
 			}}
 		>
-			<Sidebar
-				isOpen={sidebarOpen}
-				onClose={() => setSidebarOpen(false)}
-				isMobile={isMobile}
-				currentPage="home"
-				onNavigate={onNavigate}
-			/>
-
 			{/*
 				A main tem overflow-y: auto.
 				Ela pode scrollar se o conteúdo total (KPIs + dois feeds)

@@ -1,6 +1,5 @@
 // src/features/site/SiteDashboard.tsx
 import { useState } from "react";
-import { Sidebar } from "../../components/Sidebar";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import type { SharedPageProps } from "../../App";
@@ -249,175 +248,261 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 			: null;
 
 	return (
-		<div
+		<main
 			style={{
+				flex: 1,
+				padding: isMobile ? "16px" : "24px 32px",
+				overflowY: "auto",
 				display: "flex",
-				height: "100vh",
-				overflow: "hidden",
-				backgroundColor: "var(--background)",
+				flexDirection: "column",
+				gap: 24,
 			}}
 		>
-			<Sidebar
-				isOpen={sidebarOpen}
-				onClose={() => setSidebarOpen(false)}
-				isMobile={isMobile}
-				currentPage="site-dashboard"
-				onNavigate={onNavigate}
-			/>
-
-			<main
+			{/* Header */}
+			<div
 				style={{
-					flex: 1,
-					padding: isMobile ? "16px" : "24px 32px",
-					overflowY: "auto",
 					display: "flex",
-					flexDirection: "column",
-					gap: 24,
+					alignItems: "flex-start",
+					justifyContent: "space-between",
+					flexShrink: 0,
 				}}
 			>
-				{/* Header */}
-				<div
-					style={{
-						display: "flex",
-						alignItems: "flex-start",
-						justifyContent: "space-between",
-						flexShrink: 0,
-					}}
-				>
-					<div>
+				<div>
+					<div
+						style={{
+							display: "flex",
+							alignItems: "center",
+							gap: 10,
+							marginBottom: 4,
+						}}
+					>
+						{/* Faixa de acento Optare */}
 						<div
 							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: 10,
-								marginBottom: 4,
+								width: 4,
+								height: 28,
+								borderRadius: 2,
+								backgroundColor: OPTARE_RED,
+							}}
+						/>
+						<h1
+							style={{
+								fontSize: 22,
+								fontWeight: 800,
+								color: "var(--foreground)",
+								margin: 0,
 							}}
 						>
-							{/* Faixa de acento Optare */}
+							{selectedLabel ?? "Site Optare"}
+						</h1>
+					</div>
+					<p
+						style={{
+							fontSize: 13,
+							color: "var(--muted-foreground)",
+							margin: "0 0 0 14px",
+						}}
+					>
+						{lastRefresh
+							? `Atualizado às ${formatTime(lastRefresh.toISOString())}`
+							: "Carregando..."}
+					</p>
+				</div>
+				<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+					<select
+						value={selectedUrlId ?? "all"}
+						onChange={(e) => setSelectedUrlId(Number(e.target.value))}
+						style={{
+							padding: "8px 12px",
+							borderRadius: 6,
+							border: "1px solid var(--border)",
+							backgroundColor: "var(--card)",
+							color: "var(--foreground)",
+							fontSize: 13,
+							cursor: "pointer",
+							fontFamily: "inherit",
+						}}
+					>
+						{monitoredUrls.map((mu) => (
+							<option key={mu.id} value={mu.id}>
+								{mu.label}
+							</option>
+						))}
+					</select>
+					<ThemeToggleButton />
+					<button
+						onClick={refresh}
+						style={{
+							padding: "8px 16px",
+							borderRadius: 6,
+							border: "1px solid var(--border)",
+							backgroundColor: "transparent",
+							color: "var(--foreground)",
+							fontSize: 13,
+							cursor: "pointer",
+							fontFamily: "inherit",
+						}}
+					>
+						↺ Recarregar
+					</button>
+				</div>
+			</div>
+
+			{loading && (
+				<p style={{ color: "var(--muted-foreground)", fontSize: 13 }}>
+					Carregando dados...
+				</p>
+			)}
+			{error && (
+				<p style={{ color: "var(--destructive)", fontSize: 13 }}>{error}</p>
+			)}
+
+			{!loading && !error && (
+				<>
+					{/* KPIs */}
+					<div
+						style={{
+							display: "grid",
+							gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
+							gap: 16,
+						}}
+					>
+						<KpiCard
+							label="Status Atual"
+							value={
+								lastCheck ? (lastCheck.is_up ? "● Online" : "● Offline") : "—"
+							}
+							sub={lastCheck ? `HTTP ${lastCheck.status_code}` : undefined}
+							online={lastCheck?.is_up}
+						/>
+						<KpiCard
+							label="Uptime"
+							value={uptimePercent !== null ? `${uptimePercent}%` : "—"}
+							sub={`${availability.length} verificações`}
+							accent={uptimePercent !== null && uptimePercent < 100}
+						/>
+						<KpiCard
+							label="Resposta Média"
+							value={avgResponse !== null ? `${avgResponse}ms` : "—"}
+							sub="tempo de resposta HTTP"
+						/>
+						{selectedSite?.has_sentry && (
+							<KpiCard
+								label="Erros no Sentry"
+								value={String(sentryEvents.length)}
+								sub={
+									sentryEvents.length === 0
+										? "nenhum issue ativo"
+										: "issues não resolvidos"
+								}
+								accent={sentryEvents.length > 0}
+							/>
+						)}
+					</div>
+
+					{/* Gráfico de disponibilidade */}
+					<div
+						style={{
+							borderRadius: 10,
+							border: "1px solid var(--border)",
+							backgroundColor: "var(--card)",
+							overflow: "hidden",
+							boxShadow: "var(--shadow-sm)",
+							minHeight: "200px",
+						}}
+					>
+						<div
+							style={{
+								padding: "16px 20px",
+								borderBottom: "1px solid var(--border)",
+								display: "flex",
+								alignItems: "center",
+								gap: 8,
+							}}
+						>
 							<div
 								style={{
-									width: 4,
-									height: 28,
+									width: 3,
+									height: 16,
 									borderRadius: 2,
 									backgroundColor: OPTARE_RED,
 								}}
 							/>
-							<h1
+							<div>
+								<div
+									style={{
+										fontSize: 14,
+										fontWeight: 700,
+										color: "var(--foreground)",
+									}}
+								>
+									Disponibilidade por Dia
+								</div>
+								<div
+									style={{
+										fontSize: 11,
+										color: "var(--muted-foreground)",
+										marginTop: 2,
+									}}
+								>
+									% de uptime nos últimos 14 dias
+								</div>
+							</div>
+						</div>
+						<div style={{ padding: "20px 24px 16px" }}>
+							<AvailabilityBarChart records={availability} />
+							{/* Legenda */}
+							<div
 								style={{
-									fontSize: 22,
-									fontWeight: 800,
-									color: "var(--foreground)",
-									margin: 0,
+									display: "flex",
+									gap: 16,
+									marginTop: 12,
+									fontSize: 11,
+									color: "var(--muted-foreground)",
 								}}
 							>
-								{selectedLabel ?? "Site Optare"}
-							</h1>
+								<span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+									<span
+										style={{
+											width: 8,
+											height: 8,
+											borderRadius: 2,
+											backgroundColor: "oklch(0.65 0.15 145)",
+											display: "inline-block",
+										}}
+									/>
+									100%
+								</span>
+								<span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+									<span
+										style={{
+											width: 8,
+											height: 8,
+											borderRadius: 2,
+											backgroundColor: "oklch(0.75 0.15 80)",
+											display: "inline-block",
+										}}
+									/>
+									80–99%
+								</span>
+								<span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+									<span
+										style={{
+											width: 8,
+											height: 8,
+											borderRadius: 2,
+											backgroundColor: "var(--destructive)",
+											display: "inline-block",
+										}}
+									/>
+									{"<80%"}
+								</span>
+							</div>
 						</div>
-						<p
-							style={{
-								fontSize: 13,
-								color: "var(--muted-foreground)",
-								margin: "0 0 0 14px",
-							}}
-						>
-							{lastRefresh
-								? `Atualizado às ${formatTime(lastRefresh.toISOString())}`
-								: "Carregando..."}
-						</p>
 					</div>
-					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-						<select
-							value={selectedUrlId ?? "all"}
-							onChange={(e) => setSelectedUrlId(Number(e.target.value))}
-							style={{
-								padding: "8px 12px",
-								borderRadius: 6,
-								border: "1px solid var(--border)",
-								backgroundColor: "var(--card)",
-								color: "var(--foreground)",
-								fontSize: 13,
-								cursor: "pointer",
-								fontFamily: "inherit",
-							}}
-						>
-							{monitoredUrls.map((mu) => (
-								<option key={mu.id} value={mu.id}>
-									{mu.label}
-								</option>
-							))}
-						</select>
-						<ThemeToggleButton />
-						<button
-							onClick={refresh}
-							style={{
-								padding: "8px 16px",
-								borderRadius: 6,
-								border: "1px solid var(--border)",
-								backgroundColor: "transparent",
-								color: "var(--foreground)",
-								fontSize: 13,
-								cursor: "pointer",
-								fontFamily: "inherit",
-							}}
-						>
-							↺ Recarregar
-						</button>
-					</div>
-				</div>
 
-				{loading && (
-					<p style={{ color: "var(--muted-foreground)", fontSize: 13 }}>
-						Carregando dados...
-					</p>
-				)}
-				{error && (
-					<p style={{ color: "var(--destructive)", fontSize: 13 }}>{error}</p>
-				)}
-
-				{!loading && !error && (
-					<>
-						{/* KPIs */}
-						<div
-							style={{
-								display: "grid",
-								gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
-								gap: 16,
-							}}
-						>
-							<KpiCard
-								label="Status Atual"
-								value={
-									lastCheck ? (lastCheck.is_up ? "● Online" : "● Offline") : "—"
-								}
-								sub={lastCheck ? `HTTP ${lastCheck.status_code}` : undefined}
-								online={lastCheck?.is_up}
-							/>
-							<KpiCard
-								label="Uptime"
-								value={uptimePercent !== null ? `${uptimePercent}%` : "—"}
-								sub={`${availability.length} verificações`}
-								accent={uptimePercent !== null && uptimePercent < 100}
-							/>
-							<KpiCard
-								label="Resposta Média"
-								value={avgResponse !== null ? `${avgResponse}ms` : "—"}
-								sub="tempo de resposta HTTP"
-							/>
-							{selectedSite?.has_sentry && (
-								<KpiCard
-									label="Erros no Sentry"
-									value={String(sentryEvents.length)}
-									sub={
-										sentryEvents.length === 0
-											? "nenhum issue ativo"
-											: "issues não resolvidos"
-									}
-									accent={sentryEvents.length > 0}
-								/>
-							)}
-						</div>
-
-						{/* Gráfico de disponibilidade */}
+					{/* Feed de erros do Sentry */}
+					{selectedSite?.has_sentry && (
 						<div
 							style={{
 								borderRadius: 10,
@@ -425,7 +510,6 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 								backgroundColor: "var(--card)",
 								overflow: "hidden",
 								boxShadow: "var(--shadow-sm)",
-								minHeight: "200px",
 							}}
 						>
 							<div
@@ -434,282 +518,172 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 									borderBottom: "1px solid var(--border)",
 									display: "flex",
 									alignItems: "center",
-									gap: 8,
+									justifyContent: "space-between",
 								}}
 							>
-								<div
-									style={{
-										width: 3,
-										height: 16,
-										borderRadius: 2,
-										backgroundColor: OPTARE_RED,
-									}}
-								/>
-								<div>
+								<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
 									<div
 										style={{
-											fontSize: 14,
-											fontWeight: 700,
-											color: "var(--foreground)",
+											width: 3,
+											height: 16,
+											borderRadius: 2,
+											backgroundColor: OPTARE_RED,
 										}}
-									>
-										Disponibilidade por Dia
-									</div>
-									<div
-										style={{
-											fontSize: 11,
-											color: "var(--muted-foreground)",
-											marginTop: 2,
-										}}
-									>
-										% de uptime nos últimos 14 dias
-									</div>
-								</div>
-							</div>
-							<div style={{ padding: "20px 24px 16px" }}>
-								<AvailabilityBarChart records={availability} />
-								{/* Legenda */}
-								<div
-									style={{
-										display: "flex",
-										gap: 16,
-										marginTop: 12,
-										fontSize: 11,
-										color: "var(--muted-foreground)",
-									}}
-								>
-									<span
-										style={{ display: "flex", alignItems: "center", gap: 4 }}
-									>
-										<span
-											style={{
-												width: 8,
-												height: 8,
-												borderRadius: 2,
-												backgroundColor: "oklch(0.65 0.15 145)",
-												display: "inline-block",
-											}}
-										/>
-										100%
-									</span>
-									<span
-										style={{ display: "flex", alignItems: "center", gap: 4 }}
-									>
-										<span
-											style={{
-												width: 8,
-												height: 8,
-												borderRadius: 2,
-												backgroundColor: "oklch(0.75 0.15 80)",
-												display: "inline-block",
-											}}
-										/>
-										80–99%
-									</span>
-									<span
-										style={{ display: "flex", alignItems: "center", gap: 4 }}
-									>
-										<span
-											style={{
-												width: 8,
-												height: 8,
-												borderRadius: 2,
-												backgroundColor: "var(--destructive)",
-												display: "inline-block",
-											}}
-										/>
-										{"<80%"}
-									</span>
-								</div>
-							</div>
-						</div>
-
-						{/* Feed de erros do Sentry */}
-						{selectedSite?.has_sentry && (
-							<div
-								style={{
-									borderRadius: 10,
-									border: "1px solid var(--border)",
-									backgroundColor: "var(--card)",
-									overflow: "hidden",
-									boxShadow: "var(--shadow-sm)",
-								}}
-							>
-								<div
-									style={{
-										padding: "16px 20px",
-										borderBottom: "1px solid var(--border)",
-										display: "flex",
-										alignItems: "center",
-										justifyContent: "space-between",
-									}}
-								>
-									<div
-										style={{ display: "flex", alignItems: "center", gap: 8 }}
-									>
+									/>
+									<div>
 										<div
 											style={{
-												width: 3,
-												height: 16,
-												borderRadius: 2,
-												backgroundColor: OPTARE_RED,
+												fontSize: 14,
+												fontWeight: 700,
+												color: "var(--foreground)",
 											}}
-										/>
-										<div>
-											<div
-												style={{
-													fontSize: 14,
-													fontWeight: 700,
-													color: "var(--foreground)",
-												}}
-											>
-												Erros Recentes
-											</div>
-											<div
-												style={{
-													fontSize: 11,
-													color: "var(--muted-foreground)",
-													marginTop: 2,
-												}}
-											>
-												Issues não resolvidos no Sentry
-											</div>
+										>
+											Erros Recentes
 										</div>
-									</div>
-									{sentryEvents.length > 0 && (
-										<span
+										<div
 											style={{
 												fontSize: 11,
-												fontWeight: 700,
-												padding: "3px 10px",
-												borderRadius: 20,
-												backgroundColor: OPTARE_RED_MUTED,
-												color: OPTARE_RED,
+												color: "var(--muted-foreground)",
+												marginTop: 2,
 											}}
 										>
-											{sentryEvents.length} ativo
-											{sentryEvents.length > 1 ? "s" : ""}
-										</span>
-									)}
-								</div>
-
-								{sentryEvents.length === 0 ? (
-									<div style={{ padding: 32, textAlign: "center" }}>
-										<div style={{ fontSize: 24, marginBottom: 8 }}>✓</div>
-										<div
-											style={{ fontSize: 13, color: "var(--muted-foreground)" }}
-										>
-											Nenhum erro ativo no momento
+											Issues não resolvidos no Sentry
 										</div>
 									</div>
-								) : (
-									<div style={{ display: "flex", flexDirection: "column" }}>
-										{sentryEvents.slice(0, 5).map((e, i) => (
-											<div
-												key={e.id}
-												style={{
-													padding: "14px 20px",
-													borderBottom:
-														i < Math.min(sentryEvents.length, 5) - 1
-															? "1px solid var(--border)"
-															: "none",
-													display: "flex",
-													alignItems: "flex-start",
-													gap: 12,
-												}}
-											>
-												<span
-													style={{
-														fontSize: 10,
-														fontWeight: 700,
-														padding: "3px 8px",
-														borderRadius: 4,
-														flexShrink: 0,
-														marginTop: 1,
-														backgroundColor:
-															e.level === "error"
-																? "color-mix(in oklch, var(--destructive) 12%, transparent)"
-																: "color-mix(in oklch, oklch(0.75 0.15 80) 20%, transparent)",
-														color:
-															e.level === "error"
-																? "var(--destructive)"
-																: "oklch(0.55 0.12 80)",
-													}}
-												>
-													{e.level}
-												</span>
-												<div
-													style={{
-														display: "flex",
-														alignItems: "center",
-														gap: 8,
-														minWidth: 0,
-													}}
-												>
-													<div
-														style={{
-															fontSize: 13,
-															fontWeight: 600,
-															color: "var(--foreground)",
-															whiteSpace: "nowrap",
-															overflow: "hidden",
-															textOverflow: "ellipsis",
-															flex: 1,
-														}}
-													>
-														{e.title}
-													</div>
-													<div
-														style={{
-															fontSize: 11,
-															color: "var(--muted-foreground)",
-															marginTop: 2,
-														}}
-													>
-														{e.culprit} · {e.count}× · {formatDate(e.last_seen)}
-													</div>
-													{e.permalink && (
-														<a
-															href={e.permalink}
-															target="_blank"
-															rel="noopener noreferrer"
-															style={{
-																fontSize: 11,
-																color: OPTARE_RED,
-																textDecoration: "none",
-																fontWeight: 600,
-																flexShrink: 0,
-															}}
-														>
-															Ver →
-														</a>
-													)}
-												</div>
-											</div>
-										))}
-										{sentryEvents.length > 5 && (
-											<div
-												onClick={() => onNavigate("site-list")}
-												style={{
-													padding: "12px 20px",
-													fontSize: 12,
-													color: OPTARE_RED,
-													fontWeight: 600,
-													cursor: "pointer",
-													textAlign: "center",
-													borderTop: "1px solid var(--border)",
-												}}
-											>
-												Ver todos os {sentryEvents.length} erros →
-											</div>
-										)}
-									</div>
+								</div>
+								{sentryEvents.length > 0 && (
+									<span
+										style={{
+											fontSize: 11,
+											fontWeight: 700,
+											padding: "3px 10px",
+											borderRadius: 20,
+											backgroundColor: OPTARE_RED_MUTED,
+											color: OPTARE_RED,
+										}}
+									>
+										{sentryEvents.length} ativo
+										{sentryEvents.length > 1 ? "s" : ""}
+									</span>
 								)}
 							</div>
-						)}
-					</>
-				)}
-			</main>
-		</div>
+
+							{sentryEvents.length === 0 ? (
+								<div style={{ padding: 32, textAlign: "center" }}>
+									<div style={{ fontSize: 24, marginBottom: 8 }}>✓</div>
+									<div
+										style={{ fontSize: 13, color: "var(--muted-foreground)" }}
+									>
+										Nenhum erro ativo no momento
+									</div>
+								</div>
+							) : (
+								<div style={{ display: "flex", flexDirection: "column" }}>
+									{sentryEvents.slice(0, 5).map((e, i) => (
+										<div
+											key={e.id}
+											style={{
+												padding: "14px 20px",
+												borderBottom:
+													i < Math.min(sentryEvents.length, 5) - 1
+														? "1px solid var(--border)"
+														: "none",
+												display: "flex",
+												alignItems: "flex-start",
+												gap: 12,
+											}}
+										>
+											<span
+												style={{
+													fontSize: 10,
+													fontWeight: 700,
+													padding: "3px 8px",
+													borderRadius: 4,
+													flexShrink: 0,
+													marginTop: 1,
+													backgroundColor:
+														e.level === "error"
+															? "color-mix(in oklch, var(--destructive) 12%, transparent)"
+															: "color-mix(in oklch, oklch(0.75 0.15 80) 20%, transparent)",
+													color:
+														e.level === "error"
+															? "var(--destructive)"
+															: "oklch(0.55 0.12 80)",
+												}}
+											>
+												{e.level}
+											</span>
+											<div
+												style={{
+													display: "flex",
+													alignItems: "center",
+													gap: 8,
+													minWidth: 0,
+												}}
+											>
+												<div
+													style={{
+														fontSize: 13,
+														fontWeight: 600,
+														color: "var(--foreground)",
+														whiteSpace: "nowrap",
+														overflow: "hidden",
+														textOverflow: "ellipsis",
+														flex: 1,
+													}}
+												>
+													{e.title}
+												</div>
+												<div
+													style={{
+														fontSize: 11,
+														color: "var(--muted-foreground)",
+														marginTop: 2,
+													}}
+												>
+													{e.culprit} · {e.count}× · {formatDate(e.last_seen)}
+												</div>
+												{e.permalink && (
+													<a
+														href={e.permalink}
+														target="_blank"
+														rel="noopener noreferrer"
+														style={{
+															fontSize: 11,
+															color: OPTARE_RED,
+															textDecoration: "none",
+															fontWeight: 600,
+															flexShrink: 0,
+														}}
+													>
+														Ver →
+													</a>
+												)}
+											</div>
+										</div>
+									))}
+									{sentryEvents.length > 5 && (
+										<div
+											onClick={() => onNavigate("site-list")}
+											style={{
+												padding: "12px 20px",
+												fontSize: 12,
+												color: OPTARE_RED,
+												fontWeight: 600,
+												cursor: "pointer",
+												textAlign: "center",
+												borderTop: "1px solid var(--border)",
+											}}
+										>
+											Ver todos os {sentryEvents.length} erros →
+										</div>
+									)}
+								</div>
+							)}
+						</div>
+					)}
+				</>
+			)}
+		</main>
 	);
 }

@@ -1,6 +1,5 @@
 // src/features/settings/settingsPage.tsx
 import { useMemo, useState } from "react";
-import { Sidebar } from "../../components/Sidebar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { SharedPageProps } from "../../App";
@@ -214,14 +213,6 @@ export function Settings({
 				backgroundColor: "var(--background)",
 			}}
 		>
-			<Sidebar
-				isOpen={sidebarOpen}
-				onClose={() => setSidebarOpen(false)}
-				isMobile={isMobile}
-				currentPage="settings"
-				onNavigate={onNavigate}
-			/>
-
 			<main
 				style={{
 					flex: 1,

@@ -1,4 +1,20 @@
 // src/components/Sidebar.tsx
+import { useEffect, useState } from "react";
+import {
+	Home,
+	Archive,
+	AppWindow,
+	ScrollText,
+	Globe,
+	Settings,
+	LayoutDashboard,
+	List,
+	ChevronDown,
+	Menu,
+	X,
+	PanelLeftClose,
+	PanelLeftOpen,
+} from "lucide-react";
 import { Page } from "../App";
 import { useTheme } from "../hooks/useTheme";
 import { StatRow } from "./StatRow";
@@ -11,94 +27,212 @@ interface SidebarStats {
 }
 
 interface SidebarProps {
-	isOpen: boolean;
-	onClose: () => void;
 	isMobile: boolean;
 	currentPage: Page;
 	onNavigate: (page: Page) => void;
-	stats?: SidebarStats; // ← opcional com "?" — contrato honesto
+	stats?: SidebarStats;
+	/** @deprecated a Sidebar controla seu próprio estado de abertura agora. Remover das páginas na próxima limpeza. */
+	isOpen?: boolean;
+	/** @deprecated ver isOpen. */
+	onClose?: () => void;
 }
-/**
- * Estrutura de navegação declarativa.
- *
- * Cada seção agrupa páginas de um mesmo domínio.
- * Para adicionar um novo tipo de log no futuro:
- *   1. Adicione uma nova seção aqui
- *   2. Nenhum outro arquivo da Sidebar precisa mudar
- */
+
 const NAV_SECTIONS = [
 	{
 		label: "Geral",
-		items: [{ page: "home" as Page, label: "Home", icon: "⬡" }],
+		icon: Home,
+		items: [{ page: "home" as Page, label: "Home", icon: Home }],
 	},
 	{
 		label: "Logs Backup",
+		icon: Archive,
 		items: [
-			{ page: "process-dashboard" as Page, label: "Dashboard", icon: "▦" },
-			{ page: "process-list" as Page, label: "Registros", icon: "☰" },
+			{
+				page: "process-dashboard" as Page,
+				label: "Dashboard",
+				icon: LayoutDashboard,
+			},
+			{ page: "process-list" as Page, label: "Registros", icon: List },
 		],
 	},
 	{
 		label: "Windows Event Log",
+		icon: AppWindow,
 		items: [
-			{ page: "windows-dashboard" as Page, label: "Dashboard", icon: "▦" },
-			{ page: "windows-list" as Page, label: "Registros", icon: "☰" },
+			{
+				page: "windows-dashboard" as Page,
+				label: "Dashboard",
+				icon: LayoutDashboard,
+			},
+			{ page: "windows-list" as Page, label: "Registros", icon: List },
 		],
 	},
 	{
 		label: "Logs Gerais",
+		icon: ScrollText,
 		items: [
-			{ page: "app-dashboard" as Page, label: "Dashboard", icon: "▦" },
-			{ page: "app-list" as Page, label: "Registros", icon: "☰" },
+			{
+				page: "app-dashboard" as Page,
+				label: "Dashboard",
+				icon: LayoutDashboard,
+			},
+			{ page: "app-list" as Page, label: "Registros", icon: List },
 		],
 	},
 	{
 		label: "Site Optare",
+		icon: Globe,
 		items: [
-			{ page: "site-dashboard" as Page, label: "Dashboard", icon: "🌐" },
-			{ page: "site-list" as Page, label: "Registros", icon: "☰" },
+			{
+				page: "site-dashboard" as Page,
+				label: "Dashboard",
+				icon: LayoutDashboard,
+			},
+			{ page: "site-list" as Page, label: "Registros", icon: List },
 		],
 	},
 	{
 		label: "Configurações",
-		items: [{ page: "settings" as Page, label: "Ajustes", icon: "⚙" }],
+		icon: Settings,
+		items: [{ page: "settings" as Page, label: "Ajustes", icon: Settings }],
 	},
 ] as const;
 
+const iconButtonStyle: React.CSSProperties = {
+	width: 30,
+	height: 30,
+	borderRadius: 6,
+	border: "1px solid var(--border)",
+	backgroundColor: "transparent",
+	cursor: "pointer",
+	display: "flex",
+	alignItems: "center",
+	justifyContent: "center",
+	flexShrink: 0,
+};
+
+function navButtonStyle(
+	isActive: boolean,
+	collapsed: boolean,
+	isSub = false,
+): React.CSSProperties {
+	return {
+		width: "100%",
+		padding: collapsed ? "10px 0" : isSub ? "6px 10px" : "8px 10px",
+		borderRadius: 6,
+		border: "none",
+		backgroundColor: isActive
+			? "color-mix(in oklch, var(--primary) 12%, transparent)"
+			: "transparent",
+		color: isActive ? "var(--primary)" : "var(--sidebar-foreground)",
+		display: "flex",
+		alignItems: "center",
+		justifyContent: collapsed ? "center" : "flex-start",
+		gap: 10,
+		cursor: "pointer",
+		fontSize: isSub ? 12.5 : 13,
+		fontWeight: isActive ? 600 : 400,
+		textAlign: "left",
+		marginBottom: 2,
+		transition: "background-color 0.15s",
+	};
+}
+
 export function Sidebar({
-	isOpen,
-	onClose,
 	isMobile,
 	currentPage,
 	onNavigate,
 	stats,
 }: SidebarProps) {
 	const isDark = useTheme().isDark;
-	const sidebarStyle: React.CSSProperties = isMobile
+	const [mobileOpen, setMobileOpen] = useState(false);
+	const [collapsed, setCollapsed] = useState(false);
+	const [expandedSection, setExpandedSection] = useState<string | null>(() => {
+		const active = NAV_SECTIONS.find((s) =>
+			s.items.some((i) => i.page === currentPage),
+		);
+		return active && active.items.length > 1 ? active.label : null;
+	});
+
+	useEffect(() => {
+		const active = NAV_SECTIONS.find((s) =>
+			s.items.some((i) => i.page === currentPage),
+		);
+		if (active && active.items.length > 1) setExpandedSection(active.label);
+	}, [currentPage]);
+
+	const effectiveCollapsed = !isMobile && collapsed;
+	const width = isMobile ? 260 : effectiveCollapsed ? 64 : 220;
+
+	function closeMobile() {
+		setMobileOpen(false);
+	}
+
+	function handleNavigate(page: Page) {
+		onNavigate(page);
+		if (isMobile) closeMobile();
+	}
+
+	function handleSectionClick(section: (typeof NAV_SECTIONS)[number]) {
+		if (effectiveCollapsed) {
+			handleNavigate(section.items[0].page);
+			return;
+		}
+		setExpandedSection((prev) =>
+			prev === section.label ? null : section.label,
+		);
+	}
+
+	const asideStyle: React.CSSProperties = isMobile
 		? {
 				position: "fixed",
 				top: 0,
 				left: 0,
 				zIndex: 50,
-				width: 260,
+				width,
 				height: "100vh",
-				transform: isOpen ? "translateX(0)" : "translateX(-100%)",
+				transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
 				transition: "transform 0.25s ease",
-				boxShadow: isOpen ? "4px 0 24px rgba(0,0,0,0.15)" : "none",
+				boxShadow: mobileOpen ? "4px 0 24px rgba(0,0,0,0.15)" : "none",
 			}
 		: {
 				position: "relative",
-				width: 220,
+				width,
 				minHeight: "100vh",
 				flexShrink: 0,
+				transition: "width 0.2s ease",
 			};
 
 	return (
 		<>
-			{/* Overlay escuro no mobile */}
-			{isMobile && isOpen && (
+			{isMobile && !mobileOpen && (
+				<button
+					onClick={() => setMobileOpen(true)}
+					aria-label="Abrir menu"
+					style={{
+						position: "fixed",
+						top: 16,
+						left: 16,
+						zIndex: 45,
+						width: 40,
+						height: 40,
+						borderRadius: 8,
+						border: "1px solid var(--border)",
+						backgroundColor: "var(--card)",
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+						cursor: "pointer",
+						boxShadow: "var(--shadow-sm)",
+					}}
+				>
+					<Menu size={20} color="var(--foreground)" />
+				</button>
+			)}
+
+			{isMobile && mobileOpen && (
 				<div
-					onClick={onClose}
+					onClick={closeMobile}
 					style={{
 						position: "fixed",
 						inset: 0,
@@ -110,42 +244,43 @@ export function Sidebar({
 
 			<aside
 				style={{
-					...sidebarStyle,
+					...asideStyle,
 					backgroundColor: "var(--sidebar)",
 					borderRight: "1px solid var(--border)",
 					display: "flex",
 					flexDirection: "column",
+					overflow: "hidden",
 				}}
 			>
-				{/* ── Header ── */}
 				<div
 					style={{
-						padding: "24px 20px 20px",
+						padding: effectiveCollapsed ? "20px 12px" : "20px 20px 16px",
 						borderBottom: "1px solid var(--border)",
+						display: "flex",
+						alignItems: "center",
+						justifyContent: effectiveCollapsed ? "center" : "space-between",
+						gap: 10,
 					}}
 				>
 					<div
 						style={{
 							display: "flex",
 							alignItems: "center",
-							justifyContent: "space-between",
+							gap: 10,
+							minWidth: 0,
 						}}
 					>
-						<div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-							<img
-								src={
-									isDark
-										? "/image/favicon/LogDashFavicon-dark.svg"
-										: "/image/favicon/LogDashFavicon-light.svg"
-								}
-								alt="LogDash Logo"
-								style={{
-									width: "60px",
-									height: "60px",
-									flexShrink: 0, // Impede o flexbox de esmagar o logo
-								}}
-							/>
-							<div>
+						<img
+							src={
+								isDark
+									? "/image/favicon/LogDashFavicon-dark.svg"
+									: "/image/favicon/LogDashFavicon-light.svg"
+							}
+							alt="LogDash"
+							style={{ width: 36, height: 36, flexShrink: 0 }}
+						/>
+						{!effectiveCollapsed && (
+							<div style={{ minWidth: 0 }}>
 								<div
 									style={{
 										fontSize: 14,
@@ -167,88 +302,130 @@ export function Sidebar({
 									v4.0.0
 								</div>
 							</div>
-						</div>
-
-						{isMobile && (
-							<button
-								onClick={onClose}
-								style={{
-									width: 32,
-									height: 32,
-									borderRadius: 6,
-									border: "1px solid var(--border)",
-									backgroundColor: "transparent",
-									cursor: "pointer",
-									fontSize: 16,
-									color: "var(--muted-foreground)",
-								}}
-							>
-								✕
-							</button>
 						)}
 					</div>
+
+					{isMobile ? (
+						<button
+							onClick={closeMobile}
+							aria-label="Fechar menu"
+							style={iconButtonStyle}
+						>
+							<X size={16} color="var(--muted-foreground)" />
+						</button>
+					) : (
+						!effectiveCollapsed && (
+							<button
+								onClick={() => setCollapsed(true)}
+								title="Recolher menu"
+								aria-label="Recolher menu"
+								style={iconButtonStyle}
+							>
+								<PanelLeftClose size={16} color="var(--muted-foreground)" />
+							</button>
+						)
+					)}
 				</div>
 
-				{/* ── Navegação por seções ── */}
-				<nav style={{ padding: "12px 12px 0", flex: 1, overflowY: "auto" }}>
-					{NAV_SECTIONS.map((section) => (
-						<div key={section.label} style={{ marginBottom: 24 }}>
-							{/* Label da seção */}
-							<div
-								style={{
-									fontSize: 10,
-									fontWeight: 700,
-									color: "var(--muted-foreground)",
-									textTransform: "uppercase",
-									letterSpacing: "0.12em",
-									padding: "0 12px",
-									marginBottom: 6,
-								}}
-							>
-								{section.label}
-							</div>
+				{effectiveCollapsed && (
+					<button
+						onClick={() => setCollapsed(false)}
+						title="Expandir menu"
+						aria-label="Expandir menu"
+						style={{ ...iconButtonStyle, margin: "8px auto 0" }}
+					>
+						<PanelLeftOpen size={16} color="var(--muted-foreground)" />
+					</button>
+				)}
 
-							{/* Itens da seção */}
-							{section.items.map(({ page, label, icon }) => {
-								const isActive = currentPage === page;
-								return (
-									<button
-										key={page}
-										onClick={() => {
-											onNavigate(page);
-											onClose();
-										}}
-										style={{
-											width: "100%",
-											padding: "8px 12px",
-											borderRadius: 6,
-											border: "none",
-											backgroundColor: isActive
-												? "color-mix(in oklch, var(--primary) 12%, transparent)"
-												: "transparent",
-											color: isActive
-												? "var(--primary)"
-												: "var(--sidebar-foreground)",
-											display: "flex",
-											alignItems: "center",
-											gap: 10,
-											cursor: "pointer",
-											fontSize: 13,
-											fontWeight: isActive ? 600 : 400,
-											textAlign: "left",
-											marginBottom: 2,
-											transition: "background-color 0.15s",
-										}}
-									>
-										<span style={{ fontSize: 14, opacity: 0.8 }}>{icon}</span>
-										{label}
-									</button>
-								);
-							})}
-						</div>
-					))}
+				<nav
+					style={{
+						padding: effectiveCollapsed ? "12px 8px 0" : "12px 12px 0",
+						flex: 1,
+						overflowY: "auto",
+					}}
+				>
+					{NAV_SECTIONS.map((section) => {
+						const isSingle = section.items.length === 1;
+						const isSectionActive = section.items.some(
+							(i) => i.page === currentPage,
+						);
+						const isExpanded = expandedSection === section.label;
+
+						if (isSingle) {
+							const item = section.items[0];
+							const Icon = item.icon;
+							const isActive = currentPage === item.page;
+							return (
+								<button
+									key={item.page}
+									onClick={() => handleNavigate(item.page)}
+									title={item.label}
+									style={navButtonStyle(isActive, effectiveCollapsed)}
+								>
+									<Icon size={17} strokeWidth={2} />
+									{!effectiveCollapsed && item.label}
+								</button>
+							);
+						}
+
+						const SectionIcon = section.icon;
+						return (
+							<div key={section.label} style={{ marginBottom: 4 }}>
+								<button
+									onClick={() => handleSectionClick(section)}
+									title={section.label}
+									style={navButtonStyle(
+										effectiveCollapsed
+											? isSectionActive
+											: isSectionActive && !isExpanded,
+										effectiveCollapsed,
+									)}
+								>
+									<SectionIcon size={17} strokeWidth={2} />
+									{!effectiveCollapsed && (
+										<>
+											<span style={{ flex: 1, textAlign: "left" }}>
+												{section.label}
+											</span>
+											<ChevronDown
+												size={14}
+												style={{
+													transform: isExpanded
+														? "rotate(180deg)"
+														: "rotate(0deg)",
+													transition: "transform 0.15s",
+													opacity: 0.6,
+												}}
+											/>
+										</>
+									)}
+								</button>
+
+								{!effectiveCollapsed && isExpanded && (
+									<div style={{ paddingLeft: 14, marginTop: 2 }}>
+										{section.items.map((item) => {
+											const ItemIcon = item.icon;
+											const isActive = currentPage === item.page;
+											return (
+												<button
+													key={item.page}
+													onClick={() => handleNavigate(item.page)}
+													style={navButtonStyle(isActive, false, true)}
+												>
+													<ItemIcon size={15} strokeWidth={2} />
+													{item.label}
+												</button>
+											);
+										})}
+									</div>
+								)}
+							</div>
+						);
+					})}
 				</nav>
-				{stats && (
+
+				{stats && !effectiveCollapsed && (
 					<div
 						style={{
 							padding: "12px 16px",

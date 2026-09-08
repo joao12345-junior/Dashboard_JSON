@@ -5,7 +5,6 @@ import { ThemeProvider } from "./hooks/useTheme";
 import { LoginPage } from "./pages/Login";
 import { useProgressiveLogs } from "./hooks/useProgressiveLogs";
 import { useFileUpload } from "./hooks/useFileUpload";
-import { DebugPanel } from "./components/DebugPanel";
 import { Toast } from "./components/Toast";
 import { useSiteData } from "./features/site/hooks/useSiteData";
 import { useNewDataDetector } from "./hooks/useNewDataDetector";
@@ -28,6 +27,8 @@ import { START_STATUS } from "./lib/Variables";
 import type { SiteData } from "./features/site/hooks/useSiteData";
 
 import { LoadingState } from "./components/Loading";
+import { Sidebar } from "./components/Sidebar";
+import { useWindowSize } from "./hooks/useWindowSize";
 
 export type Page =
 	| "home"
@@ -41,20 +42,12 @@ export type Page =
 	| "app-list"
 	| "settings";
 
-/**
- * Filtros de ProcessList — elevados para o App para sobreviver à navegação.
- * O operador pode alternar entre ProcessList e ProcessDashboard sem perder
- * o contexto da investigação.
- */
 export interface ProcessFilterState {
 	message: string;
 	date: string;
 	start: string;
 }
 
-/**
- * Filtros de WindowsList — elevados pelo mesmo motivo.
- */
 export interface WindowsFilterState {
 	message: string;
 	date: string;
@@ -71,16 +64,7 @@ export interface AppFilterState {
 	programa: string;
 }
 
-/**
- * Contrato completo de props compartilhadas entre todas as páginas.
- *
- * Por que um tipo exportado?
- * Cada página importa esse tipo para declarar seus props.
- * Se você adicionar um campo aqui, o TypeScript aponta exatamente
- * quais páginas precisam ser atualizadas — sem busca manual.
- */
 export interface SharedPageProps {
-	// Dados
 	logs: Log[];
 	staticLogs: Log[];
 	manualLogs: Log[];
@@ -89,15 +73,15 @@ export interface SharedPageProps {
 	debug: DebugInfo;
 	reload: () => void;
 
-	// Upload
+	/** Calculado uma vez em App.tsx — evita um listener de resize por página. */
+	isMobile: boolean;
+
 	fileInputRef: React.RefObject<HTMLInputElement | null>;
 	handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	openPicker: () => void;
 
-	// Navegação
 	onNavigate: (page: Page) => void;
 
-	// Filtros persistentes — Opção A: preservados ao navegar
 	processFilters: ProcessFilterState;
 	onProcessFilterUpdate: (key: keyof ProcessFilterState, value: string) => void;
 	onProcessFilterReset: () => void;
@@ -138,7 +122,6 @@ function AppContent() {
 	const [page, setPage] = useState<Page>("home");
 	const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-	// ── Carregamento de logs — vive no App, nunca é destruído ──────────────────
 	const {
 		files: logFiles,
 		inputRef: fileInputRef,
@@ -150,22 +133,20 @@ function AppContent() {
 		useProgressiveLogs(logFiles, isAuthenticated);
 
 	const siteData = useSiteData();
-
 	const { hasNewData, dismiss, acknowledge } = useNewDataDetector();
 
-	// ── Filtros persistentes — elevados para sobreviver à navegação ────────────
+	const windowWidth = useWindowSize();
+	const isMobile = windowWidth < 768;
+
 	const [processFilters, setProcessFilters] = useState<ProcessFilterState>(
 		INITIAL_PROCESS_FILTERS,
 	);
-
 	const [windowsFilters, setWindowsFilters] = useState<WindowsFilterState>(
 		INITIAL_WINDOWS_FILTERS,
 	);
-
 	const [appFilters, setAppFilters] =
 		useState<AppFilterState>(INITIAL_APP_FILTERS);
 
-	// ── Toast global ───────────────────────────────────────────────────────────
 	useEffect(() => {
 		if (!progress.isDone) return;
 		setToastMessage(
@@ -184,6 +165,7 @@ function AppContent() {
 		progress,
 		debug,
 		reload,
+		isMobile,
 		fileInputRef,
 		handleChange,
 		openPicker,
@@ -209,9 +191,6 @@ function AppContent() {
 		onAppFilterReset: () => setAppFilters(INITIAL_APP_FILTERS),
 	};
 
-	// switch em vez de Record — renderiza só a página ativa.
-	// Isso evita que todos os useMemo de todas as páginas rodem
-	// simultaneamente a cada lote carregado.
 	function renderPage() {
 		switch (page) {
 			case "home":
@@ -239,7 +218,17 @@ function AppContent() {
 
 	return (
 		<>
-			{renderPage()}
+			<div
+				style={{
+					display: "flex",
+					height: "100vh",
+					overflow: "hidden",
+					backgroundColor: "var(--background)",
+				}}
+			>
+				<Sidebar isMobile={isMobile} currentPage={page} onNavigate={setPage} />
+				{renderPage()}
+			</div>
 			<Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
 			{hasNewData && (
 				<NewDataBanner

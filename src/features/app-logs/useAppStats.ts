@@ -11,6 +11,11 @@ export interface DailyAppEntry {
 	total: number;
 }
 
+export interface DailyProgramEntry {
+	date: string;
+	counts: Record<string, number>;
+}
+
 export interface AppStats {
 	total: number;
 	erros: number;
@@ -19,6 +24,7 @@ export interface AppStats {
 	debugs: number;
 	errorRate: number;
 	dailyStats: DailyAppEntry[];
+	dailyProgramStats: DailyProgramEntry[];
 	topProgramas: { name: string; count: number }[];
 }
 
@@ -31,10 +37,17 @@ export function useAppStats(logs: AppLog[]): AppStats {
 		const debugs = logs.filter((l) => l.tipo === "debug").length;
 		const errorRate = total > 0 ? Math.round((erros / total) * 100) : 0;
 
+		const programaCountByDate: Record<string, Record<string, number>> = {};
 		const programaCount: Record<string, number> = {};
 		const byDate: Record<string, DailyAppEntry> = {};
 
 		for (const log of logs) {
+			const programa = log.programa ?? "Sem programa";
+
+			if (!programaCountByDate[log.date]) programaCountByDate[log.date] = {};
+			programaCountByDate[log.date][programa] =
+				(programaCountByDate[log.date][programa] ?? 0) + 1;
+
 			if (log.programa) {
 				programaCount[log.programa] = (programaCount[log.programa] ?? 0) + 1;
 			}
@@ -54,6 +67,16 @@ export function useAppStats(logs: AppLog[]): AppStats {
 			byDate[log.date].total += 1;
 		}
 
+		const dailyProgramStats: DailyProgramEntry[] = Object.entries(
+			programaCountByDate,
+		)
+			.sort(([a], [b]) => a.localeCompare(b))
+			.slice(-15)
+			.map(([rawDate, counts]) => {
+				const [, month, day] = rawDate.split("-");
+				return { date: `${day}/${month}`, counts };
+			});
+
 		const topProgramas = Object.entries(programaCount)
 			.map(([name, count]) => ({ name, count }))
 			.sort((a, b) => b.count - a.count)
@@ -72,6 +95,7 @@ export function useAppStats(logs: AppLog[]): AppStats {
 			debugs,
 			errorRate,
 			dailyStats,
+			dailyProgramStats,
 			topProgramas,
 		};
 	}, [logs]);

@@ -1,6 +1,5 @@
 // src/features/app-logs/AppList.tsx
 import { useMemo, useState } from "react";
-import { Sidebar } from "../../components/Sidebar";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { AppLogFilters } from "./components/AppLogFilters";
 import { LogTable } from "../../components/LogTable";
@@ -75,10 +74,6 @@ export function AppList({
 	}, [appLogs, appFilters]);
 
 	const columns = useMemo(() => getMapper("app").columns ?? [], []);
-
-	console.log(filteredLogs);
-	console.log(columns);
-
 	return (
 		<div
 			style={{
@@ -88,14 +83,6 @@ export function AppList({
 				backgroundColor: "var(--background)",
 			}}
 		>
-			<Sidebar
-				isOpen={sidebarOpen}
-				onClose={() => setSidebarOpen(false)}
-				isMobile={isMobile}
-				currentPage="app-list"
-				onNavigate={onNavigate}
-			/>
-
 			<main
 				style={{
 					flex: 1,

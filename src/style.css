@@ -81,6 +81,12 @@ body {
 	--shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 	--tracking-normal: 0em;
 	--spacing: 0.25rem;
+
+	--program-1: oklch(0.55 0.16 250); /* azul */
+	--program-2: oklch(0.55 0.14 170); /* teal */
+	--program-3: oklch(0.55 0.16 300); /* roxo */
+	--program-4: oklch(0.55 0.15 145); /* verde */
+	--program-5: oklch(0.55 0.16 350); /* magenta */
 }
 
 .dark {
@@ -143,6 +149,12 @@ body {
 	--shadow-xl:
 		0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
 	--shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+
+	--program-1: oklch(0.72 0.14 250);
+	--program-2: oklch(0.72 0.13 170);
+	--program-3: oklch(0.72 0.14 300);
+	--program-4: oklch(0.72 0.13 145);
+	--program-5: oklch(0.72 0.14 350);
 }
 
 @theme inline {

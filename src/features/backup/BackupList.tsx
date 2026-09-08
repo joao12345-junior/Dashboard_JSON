@@ -1,6 +1,5 @@
 // src/features/process/ProcessList.tsx
 import { useMemo, useState } from "react";
-import { Sidebar } from "../../components/Sidebar";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { LogFilters } from "../../components/LogFilter";
 import { LogTable } from "../../components/LogTable";
@@ -79,14 +78,6 @@ export function ProcessList({
 				backgroundColor: "var(--background)",
 			}}
 		>
-			<Sidebar
-				isOpen={sidebarOpen}
-				onClose={() => setSidebarOpen(false)}
-				isMobile={isMobile}
-				currentPage="process-list"
-				onNavigate={onNavigate}
-			/>
-
 			{/*
 				A main é um flex column.
 				Isso cria uma "pilha vertical" com três camadas:
