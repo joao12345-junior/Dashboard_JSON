@@ -5,6 +5,7 @@ import { normalizeDateToView } from "../../normalizeDateToView";
 import { AppTypeBadge } from "../../../features/app-logs/components/AppTypeBadge";
 
 type RawAppLog = {
+	id?: unknown;
 	classe: unknown;
 	programa: unknown;
 	tipo: unknown;
@@ -44,6 +45,7 @@ export const AppLogMapper = {
 
 		return {
 			logType: "app",
+			id: Number(row.id ?? 0),
 			message: parseString(row.mensagem),
 			date,
 			time,

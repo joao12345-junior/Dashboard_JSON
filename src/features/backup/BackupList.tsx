@@ -117,7 +117,7 @@ export function ProcessList({
 								margin: 0,
 							}}
 						>
-							Registros — Logs de Processo
+							Registros — Logs de Backup
 						</h1>
 						<p
 							style={{

@@ -129,8 +129,15 @@ function AppContent() {
 		openPicker,
 	} = useFileUpload({ mode: "accumulate" });
 
-	const { logs, staticLogs, manualLogs, progress, debug, reload } =
-		useProgressiveLogs(logFiles, isAuthenticated);
+	const {
+		logs,
+		staticLogs,
+		manualLogs,
+		progress,
+		debug,
+		reload,
+		fetchNewData,
+	} = useProgressiveLogs(logFiles, isAuthenticated);
 
 	const siteData = useSiteData();
 	const { hasNewData, dismiss, acknowledge } = useNewDataDetector();
@@ -234,7 +241,7 @@ function AppContent() {
 				<NewDataBanner
 					onRefresh={() => {
 						acknowledge();
-						reload();
+						fetchNewData();
 					}}
 					onDismiss={dismiss}
 				/>

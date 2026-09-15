@@ -10,7 +10,7 @@ import { AppTypeBadge } from "../../app-logs/components/AppTypeBadge";
 
 /**
  * "all" mostra todos os avisos.
- * "process" mostra apenas logs de backup/processo (logType === "process").
+ * "process" mostra apenas logs de backup (logType === "process").
  * "windows" mostra apenas Windows Event Logs.
  *
  * Por que um tipo literal e não string?
@@ -337,14 +337,14 @@ export function CriticalEventsFeed({
 									{log.message}
 								</td>
 
-								{/* Coluna: origem (computer · channel ou "Processo") */}
+								{/* Coluna: origem (computer · channel ou "Backup") */}
 								<td
 									title={
 										log.logType === "windows-event"
 											? `${log.computer} · ${log.channel}`
 											: log.logType === "app"
 												? (log.programa ?? log.classe)
-												: "Log de Processo"
+												: "Log de Backup"
 									}
 									style={{
 										...tdStyle,
@@ -360,7 +360,7 @@ export function CriticalEventsFeed({
 										? `${log.computer} · ${log.channel}`
 										: log.logType === "app"
 											? (log.programa ?? log.classe)
-											: "Log de Processo"}
+											: "Log de Backup"}
 								</td>
 
 								{/* Coluna: data e hora */}

@@ -9,6 +9,13 @@ from functools import wraps
 from flask import Blueprint, request, jsonify, make_response
 from db import get_connection, release_connection
 import random
+import hmac
+import time
+from collections import defaultdict
+
+_failed_attempts: dict[str, list[float]] = defaultdict(list)
+MAX_ATTEMPTS = 5
+WINDOW_SECONDS = 300
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -21,6 +28,17 @@ ACCESS_TOKEN_MINUTES = int(os.getenv("ACCESS_TOKEN_MINUTES", "60"))
 # e o refresh simplesmente nunca funcionaria, silenciosamente.
 COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
 
+def _is_rate_limited(username: str) -> bool:
+    now = time.time()
+    attempts = _failed_attempts[username]
+    attempts[:] = [t for t in attempts if now - t < WINDOW_SECONDS]
+    return len(attempts) >= MAX_ATTEMPTS
+
+def _register_failed_attempt(username: str) -> None:
+    _failed_attempts[username].append(time.time())
+
+def _clear_attempts(username: str) -> None:
+    _failed_attempts.pop(username, None)
 
 def _get_secret() -> str:
     secret = os.getenv("JWT_SECRET")
@@ -139,7 +157,7 @@ def require_sync_key(f):
         sync_key = request.headers.get("X-Sync-Key", "")
         expected = os.getenv("SYNC_API_KEY", "")
 
-        if not expected or sync_key != expected:
+        if not expected or not hmac.compare_digest(sync_key, expected):
             return jsonify({"error": "Chave de sync inválida"}), 401
 
         return f(*args, **kwargs)
@@ -161,6 +179,9 @@ def login():
     if not username or not password:
         return jsonify({"error": "username e password são obrigatórios"}), 400
 
+    if _is_rate_limited(username):
+        return jsonify({"error": "Muitas tentativas. Tente novamente em alguns minutos."}), 429
+
     conn = get_connection()
     connection_ok = True
     try:
@@ -173,12 +194,15 @@ def login():
 
         if row is None:
             bcrypt.checkpw(b"dummy", b"$2b$12$dummy.hash.to.prevent.timing.attacks.xxx")
+            _register_failed_attempt(username)
             return jsonify({"error": "Credenciais inválidas"}), 401
 
         password_hash = row[0].encode("utf-8")
         if not bcrypt.checkpw(password.encode("utf-8"), password_hash):
+            _register_failed_attempt(username)
             return jsonify({"error": "Credenciais inválidas"}), 401
 
+        _clear_attempts(username)
         access_token = _generate_access_token(username)
         refresh_token = _issue_refresh_token(conn, username)
 

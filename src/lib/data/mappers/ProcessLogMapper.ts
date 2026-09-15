@@ -6,6 +6,7 @@ import { ProcessLog } from "../../types/Log";
 
 type RawProcessLog = {
 	// Formato banco (API)
+	id?: unknown;
 	log_date?: string;
 	log_time?: string;
 	start?: unknown;
@@ -45,6 +46,7 @@ export const ProcessLogMapper = {
 		const typed = raw as RawProcessLog;
 		return {
 			logType: "process",
+			id: Number(typed.id ?? 0),
 			message: String(typed.Message ?? typed.message ?? ""),
 			date: normalizeDate(String(typed.log_date ?? typed.Data ?? "")),
 			time: String(typed.log_time ?? typed.Hora ?? "").trim(),

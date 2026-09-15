@@ -324,24 +324,78 @@ export const LogRepository = {
 			});
 		}
 	},
+	/**
+	 * Carrega um tipo de log da API, paginando por cursor (id) até não
+	 * sobrar mais página (next_cursor null). Por enquanto ainda devolve
+	 * tudo de uma vez — a UI de "carregar aos poucos" vem depois, mas o
+	 * backend já entrega em lotes, então dá pra evoluir isso sem mexer
+	 * de novo no contrato da API.
+	 */
 	async fetchFromAPI(logType: string, apiUrl: string): Promise<Log[]> {
+		const logs: Log[] = [];
+		let cursor: number | null = null;
+
 		try {
-			const response = await authorizedFetch(
-				`${apiUrl}/api/logs?type=${logType}`,
-			);
+			do {
+				const url = new URL(`${apiUrl}/api/logs`);
+				url.searchParams.set("type", logType);
+				if (cursor !== null) url.searchParams.set("before_id", String(cursor));
 
-			if (!response.ok) {
-				throw new Error(`[LogRepository] HTTP ${response.status}`);
-			}
+				const response = await authorizedFetch(url.toString());
+				if (!response.ok) {
+					throw new Error(`[LogRepository] HTTP ${response.status}`);
+				}
 
-			const parsed = await response.json();
-			if (!parsed) throw new Error("[LogRepository] Parse inválido");
+				const parsed = await response.json();
+				if (!parsed) throw new Error("[LogRepository] Parse inválido");
 
-			const raws = parsed as Record<string, unknown>[];
-			return raws.map((raw) => mapRawToLog(raw, logType));
+				const raws = parsed.logs as Record<string, unknown>[];
+				logs.push(...raws.map((raw) => mapRawToLog(raw, logType)));
+				cursor = parsed.next_cursor;
+			} while (cursor !== null);
+			return logs;
 		} catch (err) {
 			console.error("[LogRepository] Erro API: ", err);
 			return [];
+		}
+	},
+
+	/**
+	 * Busca só o que entrou depois de `sinceId` — usado pelo banner de
+	 * "novo dado". Nunca dispara reload nem apaga nada; quem chama só
+	 * concatena o resultado no estado existente.
+	 */
+	async fetchNewFromAPI(
+		logType: string,
+		apiUrl: string,
+		sinceId: number,
+	): Promise<Log[]> {
+		const logs: Log[] = [];
+		let cursor: number | null = sinceId;
+
+		try {
+			do {
+				const url = new URL(`${apiUrl}/api/logs`);
+				url.searchParams.set("type", logType);
+				url.searchParams.set("after_id", String(cursor));
+
+				const response = await authorizedFetch(url.toString());
+				if (!response.ok)
+					throw new Error(`[LogRepository] HTTP ${response.status}`);
+
+				const parsed = await response.json();
+				if (!parsed || !Array.isArray(parsed.logs))
+					throw new Error(`[LogRepository] Parse Inválido`);
+
+				const raws = parsed.logs as Record<string, unknown>[];
+				logs.push(...raws.map((raw) => mapRawToLog(raw, logType)));
+				cursor = parsed.next_cursor;
+			} while (cursor !== null);
+
+			return logs;
+		} catch (err: unknown) {
+			console.error("[LogRepository] Erro API (delta): ", err);
+			return logs;
 		}
 	},
 };

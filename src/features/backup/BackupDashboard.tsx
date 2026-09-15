@@ -56,7 +56,7 @@ export function ProcessDashboard({
 							margin: 0,
 						}}
 					>
-						Dashboard — Logs de Processo
+						Dashboard — Logs de Backup
 					</h1>
 					<p
 						style={{
@@ -67,7 +67,7 @@ export function ProcessDashboard({
 					>
 						{progress.isLoading
 							? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
-							: `${processLogs.length.toLocaleString("pt-BR")} logs de processo`}
+							: `${processLogs.length.toLocaleString("pt-BR")} logs de backup`}
 					</p>
 				</div>
 				<div style={{ display: "flex", gap: 8, alignItems: "center" }}>

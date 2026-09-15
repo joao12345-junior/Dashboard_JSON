@@ -29,9 +29,6 @@ app.register_blueprint(logs_bp)
 from routes.health import health_bp
 app.register_blueprint(health_bp)
 
-from routes.ingest import ingest_bp
-app.register_blueprint(ingest_bp)
-
 from routes.auth import auth_bp
 app.register_blueprint(auth_bp)
 

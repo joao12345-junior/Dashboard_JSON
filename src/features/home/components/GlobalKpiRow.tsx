@@ -29,7 +29,7 @@ export function GlobalKpiRow({
 			label: "Erros Críticos",
 			value: totalErrors,
 			accentColor: "var(--destructive)",
-			detail: `${byType.process.errors} processo · ${byType.windowsEvent.high} Windows · ${byType.app.errors} app`,
+			detail: `${byType.process.errors} backup · ${byType.windowsEvent.high} Windows · ${byType.app.errors} app`,
 			navigate: null as Page | null,
 		},
 		{

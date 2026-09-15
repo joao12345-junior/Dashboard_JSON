@@ -34,6 +34,7 @@ interface UseProgressiveLogsReturn {
 	debug: DebugInfo;
 	reload: () => void;
 	clearManual: () => void;
+	fetchNewData: () => Promise<void>;
 }
 
 const EMPTY_PROGRESS: LoadProgress = {
@@ -278,6 +279,33 @@ export function useProgressiveLogs(
 		};
 	}, [tick, isAuthenticated]); // isAuthenticated como dependência
 
+	const fetchNewData = useCallback(async () => {
+		const config = loadApiConfig();
+		if (!config.enabled) return;
+		if (!isAuthenticated) return;
+
+		const maxIdFor = (type: string): number =>
+			apiLogs
+				.filter((l) => l.logType === type)
+				.reduce((max, l) => Math.max(max, l.id), 0);
+
+		const types: Array<Log["logType"]> = ["process", "windows-event", "app"];
+
+		const pending = types.filter((type) => maxIdFor(type) > 0);
+		if (pending.length === 0) return;
+
+		const batches = await Promise.all(
+			pending.map((type) =>
+				LogRepository.fetchNewFromAPI(type, config.api, maxIdFor(type)),
+			),
+		);
+
+		const newLogs = batches.flat();
+		if (newLogs.length > 0) {
+			setApiLogs((prev) => [...prev, ...newLogs]);
+		}
+	}, [apiLogs, isAuthenticated]);
+
 	const logs = useMemo(
 		() => [...staticLogs, ...manualLogs, ...apiLogs],
 		[staticLogs, manualLogs, apiLogs],
@@ -292,6 +320,7 @@ export function useProgressiveLogs(
 		debug,
 		reload,
 		clearManual,
+		fetchNewData,
 	};
 }
 

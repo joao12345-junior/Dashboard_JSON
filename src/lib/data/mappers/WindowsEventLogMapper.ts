@@ -65,6 +65,7 @@ export const WindowsEventLogMapper = {
 
 		return {
 			logType: "windows-event",
+			id: Number(raw.id ?? 0),
 			message: parseString(enriched.description), // BaseLog.message ← description
 			date,
 			time,

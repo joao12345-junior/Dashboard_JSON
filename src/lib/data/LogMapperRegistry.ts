@@ -55,7 +55,7 @@ const mappers: Record<string, LogMapperContract> = {
 const descriptors: Record<string, LogTypeDescriptor> = {
 	process: {
 		key: "process",
-		label: "Log de Processo",
+		label: "Log de Backup",
 		description:
 			"Logs internos de backup e rotinas do sistema (campos: message, Data, Hora, Start).",
 		builtIn: true,

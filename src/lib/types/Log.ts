@@ -5,6 +5,7 @@
  * Campos universais que a UI sempre pode acessar com segurança.
  */
 export interface BaseLog {
+	id: number;
 	message: string; // descrição legível do evento
 	date: string; // sempre yyyy-mm-dd após o Mapper
 	time: string; // sempre HH:MM:SS após o Mapper
@@ -13,7 +14,7 @@ export interface BaseLog {
 }
 
 /**
- * Log de processo interno (backups, rotinas do sistema próprio).
+ * Log de backup interno (backups, rotinas do sistema próprio).
  * Estrutura simples — campos do BaseLog são suficientes.
  * O payload existe para flexibilidade futura, mas não é obrigatório.
  */
