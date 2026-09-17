@@ -16,7 +16,7 @@ SENTRY_ORG = os.getenv("SENTRY_ORG", "optare")
 SENTRY_PROJECT = os.getenv("SENTRY_PROJECT", "javascript-nextjs")
 SENTRY_AUTH_TOKEN = os.getenv("SENTRY_AUTH_TOKEN")
 
-SITE_AVAILABILITY_RETENTION_DAYS = 15  # revisar quando/se a Settings UI existir
+SITE_AVAILABILITY_RETENTION_DAYS = 14  # revisar quando/se a Settings UI existir
 
 CHECK_MAX_WORKERS = 5  # teto fixo, independente de quantas URLs existirem
 

@@ -5,7 +5,7 @@ import ipaddress
 import socket
 from urllib.parse import urlparse
 
-test_connection = Blueprint("test_connection", __name__)
+test_connection_bp = Blueprint("test_connection", __name__)
 
 def _is_private_host(hostname: str) -> bool:
     try:
@@ -24,7 +24,7 @@ def _is_safe_url(url: str) -> bool:
         return False
     return not _is_private_host(parsed.hostname)
 
-@test_connection.route("/api/test_conn/", methods=["POST"])
+@test_connection_bp.route("/api/test_conn/", methods=["POST"])
 @require_auth
 def test_conn():
     data = request.get_json()

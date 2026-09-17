@@ -1,5 +1,5 @@
 // src/features/windows-event/WindowsList.tsx
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { LogTable } from "../../components/LogTable";
 import { ErrorState } from "../../components/Error";
@@ -18,14 +18,12 @@ export function WindowsList({
 	fileInputRef,
 	handleChange,
 	openPicker,
-	onNavigate,
 	windowsFilters,
 	onWindowsFilterUpdate,
 	onWindowsFilterReset,
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const windowsLogs = useMemo(
 		() =>

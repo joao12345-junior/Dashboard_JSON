@@ -1,5 +1,5 @@
 // src/features/app-logs/AppDashboard.tsx
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useAppStats } from "./useAppStats";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { ErrorState } from "../../components/Error";
@@ -23,7 +23,6 @@ export function AppDashboard({
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const appLogs = useMemo(
 		() => logs.filter((l): l is AppLog => l.logType === "app"),

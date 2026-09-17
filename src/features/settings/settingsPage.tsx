@@ -34,12 +34,10 @@ export function Settings({
 	fileInputRef,
 	handleChange,
 	openPicker,
-	onNavigate,
 	siteData,
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	// ── Fontes ───────────────────────────────────────────────────────────────
 	const [sources, setSources] = useState<LogSource[]>(() => loadLogSources());
@@ -61,9 +59,9 @@ export function Settings({
 		return [...new Set([...typesFromSources, ...customLogTypes])];
 	}, [sources, customLogTypes]);
 
-	// Tipos disponíveis para o select de fonte — vem do LogMapperRegistry
-	// useEffect garante que a lista atualiza quando plugins são adicionados
-	const [availableTypes, setAvailableTypes] = useState(getRegisteredTypes);
+	// Tipos disponíveis para o select de fonte — vem do LogMapperRegistry.
+	// Lido uma vez no mount; se plugins forem registrados depois, só aparecem após reload da página.
+	const availableTypes = getRegisteredTypes();
 
 	const sourceAvailableTypes = [
 		...availableTypes,
@@ -82,9 +80,6 @@ export function Settings({
 			),
 	];
 
-	function refreshPluginState() {
-		setAvailableTypes(getRegisteredTypes());
-	}
 
 	// ── Handlers: Fontes ─────────────────────────────────────────────────────
 

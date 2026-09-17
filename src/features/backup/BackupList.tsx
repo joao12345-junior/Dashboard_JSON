@@ -1,5 +1,5 @@
-// src/features/process/ProcessList.tsx
-import { useMemo, useState } from "react";
+// src/features/backup/BackupList.tsx
+import { useMemo } from "react";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { LogFilters } from "../../components/LogFilter";
 import { LogTable } from "../../components/LogTable";
@@ -19,14 +19,12 @@ export function ProcessList({
 	fileInputRef,
 	handleChange,
 	openPicker,
-	onNavigate,
 	processFilters,
 	onProcessFilterUpdate,
 	onProcessFilterReset,
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const processLogs = useMemo(
 		() => logs.filter((l): l is ProcessLog => l.logType === "process"),

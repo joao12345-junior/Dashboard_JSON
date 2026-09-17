@@ -44,6 +44,7 @@ let onSessionExpired: (() => void) | null = null;
  */
 let inFlightRefresh: Promise<string | null> | null = null;
 
+// eslint-disable-next-line react-refresh/only-export-components -- arquivo mistura Provider (componente) com hook/utils; separar tocaria import em varios arquivos so pra manter o Fast Refresh, nao vale o risco agora
 export function getAuthToken(): string | null {
 	return accessToken;
 }
@@ -91,6 +92,7 @@ function refreshAccessToken(): Promise<string | null> {
 	return inFlightRefresh;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- arquivo mistura Provider (componente) com hook/utils; separar tocaria import em varios arquivos so pra manter o Fast Refresh, nao vale o risco agora
 export async function authorizedFetch(
 	input: string,
 	init: RequestInit = {},
@@ -171,6 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	);
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- arquivo mistura Provider (componente) com hook/utils; separar tocaria import em varios arquivos so pra manter o Fast Refresh, nao vale o risco agora
 export function useAuth() {
 	const ctx = useContext(AuthContext);
 	if (!ctx) throw new Error("useAuth must be used within <AuthProvider>");

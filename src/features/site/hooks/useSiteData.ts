@@ -74,6 +74,7 @@ export function useSiteData(): SiteData {
 
 	useEffect(() => {
 		if (!isAuthenticated) return;
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- fetch de dados e sincronizacao com sistema externo (API), o proprio React docs trata isso como uso correto de efeito
 		fetchMonitoredUrls();
 	}, [isAuthenticated, fetchMonitoredUrls]);
 
@@ -114,10 +115,11 @@ export function useSiteData(): SiteData {
 		} finally {
 			setLoading(false);
 		}
-	}, [selectedUrlId, selectedSite?.has_sentry]);
+	}, [selectedUrlId, selectedSite]);
 
 	useEffect(() => {
 		if (!isAuthenticated || !selectedUrlId) return;
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- fetch de dados e sincronizacao com sistema externo (API), o proprio React docs trata isso como uso correto de efeito
 		fetchData();
 		const interval = setInterval(fetchData, REFRESH_INTERVAL_MS);
 		return () => clearInterval(interval);

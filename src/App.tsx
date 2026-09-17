@@ -156,10 +156,11 @@ function AppContent() {
 
 	useEffect(() => {
 		if (!progress.isDone) return;
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- toast e notificacao de conclusao de um evento externo (carregamento assincrono terminou), nao estado derivavel durante o render
 		setToastMessage(
 			`${debug.totalRecords.toLocaleString("pt-BR")} registros carregados em ${debug.elapsedSeconds}s`,
 		);
-	}, [progress.isDone]);
+	}, [progress.isDone, debug.elapsedSeconds, debug.totalRecords]);
 
 	if (isInitializing) return <LoadingState />;
 	if (!isAuthenticated) return <LoginPage />;

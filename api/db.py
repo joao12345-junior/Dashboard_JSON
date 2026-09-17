@@ -2,7 +2,7 @@
 import os
 import logging
 from dotenv import load_dotenv
-from psycopg2.pool import ThreadedConnectionPool
+from psycopg2.pool import ThreadedConnectionPool, PoolError
 from psycopg2.extensions import connection as PgConnection
 
 load_dotenv()
@@ -30,8 +30,10 @@ pool = ThreadedConnectionPool(
 def _is_connection_alive(conn: PgConnection) -> bool:
     """
     Testa se a conexão ainda está viva no lado do servidor.
-    Necessário porque o Neon suspende o compute por ociosidade e mata
-    conexões do lado do servidor sem avisar o pool local.
+    KingHost não tem cold start, mas conexão pode morrer sem avisar o pool
+    por outros motivos (idle timeout de firewall/proxy, restart do banco,
+    blip de rede) — mais barato testar aqui do que deixar o erro estourar
+    no meio de uma query de verdade.
     """
     try:
         with conn.cursor() as cur:
@@ -43,15 +45,22 @@ def _is_connection_alive(conn: PgConnection) -> bool:
 def get_connection() -> PgConnection:
     """
     Retorna uma conexão saudável do pool.
-    Se a conexão obtida estiver morta (ex: cold start do Neon), descarta
-    e tenta novamente até esgotar o pool de conexões disponíveis.
+    Se a conexão obtida estiver morta, descarta e tenta novamente até
+    esgotar o pool de conexões disponíveis.
     """
     attempts = pool.maxconn
     last_error: Exception | None = None
 
     for _ in range(attempts):
-        conn = pool.getconn()
-
+        try:
+            conn = pool.getconn()
+        except PoolError as e:
+            # Pool esgotado de verdade (todas as conexões em uso) — repetir
+            # no mesmo request não resolve, só teria efeito numa nova
+            # chamada depois que alguma conexão for liberada.
+            last_error = e
+            break
+        
         if _is_connection_alive(conn):
             return conn
 

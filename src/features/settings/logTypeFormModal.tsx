@@ -30,6 +30,7 @@ export function LogTypeFormModal({
 
 	useEffect(() => {
 		if (isOpen) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect -- Modal fica montado o tempo todo (so retorna null quando fechado); resetar o form no open precisa ser aqui, nao da pra derivar durante o render
 			setLogType(existingLogType ?? availableTypes[0]?.key ?? DEFAULT_LOG_TYPE);
 			setErrors({});
 			setTimeout(() => firstInputRef.current?.focus(), 50);

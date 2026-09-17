@@ -4,6 +4,7 @@
 import "react";
 
 declare module "react" {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- T precisa existir pra bater com a assinatura original de InputHTMLAttributes<T> (merge de interface)
 	interface InputHTMLAttributes<T> {
 		webkitdirectory?: string;
 	}

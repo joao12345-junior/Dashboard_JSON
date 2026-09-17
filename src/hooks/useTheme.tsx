@@ -44,6 +44,7 @@ export function ThemeProvider({ children }: React.PropsWithChildren) {
 	);
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- arquivo mistura Provider (componente) com hook/utils; separar tocaria import em varios arquivos so pra manter o Fast Refresh, nao vale o risco agora
 export function useTheme() {
 	const ctx = useContext(ThemeContext);
 	if (!ctx) throw new Error("useTheme must be used within <ThemeProvider>");

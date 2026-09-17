@@ -1,5 +1,5 @@
 // src/features/app-logs/AppList.tsx
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { AppLogFilters } from "./components/AppLogFilters";
 import { LogTable } from "../../components/LogTable";
@@ -18,14 +18,12 @@ export function AppList({
 	fileInputRef,
 	handleChange,
 	openPicker,
-	onNavigate,
 	appFilters,
 	onAppFilterUpdate,
 	onAppFilterReset,
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const appLogs = useMemo(
 		() => logs.filter((l): l is AppLog => l.logType === "app"),

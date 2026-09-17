@@ -1,12 +1,16 @@
 # routes/logs.py
 from flask import Blueprint, request, jsonify
 from db import get_connection, release_connection
-from routes.auth import require_auth
+from routes.auth import require_auth, require_sync_key
 
 logs_bp = Blueprint("logs", __name__)
 
-DEFAULT_PAGE_SIZE = 1000
-MAX_PAGE_SIZE = 2000
+DEFAULT_PAGE_SIZE = 5000
+MAX_PAGE_SIZE = 10000
+
+PROCESS_LOGS_RETENTION_DAYS = 30
+WINDOWS_EVENT_LOGS_RETENTION_DAYS = 14
+APP_LOGS_RETENTION_DAYS = 14
 
 @logs_bp.route("/api/logs/last-activity")
 @require_auth
@@ -35,6 +39,62 @@ def last_activity():
     finally:
         release_connection(conn, is_healthy=connection_ok)
 
+@logs_bp.route("/api/logs/cleanup", methods=["POST"])
+@require_sync_key
+def cleanup_logs():
+    """
+    Apaga logs mais antigos que a retenção fixa de cada tabela (decisão de
+    2026-09-17: process_logs 30 dias, windows_event_logs e app_logs 14 dias).
+    Usa a coluna de inserção (created_at/coletado_em), não a data do evento —
+    é sobre quanto tempo o registro vive no banco, não quando aconteceu.
+    """
+    conn = get_connection()
+    conn_ok = True
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                DELETE FROM optsislog.process_logs
+                WHERE created_at < now() - (%s || ' days')::interval
+                """, (PROCESS_LOGS_RETENTION_DAYS,),
+            )
+            deleted_process = cur.rowcount
+
+            cur.execute(
+                """
+                DELETE FROM optsislog.windows_event_logs
+                WHERE created_at < now() - (%s || ' days')::interval
+                """, (WINDOWS_EVENT_LOGS_RETENTION_DAYS,),
+            )
+            deleted_windows_event = cur.rowcount
+
+            cur.execute(
+                """
+                DELETE FROM optsislog.app_logs
+                WHERE coletado_em < now() - (%s || ' days')::interval
+                """, (APP_LOGS_RETENTION_DAYS,),
+            )
+            deleted_app = cur.rowcount
+
+            conn.commit()
+        return jsonify({
+            "deleted": {
+                "process": deleted_process,
+                "windows": deleted_windows_event,
+                "app": deleted_app,
+            },
+            "retention_days":{
+                "process": PROCESS_LOGS_RETENTION_DAYS,
+                "windows": WINDOWS_EVENT_LOGS_RETENTION_DAYS,
+                "app": APP_LOGS_RETENTION_DAYS,
+            },
+        }), 200
+    except Exception as e:
+        conn_ok = False
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        release_connection(conn, is_healthy=conn_ok)
 
 @logs_bp.route("/api/logs")
 @require_auth

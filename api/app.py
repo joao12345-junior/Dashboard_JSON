@@ -35,8 +35,8 @@ app.register_blueprint(auth_bp)
 from routes.site_monitor import site_monitor_bp
 app.register_blueprint(site_monitor_bp)
 
-from routes.test_connection import test_connection
-app.register_blueprint(test_connection)
+from routes.test_connection import test_connection_bp
+app.register_blueprint(test_connection_bp)
 
 if __name__ == "__main__":
     is_dev = os.getenv("FLASK_ENV") == "development"

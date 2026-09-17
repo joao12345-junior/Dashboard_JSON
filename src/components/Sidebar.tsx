@@ -1,5 +1,5 @@
 // src/components/Sidebar.tsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
 	Home,
 	Archive,
@@ -138,6 +138,11 @@ function navButtonStyle(
 	};
 }
 
+function findAutoExpandSection(page: Page): string | null {
+	const active = NAV_SECTIONS.find((s) => s.items.some((i) => i.page === page));
+	return active && active.items.length > 1 ? active.label : null;
+}
+
 export function Sidebar({
 	isMobile,
 	currentPage,
@@ -147,19 +152,20 @@ export function Sidebar({
 	const isDark = useTheme().isDark;
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const [collapsed, setCollapsed] = useState(false);
-	const [expandedSection, setExpandedSection] = useState<string | null>(() => {
-		const active = NAV_SECTIONS.find((s) =>
-			s.items.some((i) => i.page === currentPage),
-		);
-		return active && active.items.length > 1 ? active.label : null;
-	});
+	const [expandedSection, setExpandedSection] = useState<string | null>(() =>
+		findAutoExpandSection(currentPage),
+	);
 
-	useEffect(() => {
-		const active = NAV_SECTIONS.find((s) =>
-			s.items.some((i) => i.page === currentPage),
-		);
-		if (active && active.items.length > 1) setExpandedSection(active.label);
-	}, [currentPage]);
+	// Reajusta a secao expandida quando a pagina ativa muda. Ajuste de estado
+	// durante o render (nao em efeito) pra nao ter o flash de um commit extra
+	// -- padrao que o proprio React recomenda pra "ajustar estado quando uma
+	// prop muda" (https://react.dev/learn/you-might-not-need-an-effect).
+	const [prevPage, setPrevPage] = useState(currentPage);
+	if (currentPage !== prevPage) {
+		setPrevPage(currentPage);
+		const autoExpand = findAutoExpandSection(currentPage);
+		if (autoExpand) setExpandedSection(autoExpand);
+	}
 
 	const effectiveCollapsed = !isMobile && collapsed;
 	const width = isMobile ? 260 : effectiveCollapsed ? 64 : 220;

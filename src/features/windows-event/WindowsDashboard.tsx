@@ -1,5 +1,5 @@
 // src/features/windows-event/WindowsDashboard.tsx
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useWindowsStats } from "./useWindowsStats";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { ErrorState } from "../../components/Error";
@@ -23,7 +23,6 @@ export function WindowsDashboard({
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const windowsLogs = useMemo(
 		() =>

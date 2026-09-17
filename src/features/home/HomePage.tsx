@@ -1,5 +1,4 @@
 // src/features/home/HomePage.tsx
-import { useState } from "react";
 import { useHomeStats } from "./usehomeStats";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { ErrorState } from "../../components/Error";
@@ -23,7 +22,6 @@ export function HomePage({
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const stats = useHomeStats(logs);
 

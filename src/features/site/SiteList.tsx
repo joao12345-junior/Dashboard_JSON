@@ -738,10 +738,9 @@ function SentryTable({ events }: { events: SentryEvent[] }) {
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
-export function SiteList({ onNavigate, siteData }: SharedPageProps) {
+export function SiteList({ siteData }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const {
 		availability,
@@ -751,7 +750,6 @@ export function SiteList({ onNavigate, siteData }: SharedPageProps) {
 		setSelectedUrlId,
 		loading,
 		error,
-		lastRefresh,
 		refresh,
 	} = siteData;
 

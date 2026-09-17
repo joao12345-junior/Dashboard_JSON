@@ -7,6 +7,7 @@ migration falhar no meio, o erro é reportado e a execução para; a correção
 é manual (o operador decide se corrige o dado ou o SQL e roda de novo).
 """
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -17,15 +18,19 @@ MIGRATIONS_DIR = Path(__file__).parent
 load_dotenv(MIGRATIONS_DIR.parent / ".env")
 
 
-def get_connection():
-    return psycopg2.connect(
-        host=os.getenv("DB_HOST"),
-        port=os.getenv("DB_PORT"),
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        sslmode=os.getenv("DB_SSLMODE", "require"),
-    )
+def get_conn_kwargs() -> dict:
+    return {
+        "host": os.getenv("DB_HOST"),
+        "port": os.getenv("DB_PORT"),
+        "dbname": os.getenv("DB_NAME"),
+        "user": os.getenv("DB_USER"),
+        "password": os.getenv("DB_PASSWORD"),
+        "sslmode": os.getenv("DB_SSLMODE", "require"),
+    }
+
+
+def get_connection(conn_kwargs: dict):
+    return psycopg2.connect(**conn_kwargs)
 
 
 def ensure_control_table(conn) -> None:
@@ -69,8 +74,46 @@ def apply_migration(conn, filepath: Path) -> None:
     conn.commit()
 
 
+def dump_schema(conn_kwargs: dict) -> None:
+    """
+    Gera um dump do schema (sem dados) logo depois das migrations rodarem,
+    pra schema.sql nunca ficar defasado em relacao ao que esta aplicado de
+    verdade no banco. Nao falha a execucao se o pg_dump nao estiver
+    disponivel na maquina -- so avisa; aplicar a migration e o que importa,
+    o dump e conveniencia.
+    """
+    schema_file = MIGRATIONS_DIR / "schema.sql"
+    env = os.environ.copy()
+    env["PGPASSWORD"] = conn_kwargs["password"] or ""
+    cmd = [
+        "pg_dump",
+        "--schema-only",
+        "-h", conn_kwargs["host"],
+        "-p", str(conn_kwargs["port"]),
+        "-U", conn_kwargs["user"],
+        "-d", conn_kwargs["dbname"],
+    ]
+    try:
+        result = subprocess.run(
+            cmd, env=env, capture_output=True, text=True, timeout=60
+        )
+        if result.returncode != 0:
+            print(f"AVISO: pg_dump falhou ({result.returncode}): {result.stderr.strip()}")
+            return
+        schema_file.write_text(result.stdout, encoding="utf-8")
+        print(f"Schema atualizado em {schema_file.relative_to(MIGRATIONS_DIR.parent.parent)}")
+    except FileNotFoundError:
+        print(
+            "AVISO: pg_dump nao encontrado no PATH -- schema.sql nao foi atualizado. "
+            "Instale o PostgreSQL Command Line Tools nesta maquina pra manter o dump em dia."
+        )
+    except subprocess.TimeoutExpired:
+        print("AVISO: pg_dump demorou demais e foi cancelado -- schema.sql nao foi atualizado.")
+
+
 def main() -> int:
-    conn = get_connection()
+    conn_kwargs = get_conn_kwargs()
+    conn = get_connection(conn_kwargs)
     try:
         ensure_control_table(conn)
         applied = get_applied_migrations(conn)
@@ -78,6 +121,7 @@ def main() -> int:
 
         if not pending:
             print("Nenhuma migration pendente.")
+            dump_schema(conn_kwargs)
             return 0
 
         for filepath in pending:
@@ -92,6 +136,7 @@ def main() -> int:
                 return 1
 
         print(f"{len(pending)} migration(s) aplicada(s) com sucesso.")
+        dump_schema(conn_kwargs)
         return 0
     finally:
         conn.close()

@@ -53,6 +53,7 @@ export function ConverterFormModal({
 	useEffect(() => {
 		if (!isOpen) return;
 
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- Modal fica montado o tempo todo (so retorna null quando fechado); resetar o form no open precisa ser aqui, nao da pra derivar durante o render
 		setErrors({});
 		if (existingPlugin) {
 			setForm({

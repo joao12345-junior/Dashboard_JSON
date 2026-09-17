@@ -1,5 +1,5 @@
-// src/features/process/ProcessDashboard.tsx
-import { useState, useMemo } from "react";
+// src/features/backup/BackupDashboard.tsx
+import { useMemo } from "react";
 import { useProcessStats } from "./useProcessStats";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { ErrorState } from "../../components/Error";
@@ -22,7 +22,6 @@ export function ProcessDashboard({
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const processLogs = useMemo(
 		() => logs.filter((l): l is ProcessLog => l.logType === "process"),

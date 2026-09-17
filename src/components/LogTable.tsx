@@ -5,7 +5,6 @@ import { Log } from "../lib/types/Log";
 import { StatusBadge } from "./StatusBadge";
 import { CriticalityBadge } from "./CriticalityBadge";
 import { ColumnDefinition } from "../lib/types/ColumnDefinition";
-import { AppTypeBadge } from "../features/app-logs/components/AppTypeBadge";
 
 interface LogTableProps {
 	logs: Log[];

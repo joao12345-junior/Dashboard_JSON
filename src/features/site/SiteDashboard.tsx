@@ -1,5 +1,4 @@
 // src/features/site/SiteDashboard.tsx
-import { useState } from "react";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import type { SharedPageProps } from "../../App";
@@ -212,7 +211,6 @@ function KpiCard({
 export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
-	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const {
 		availability,
