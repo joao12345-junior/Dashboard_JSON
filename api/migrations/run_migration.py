@@ -100,7 +100,10 @@ def dump_schema(conn_kwargs: dict) -> None:
         if result.returncode != 0:
             print(f"AVISO: pg_dump falhou ({result.returncode}): {result.stderr.strip()}")
             return
-        schema_file.write_text(result.stdout, encoding="utf-8")
+        # newline="\n" forca LF mesmo no Windows -- sem isso o modo texto padrao do
+        # Python reescreve pra CRLF a cada run, e o schema.sql inteiro aparece como
+        # modificado no git (o resto do repo esta commitado em LF).
+        schema_file.write_text(result.stdout, encoding="utf-8", newline="\n")
         print(f"Schema atualizado em {schema_file.relative_to(MIGRATIONS_DIR.parent.parent)}")
     except FileNotFoundError:
         print(

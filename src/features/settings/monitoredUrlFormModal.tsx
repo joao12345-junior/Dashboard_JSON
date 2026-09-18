@@ -1,6 +1,6 @@
 // src/features/settings/monitoredUrlFormModal.tsx
 import { useState, useEffect, useRef } from "react";
-import { Modal } from "./modal";
+import { Modal } from "../../components/Modal";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 
 export interface MonitoredUrlFormValues {

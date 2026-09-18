@@ -42,6 +42,43 @@ export type Page =
 	| "app-list"
 	| "settings";
 
+// ── Persistencia da pagina atual ─────────────────────────────────────────────
+//
+// O navegador/SO pode descartar a aba (Chrome tab discarding sob pressao de
+// memoria) ou suspender o notebook depois de muito tempo parado numa pagina.
+// Isso remonta o App do zero, e sem isso o useState<Page> abaixo voltaria
+// sempre pra "home" -- de fora parece que "o sistema perdeu a pagina sozinho".
+// Guardamos a ultima pagina em sessionStorage (dura so a aba, some ao fechar)
+// e restauramos no mount.
+const PAGE_STORAGE_KEY = "logdash:lastPage";
+
+const VALID_PAGES: readonly Page[] = [
+	"home",
+	"process-dashboard",
+	"process-list",
+	"windows-dashboard",
+	"windows-list",
+	"site-dashboard",
+	"site-list",
+	"app-dashboard",
+	"app-list",
+	"settings",
+];
+
+function isValidPage(value: string | null): value is Page {
+	return value !== null && (VALID_PAGES as readonly string[]).includes(value);
+}
+
+function readStoredPage(): Page {
+	try {
+		const saved = sessionStorage.getItem(PAGE_STORAGE_KEY);
+		return isValidPage(saved) ? saved : "home";
+	} catch {
+		// sessionStorage indisponivel (aba anonima com storage bloqueado, etc.)
+		return "home";
+	}
+}
+
 export interface ProcessFilterState {
 	message: string;
 	date: string;
@@ -119,7 +156,7 @@ const INITIAL_APP_FILTERS: AppFilterState = {
 
 function AppContent() {
 	const { isAuthenticated, isInitializing } = useAuth();
-	const [page, setPage] = useState<Page>("home");
+	const [page, setPage] = useState<Page>(readStoredPage);
 	const [toastMessage, setToastMessage] = useState<string | null>(null);
 
 	const {
@@ -153,6 +190,14 @@ function AppContent() {
 	);
 	const [appFilters, setAppFilters] =
 		useState<AppFilterState>(INITIAL_APP_FILTERS);
+
+	useEffect(() => {
+		try {
+			sessionStorage.setItem(PAGE_STORAGE_KEY, page);
+		} catch {
+			// sessionStorage indisponivel -- degrada graciosamente, sem persistencia
+		}
+	}, [page]);
 
 	useEffect(() => {
 		if (!progress.isDone) return;

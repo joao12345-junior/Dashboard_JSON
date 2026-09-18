@@ -1,6 +1,6 @@
 // src/features/settings/logTypeFormModal.tsx
 import { useState, useEffect, useRef } from "react";
-import { Modal } from "./modal";
+import { Modal } from "../../components/Modal";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { LogTypeDescriptor } from "../../lib/data/LogMapperRegistry";
 

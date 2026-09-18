@@ -1,5 +1,5 @@
 // src/features/app-logs/AppList.tsx
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ThemeToggleButton } from "../../components/ThemeButton";
 import { AppLogFilters } from "./components/AppLogFilters";
 import { LogTable } from "../../components/LogTable";
@@ -10,6 +10,7 @@ import { getMapper } from "../../lib/data/LogMapperRegistry";
 import { AppLog } from "../../lib/types/Log";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { SharedPageProps } from "../../App";
+import { AppLogDetailsModal } from "./components/AppLogDetailsModal";
 
 export function AppList({
 	logs,
@@ -24,6 +25,8 @@ export function AppList({
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
+
+	const [selectedLog, setSelectedLog] = useState<AppLog | null>(null);
 
 	const appLogs = useMemo(
 		() => logs.filter((l): l is AppLog => l.logType === "app"),
@@ -164,6 +167,16 @@ export function AppList({
 							columns={columns}
 							isMobile={isMobile}
 							showStatusColumn={false}
+							onRowClick={(log) => {
+								if (log.logType === "app") setSelectedLog(log);
+							}}
+							isRowClickable={(log) =>
+								log.logType === "app" && Boolean(log.detalhes)
+							}
+						/>
+						<AppLogDetailsModal
+							log={selectedLog}
+							onClose={() => setSelectedLog(null)}
 						/>
 					</>
 				)}

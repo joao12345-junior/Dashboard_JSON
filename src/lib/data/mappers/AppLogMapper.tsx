@@ -1,4 +1,5 @@
 // src/lib/data/mappers/AppLogMapper.ts
+import { FileText } from "lucide-react";
 import { AppLog } from "../../types/Log";
 import { ColumnDefinition } from "../../types/ColumnDefinition";
 import { normalizeDateToView } from "../../normalizeDateToView";
@@ -61,6 +62,17 @@ export const AppLogMapper = {
 
 	columns: [
 		{
+			key: "programa",
+			label: "Programa",
+			width: 150,
+			noWrap: true,
+			hideOnMobile: true,
+			// "Sem programa" -- mesmo texto usado em useAppStats.ts pro agrupamento
+			// quando programa ainda e null (coluna pendente de virar NOT NULL).
+			render: (log) =>
+				log.logType === "app" ? (log.programa ?? "Sem programa") : "",
+		},
+		{
 			key: "classe",
 			label: "Classe",
 			width: 160,
@@ -81,7 +93,24 @@ export const AppLogMapper = {
 			label: "Mensagem",
 			mono: true,
 			noWrap: true,
-			render: (log) => log.message,
+			// Linha com "detalhes" preenchido ganha um icone antes da mensagem --
+			// sinaliza que ha mais informacao por tras do clique sem depender so
+			// do cursor (que so aparece no hover, nao "descobre" a funcionalidade).
+			// title no <span> compensa a <td> perder o tooltip de texto completo
+			// quando o render vira JSX em vez de string pura (LogTable.extractTextValue
+			// só extrai title de string/number).
+			render: (log) =>
+				log.logType === "app" && log.detalhes ? (
+					<span
+						title={log.message}
+						style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+					>
+						<FileText size={14} color="var(--muted-foreground)" aria-hidden />
+						{log.message}
+					</span>
+				) : (
+					log.message
+				),
 		},
 		{
 			key: "date",

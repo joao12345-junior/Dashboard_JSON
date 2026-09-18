@@ -1,6 +1,6 @@
 // src/features/settings/converterFormModal.tsx
 import { useState, useEffect, useRef } from "react";
-import { Modal } from "./modal";
+import { Modal } from "../../components/Modal";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { IConverterPlugin } from "../../lib/plugins/IConverterPlugin";
 

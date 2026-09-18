@@ -6,7 +6,7 @@ from routes.auth import require_auth, require_sync_key
 logs_bp = Blueprint("logs", __name__)
 
 DEFAULT_PAGE_SIZE = 5000
-MAX_PAGE_SIZE = 10000
+MAX_PAGE_SIZE = 1000
 
 PROCESS_LOGS_RETENTION_DAYS = 30
 WINDOWS_EVENT_LOGS_RETENTION_DAYS = 14
@@ -206,4 +206,10 @@ def _fetch_windows_event_logs(conn, limit, before_id, after_id):
         "FROM optsislog.windows_event_logs",
         limit, before_id, after_id,
     )
+    # sem isoformat() aqui o Flask serializa datetime no formato HTTP-date
+    # (RFC 1123, tipo "Thu, 17 Sep 2026 19:12:14 GMT"), nao ISO 8601 -- o
+    # mapper do frontend espera ISO ("...T...Z") pra separar data/hora.
+    for row in result:
+        row['time_created'] = row['time_created'].isoformat()
+        row['created_at'] = row['created_at'].isoformat()
     return jsonify({"logs": result, "next_cursor": next_cursor})

@@ -24,6 +24,16 @@ interface LogTableProps {
 	 */
 	maxBodyHeight?: number;
 	showStatusColumn?: boolean;
+	/** Quando definido, cada linha vira clicavel (cursor pointer) e chama isso com o log clicado. */
+	onRowClick?: (log: Log) => void;
+	/**
+	 * Decide, por linha, se ela e clicavel (cursor pointer + onClick ativo).
+	 * Sem isso, com onRowClick definido, TODA linha vira clicavel -- use
+	 * quando só uma parte dos logs realmente faz algo ao clicar (ex: só os
+	 * que tem um campo opcional preenchido), senão o cursor promete uma
+	 * ação que a linha não tem.
+	 */
+	isRowClickable?: (log: Log) => boolean;
 }
 
 const ROW_HEIGHT = 48;
@@ -41,6 +51,8 @@ export function LogTable({
 	isMobile,
 	maxBodyHeight,
 	showStatusColumn = true,
+	onRowClick,
+	isRowClickable,
 }: LogTableProps) {
 	const parentRef = useRef<HTMLDivElement>(null);
 
@@ -224,6 +236,10 @@ export function LogTable({
 							{virtualizer.getVirtualItems().map((virtualRow) => {
 								const log = logs[virtualRow.index];
 								const isEven = virtualRow.index % 2 === 0;
+								// Sem isRowClickable, onRowClick sozinho deixa TODA linha clicavel
+								// (comportamento antigo, mantido por compatibilidade).
+								const rowIsClickable =
+									Boolean(onRowClick) && (!isRowClickable || isRowClickable(log));
 
 								return (
 									<tr
@@ -241,7 +257,9 @@ export function LogTable({
 											borderBottom: "1px solid var(--border)",
 											display: "table",
 											tableLayout: "fixed",
+											cursor: rowIsClickable ? "pointer" : undefined,
 										}}
+										onClick={rowIsClickable ? () => onRowClick!(log) : undefined}
 										onMouseEnter={(e) =>
 											(e.currentTarget.style.backgroundColor = "var(--accent)")
 										}

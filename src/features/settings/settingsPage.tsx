@@ -80,7 +80,6 @@ export function Settings({
 			),
 	];
 
-
 	// ── Handlers: Fontes ─────────────────────────────────────────────────────
 
 	function updateSources(next: LogSource[]) {

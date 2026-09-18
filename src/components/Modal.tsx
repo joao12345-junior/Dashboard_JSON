@@ -1,4 +1,4 @@
-// src/features/settings/modal.tsx
+// src/components/Modal.tsx
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
 

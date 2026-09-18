@@ -3,22 +3,6 @@ import { WindowsEventLog } from "../../types/Log";
 import { ColumnDefinition } from "../../types/ColumnDefinition";
 import { normalizeDateToView } from "../../normalizeDateToView";
 
-// Tipo que representa o bloco _enriched gerado pelo Python
-// Todos os campos são unknown para forçar validação explícita no mapper
-type RawEnriched = {
-	provider: unknown;
-	eventId: unknown;
-	recordId: unknown;
-	level: unknown;
-	levelLabel: unknown;
-	criticality: unknown;
-	description: unknown;
-	source: unknown;
-	computer: unknown;
-	channel: unknown;
-	timestamp: unknown;
-};
-
 // ── Funções de parse — cada uma valida e converte um campo ──────────────────
 
 function parseString(value: unknown): string {
@@ -30,12 +14,8 @@ function parseCriticality(value: unknown): WindowsEventLog["criticality"] {
 	return "Unknown";
 }
 
-function parseSource(value: unknown): WindowsEventLog["source"] {
-	if (value === "rendered" || value === "dictionary") return value;
-	return "unknown";
-}
-
-// level numérico do Windows → status do BaseLog
+// level numérico do Windows (smallint no banco, chega como number ou null)
+// → status do BaseLog
 // 1 = Critical, 2 = Error → 2 (erro)
 // 3 = Warning              → 0 (finalizado/aviso)
 // demais                   → 1 (ativo/info)
@@ -45,7 +25,7 @@ function levelToStatus(level: string): number {
 	return 1;
 }
 
-// "2021-07-11T18:39:17.6352909Z" → { date: "2021-07-11", time: "18:39:17" }
+// "2026-09-17T19:12:14.123456+00:00" → { date: "2026-09-17", time: "19:12:14" }
 function parseTimestamp(timestamp: string): { date: string; time: string } {
 	const [datePart = "", timePart = ""] = timestamp.split("T");
 	const time = timePart.split(".")[0].replace("Z", "");
@@ -53,32 +33,38 @@ function parseTimestamp(timestamp: string): { date: string; time: string } {
 }
 
 // ── Mapper principal ────────────────────────────────────────────────────────
-
+//
+// Lê direto das colunas soltas que /api/logs?type=windows-event devolve
+// (id, event_id, level, level_label, provider, computer, channel,
+// time_created, message, criticality, summary, source_file, created_at).
+// Antes este mapper lia um bloco raw._enriched que só existia no formato de
+// arquivo do conversor antigo (evtx_converter_v2.py) -- nunca existiu na
+// resposta da API, então todo log chegava em branco/"Unknown" (QUAL-6).
+//
+// Campos que existiam no formato antigo e não têm coluna equivalente no
+// banco (recordId, source: "rendered"/"dictionary") ficam vazio/"unknown" --
+// não dá pra reconstruir informação que não foi persistida.
 export const WindowsEventLogMapper = {
 	toLog: (raw: Record<string, unknown>): WindowsEventLog => {
-		// _enriched pode não existir em arquivos antigos — fallback para {}
-		const enriched = (raw._enriched ?? {}) as RawEnriched;
-
-		const level = parseString(enriched.level);
-		const timestamp = parseString(enriched.timestamp);
-		const { date, time } = parseTimestamp(timestamp);
+		const level = raw.level != null ? String(raw.level) : "";
+		const { date, time } = parseTimestamp(parseString(raw.time_created));
 
 		return {
 			logType: "windows-event",
 			id: Number(raw.id ?? 0),
-			message: parseString(enriched.description), // BaseLog.message ← description
+			message: parseString(raw.message),
 			date,
 			time,
 			status: levelToStatus(level),
-			criticality: parseCriticality(enriched.criticality),
-			source: parseSource(enriched.source),
-			computer: parseString(enriched.computer),
-			channel: parseString(enriched.channel),
-			eventId: parseString(enriched.eventId),
-			recordId: parseString(enriched.recordId),
+			criticality: parseCriticality(raw.criticality),
+			source: "unknown",
+			computer: parseString(raw.computer),
+			channel: parseString(raw.channel),
+			eventId: parseString(raw.event_id),
+			recordId: "",
 			level,
-			levelLabel: parseString(enriched.levelLabel),
-			provider: parseString(enriched.provider),
+			levelLabel: parseString(raw.level_label),
+			provider: parseString(raw.provider),
 		};
 	},
 
