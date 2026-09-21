@@ -1,7 +1,9 @@
 # routes/logs.py
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Response
 from db import get_connection, release_connection
 from routes.auth import require_auth, require_sync_key
+import json
+import time
 
 logs_bp = Blueprint("logs", __name__)
 
@@ -11,6 +13,53 @@ MAX_PAGE_SIZE = 1000
 PROCESS_LOGS_RETENTION_DAYS = 30
 WINDOWS_EVENT_LOGS_RETENTION_DAYS = 14
 APP_LOGS_RETENTION_DAYS = 14
+
+POLL_INTERVAL_SECONDS = 5
+_TABLE_BY_LOG_TYPE = {
+    "app": "app_logs",
+    "process": "process_logs",
+    "windows-event": "windows_event_logs",
+}
+
+@logs_bp.route("/api/logs/stream")
+@require_auth
+def stream_logs():
+    return Response(_generate_log_update_stream(), mimetype="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+def _generate_log_update_stream():
+    conn = get_connection()
+    conn_ok = True
+
+    last_seen_ids = {}
+
+    try:
+        with conn.cursor() as cur:
+            for log_type, table in _TABLE_BY_LOG_TYPE.items():
+                cur.execute(f"""
+                    SELECT COALESCE(MAX(id), 0) FROM optsislog.{table}
+                """)
+                last_seen_ids[log_type] = cur.fetchone()[0]
+
+            while True:
+                    time.sleep(POLL_INTERVAL_SECONDS)
+                    counts = {}
+                    for log_type, table in _TABLE_BY_LOG_TYPE.items():
+                        query = f"""SELECT COUNT(*) FROM optsislog.{table} WHERE id > %s"""
+                        cur.execute(query, [last_seen_ids[log_type]])
+                        counts[log_type] = cur.fetchone()[0]
+
+                    if any(counts.values()):
+                        yield f"data: {json.dumps(counts)}\n\n"
+                        for log_type, table in _TABLE_BY_LOG_TYPE.items():
+                            cur.execute(f"SELECT COALESCE(MAX(id), 0) FROM optsislog.{table}")
+                            last_seen_ids[log_type] = cur.fetchone()[0]
+                    else:
+                        yield ": keep-alive\n\n"
+    except Exception as e:
+        conn_ok = False
+        print(f"stream de logs quebrou: {e}")
+    finally:
+        release_connection(conn, is_healthy=conn_ok)
 
 @logs_bp.route("/api/logs/last-activity")
 @require_auth

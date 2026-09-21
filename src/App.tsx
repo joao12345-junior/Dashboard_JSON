@@ -9,6 +9,8 @@ import { Toast } from "./components/Toast";
 import { useSiteData } from "./features/site/hooks/useSiteData";
 import { useNewDataDetector } from "./hooks/useNewDataDetector";
 import { NewDataBanner } from "./components/NewDataBanner";
+import { useNotificationPreferenceContext } from "./context/NotificationPreferenceContext";
+import { notifyNewLogs } from "./lib/notifyNewLogs";
 
 import { HomePage } from "./features/home/HomePage";
 import { ProcessDashboard } from "./features/backup/BackupDashboard";
@@ -177,7 +179,19 @@ function AppContent() {
 	} = useProgressiveLogs(logFiles, isAuthenticated);
 
 	const siteData = useSiteData();
-	const { hasNewData, dismiss, acknowledge } = useNewDataDetector();
+	const { hasNewData, dismiss, acknowledge, counts } = useNewDataDetector();
+	const { enabled: notificationsEnabled } = useNotificationPreferenceContext();
+
+	// Dispara notificação nativa quando chega dado novo e o usuário optou por
+	// receber notificações. Não dispara no reset (dismiss/acknowledge zera
+	// counts para null) por causa do guard `if (!counts) return`.
+	useEffect(() => {
+		if (!notificationsEnabled) return;
+		if (!counts) return;
+		if (!Object.values(counts).some((n) => n > 0)) return;
+
+		notifyNewLogs(counts);
+	}, [counts, notificationsEnabled]);
 
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
@@ -290,6 +304,7 @@ function AppContent() {
 						fetchNewData();
 					}}
 					onDismiss={dismiss}
+					counts={counts}
 				/>
 			)}
 		</>

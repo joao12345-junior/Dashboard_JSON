@@ -1,7 +1,7 @@
 // src/features/windows-event/WindowsDashboard.tsx
 import { useMemo } from "react";
 import { useWindowsStats } from "./useWindowsStats";
-import { ThemeToggleButton } from "../../components/ThemeButton";
+import { PageHeader } from "../../components/PageHeader";
 import { ErrorState } from "../../components/Error";
 import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
@@ -41,61 +41,36 @@ export function WindowsDashboard({
 			}}
 		>
 			{/* Cabeçalho */}
-			<div
-				style={{
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "space-between",
-					marginBottom: 32,
-				}}
+			<PageHeader
+				title="Dashboard — Windows Event Log"
+				subtitle={
+					progress.isLoading
+						? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
+						: `${windowsLogs.length.toLocaleString("pt-BR")} eventos carregados`
+				}
+				spacing="dense"
 			>
-				<div>
-					<h1
-						style={{
-							fontSize: 22,
-							fontWeight: 800,
-							color: "var(--foreground)",
-							margin: 0,
-						}}
-					>
-						Dashboard — Windows Event Log
-					</h1>
-					<p
-						style={{
-							fontSize: 13,
-							color: "var(--muted-foreground)",
-							margin: "4px 0 0",
-						}}
-					>
-						{progress.isLoading
-							? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
-							: `${windowsLogs.length.toLocaleString("pt-BR")} eventos carregados`}
-					</p>
-				</div>
-				<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-					<ThemeToggleButton />
-					<input
-						ref={fileInputRef}
-						type="file"
-						accept=".json"
-						multiple
-						style={{ display: "none" }}
-						onChange={handleChange}
-					/>
-					<button onClick={openPicker} style={btnPrimary}>
-						+ Carregar Logs
-					</button>
-					<button onClick={reload} style={btnSecondary}>
-						↺ Recarregar
-					</button>
-					<button
-						onClick={() => onNavigate("windows-list")}
-						style={btnSecondary}
-					>
-						Ver Registros →
-					</button>
-				</div>
-			</div>
+				<input
+					ref={fileInputRef}
+					type="file"
+					accept=".json"
+					multiple
+					style={{ display: "none" }}
+					onChange={handleChange}
+				/>
+				<button onClick={openPicker} style={btnPrimary}>
+					+ Carregar Logs
+				</button>
+				<button onClick={reload} style={btnSecondary}>
+					↺ Recarregar
+				</button>
+				<button
+					onClick={() => onNavigate("windows-list")}
+					style={btnSecondary}
+				>
+					Ver Registros →
+				</button>
+			</PageHeader>
 
 			{progress.isLoading && <ProgressBar percent={progress.percentComplete} />}
 			{progress.error && <ErrorState message={progress.error} />}

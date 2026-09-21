@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { SharedPageProps } from "../../App";
-import { ThemeToggleButton } from "../../components/ThemeButton";
+import { PageHeader } from "../../components/PageHeader";
 import {
 	loadLogSources,
 	saveLogSources,
@@ -215,58 +215,31 @@ export function Settings({
 				}}
 			>
 				{/* ── Cabeçalho ── */}
-				<div
-					style={{
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "space-between",
-						marginBottom: 32,
-						flexWrap: "wrap",
-						gap: 12,
-					}}
+				<PageHeader
+					title="Configurações"
+					subtitle={
+						progress.isLoading
+							? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
+							: `${logs.length.toLocaleString("pt-BR")} registros · ${sources.filter((s) => s.enabled).length} fonte(s) ativa(s)`
+					}
+					spacing="dense"
+					wrap
 				>
-					<div>
-						<h1
-							style={{
-								fontSize: 22,
-								fontWeight: 800,
-								color: "var(--foreground)",
-								margin: 0,
-							}}
-						>
-							Configurações
-						</h1>
-						<p
-							style={{
-								fontSize: 13,
-								color: "var(--muted-foreground)",
-								margin: "4px 0 0",
-							}}
-						>
-							{progress.isLoading
-								? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
-								: `${logs.length.toLocaleString("pt-BR")} registros · ${sources.filter((s) => s.enabled).length} fonte(s) ativa(s)`}
-						</p>
-					</div>
-
-					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-						<ThemeToggleButton />
-						<input
-							ref={fileInputRef}
-							type="file"
-							accept=".json"
-							multiple
-							style={{ display: "none" }}
-							onChange={handleChange}
-						/>
-						<button onClick={openPicker} style={btnSecondary}>
-							+ Carregar Logs
-						</button>
-						<button onClick={reload} style={btnPrimary}>
-							↺ Recarregar
-						</button>
-					</div>
-				</div>
+					<input
+						ref={fileInputRef}
+						type="file"
+						accept=".json"
+						multiple
+						style={{ display: "none" }}
+						onChange={handleChange}
+					/>
+					<button onClick={openPicker} style={btnSecondary}>
+						+ Carregar Logs
+					</button>
+					<button onClick={reload} style={btnPrimary}>
+						↺ Recarregar
+					</button>
+				</PageHeader>
 
 				{/* ── Seção: Fontes de Dados ── */}
 				<SettingsSection

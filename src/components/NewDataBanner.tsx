@@ -1,8 +1,12 @@
 // src/components/NewDataBanner.tsx
 
+import { StreamDataText } from "../lib/subscribeToEventsStream";
+import { formatCountsSummary } from "../lib/formatCountsSummary";
+
 interface NewDataBannerProps {
 	onRefresh: () => void;
 	onDismiss: () => void;
+	counts: StreamDataText | null;
 }
 
 /**
@@ -12,7 +16,11 @@ interface NewDataBannerProps {
  * Responsabilidade única: ação futura (diferente do Toast,
  * que notifica sobre eventos passados).
  */
-export function NewDataBanner({ onRefresh, onDismiss }: NewDataBannerProps) {
+export function NewDataBanner({
+	onRefresh,
+	onDismiss,
+	counts,
+}: NewDataBannerProps) {
 	return (
 		<div
 			style={{
@@ -37,7 +45,7 @@ export function NewDataBanner({ onRefresh, onDismiss }: NewDataBannerProps) {
 				Novos dados disponíveis
 			</div>
 			<div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
-				Registros foram adicionados desde a última atualização.
+				{formatCountsSummary(counts)}
 			</div>
 			<div style={{ display: "flex", gap: 8 }}>
 				<button

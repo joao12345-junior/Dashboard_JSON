@@ -1,5 +1,5 @@
 // src/features/site/SiteDashboard.tsx
-import { ThemeToggleButton } from "../../components/ThemeButton";
+import { PageHeader } from "../../components/PageHeader";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import type { SharedPageProps } from "../../App";
 import type { AvailabilityRecord } from "./hooks/useSiteData";
@@ -257,56 +257,53 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 			}}
 		>
 			{/* Header */}
-			<div
-				style={{
-					display: "flex",
-					alignItems: "flex-start",
-					justifyContent: "space-between",
-					flexShrink: 0,
-				}}
-			>
-				<div>
-					<div
-						style={{
-							display: "flex",
-							alignItems: "center",
-							gap: 10,
-							marginBottom: 4,
-						}}
-					>
-						{/* Faixa de acento Optare */}
+			<PageHeader
+				titleArea={
+					<div>
 						<div
 							style={{
-								width: 4,
-								height: 28,
-								borderRadius: 2,
-								backgroundColor: OPTARE_RED,
-							}}
-						/>
-						<h1
-							style={{
-								fontSize: 22,
-								fontWeight: 800,
-								color: "var(--foreground)",
-								margin: 0,
+								display: "flex",
+								alignItems: "center",
+								gap: 10,
+								marginBottom: 4,
 							}}
 						>
-							{selectedLabel ?? "Site Optare"}
-						</h1>
+							{/* Faixa de acento Optare */}
+							<div
+								style={{
+									width: 4,
+									height: 28,
+									borderRadius: 2,
+									backgroundColor: OPTARE_RED,
+								}}
+							/>
+							<h1
+								style={{
+									fontSize: 22,
+									fontWeight: 800,
+									color: "var(--foreground)",
+									margin: 0,
+								}}
+							>
+								{selectedLabel ?? "Site Optare"}
+							</h1>
+						</div>
+						<p
+							style={{
+								fontSize: 13,
+								color: "var(--muted-foreground)",
+								margin: "0 0 0 14px",
+							}}
+						>
+							{lastRefresh
+								? `Atualizado às ${formatTime(lastRefresh.toISOString())}`
+								: "Carregando..."}
+						</p>
 					</div>
-					<p
-						style={{
-							fontSize: 13,
-							color: "var(--muted-foreground)",
-							margin: "0 0 0 14px",
-						}}
-					>
-						{lastRefresh
-							? `Atualizado às ${formatTime(lastRefresh.toISOString())}`
-							: "Carregando..."}
-					</p>
-				</div>
-				<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+				}
+				spacing="compact"
+				align="flex-start"
+				leadingControls={
 					<select
 						value={selectedUrlId ?? "all"}
 						onChange={(e) => setSelectedUrlId(Number(e.target.value))}
@@ -327,24 +324,24 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 							</option>
 						))}
 					</select>
-					<ThemeToggleButton />
-					<button
-						onClick={refresh}
-						style={{
-							padding: "8px 16px",
-							borderRadius: 6,
-							border: "1px solid var(--border)",
-							backgroundColor: "transparent",
-							color: "var(--foreground)",
-							fontSize: 13,
-							cursor: "pointer",
-							fontFamily: "inherit",
-						}}
-					>
-						↺ Recarregar
-					</button>
-				</div>
-			</div>
+				}
+			>
+				<button
+					onClick={refresh}
+					style={{
+						padding: "8px 16px",
+						borderRadius: 6,
+						border: "1px solid var(--border)",
+						backgroundColor: "transparent",
+						color: "var(--foreground)",
+						fontSize: 13,
+						cursor: "pointer",
+						fontFamily: "inherit",
+					}}
+				>
+					↺ Recarregar
+				</button>
+			</PageHeader>
 
 			{loading && (
 				<p style={{ color: "var(--muted-foreground)", fontSize: 13 }}>

@@ -1,64 +1,60 @@
 // src/hooks/useNewDataDetector.ts
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { loadApiConfig } from "../lib/storage/logPaths";
-import { authorizedFetch, useAuth } from "./useAuth";
-
-interface LastActivity {
-	backup: string | null;
-	windows: string | null;
-	site: string | null;
-	app: string | null;
-}
-
-const POLL_INTERVAL_MS = 60 * 1000;
+import { useAuth } from "./useAuth";
+import {
+	StreamDataText,
+	subscribeToEventsStream,
+} from "../lib/subscribeToEventsStream";
 
 export function useNewDataDetector() {
-	const [hasNewData, setHasNewData] = useState(false);
-	const baseline = useRef<LastActivity | null>(null);
+	const [counts, setCounts] = useState<StreamDataText | null>(null);
+	const hasNewData =
+		counts !== null && Object.values(counts).some((n) => n > 0);
 	const { isAuthenticated } = useAuth();
 
-	const fetchActivity = useCallback(async (): Promise<LastActivity | null> => {
-		const { api } = loadApiConfig();
-
-		try {
-			const res = await authorizedFetch(`${api}/api/logs/last-activity`);
-			if (!res.ok) return null;
-			return await res.json();
-		} catch {
-			return null;
-		}
-	}, []);
-
-	const dismiss = useCallback(() => setHasNewData(false), []);
+	const dismiss = useCallback(() => setCounts(null), []);
 
 	useEffect(() => {
 		if (!isAuthenticated) return;
 
-		fetchActivity().then((data) => {
-			if (data) baseline.current = data;
-		});
+		const controller = new AbortController();
 
-		const interval = setInterval(async () => {
-			const current = await fetchActivity();
-			if (!current || !baseline.current) return;
+		async function connect() {
+			const { api } = loadApiConfig();
+			while (!controller.signal.aborted) {
+				try {
+					await subscribeToEventsStream(
+						`${api}/api/logs/stream`,
+						(data) => {
+							setCounts((prev) => ({
+								app: (prev?.app ?? 0) + data.app,
+								process: (prev?.process ?? 0) + data.process,
+								"windows-event":
+									(prev?.["windows-event"] ?? 0) + data["windows-event"],
+							}));
+						},
+						controller.signal,
+					);
+				} catch (err: unknown) {
+					if (err instanceof Error && err.name === "AbortError") return;
+				}
 
-			const changed =
-				current.backup !== baseline.current.backup ||
-				current.windows !== baseline.current.windows ||
-				current.site !== baseline.current.site ||
-				current.app !== baseline.current.app;
+				if (controller.signal.aborted) return;
+				await new Promise((resolve) => setTimeout(resolve, 3 * 1000));
+			}
+		}
 
-			if (changed) setHasNewData(true);
-		}, POLL_INTERVAL_MS);
+		connect();
 
-		return () => clearInterval(interval);
-	}, [isAuthenticated, fetchActivity]);
+		return () => {
+			controller.abort();
+		};
+	}, [isAuthenticated]);
 
 	const acknowledge = useCallback(async () => {
-		const current = await fetchActivity();
-		if (current) baseline.current = current;
-		setHasNewData(false);
-	}, [fetchActivity]);
+		setCounts(null);
+	}, []);
 
-	return { hasNewData, dismiss, acknowledge };
+	return { hasNewData, dismiss, acknowledge, counts };
 }
