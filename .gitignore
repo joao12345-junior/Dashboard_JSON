@@ -35,3 +35,6 @@ tree.txt
 
 ingestor/config.json
 api/__pycache__/db.cpython-314.pyc
+
+# Certificados TLS locais -- nunca versionar chave privada
+certs/

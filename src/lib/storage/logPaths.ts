@@ -74,12 +74,25 @@ const DEFAULT_SOURCES: LogSource[] = [
 	},
 ];
 
-// const DEFAULT_API_CONFIG: ApiConfig = {
-// 	url: "http://192.168.16.201:8765",
-// 	enabled: true,
-// };
+/**
+ * A API sempre roda na mesma máquina que serve o front (Vite spawna os
+ * dois juntos -- ver startFlaskApiPlugin em vite.config.ts), só que numa
+ * porta diferente (8765). Por isso o host da API é derivado do host de
+ * onde o front foi carregado (window.location.hostname), não um valor
+ * fixo -- "localhost" só funciona pra quem acessa do próprio servidor;
+ * um cliente remoto pela VPN, acessando por exemplo https://192.168.16.201:5173,
+ * tem o PRÓPRIO localhost dele (sem servidor nenhum rodando), e a chamada
+ * pra API cairia sempre em conexão recusada.
+ *
+ * Esse default só vale enquanto não existe um valor salvo em
+ * localStorage (ver loadApiConfig) -- se já tiver um "logdash:API:v4"
+ * salvo apontando pra "localhost" de uma sessão de testes anterior, essa
+ * mudança sozinha não conserta: precisa limpar esse item do localStorage
+ * (ou salvar um novo valor pela tela de Ajustes) pra esse navegador
+ * voltar a usar o default dinâmico.
+ */
 const DEFAULT_API_CONFIG: ApiConfig = {
-	api: "http://localhost:8765",
+	api: `https://${window.location.hostname}:8765`,
 	urls: [
 		"https://optare.com.br",
 		"https://optare-atendimento.onrender.com/health",

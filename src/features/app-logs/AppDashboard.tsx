@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { useAppStats } from "./useAppStats";
 import { PageHeader } from "../../components/PageHeader";
 import { ErrorState } from "../../components/Error";
-import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { AppKpiCards } from "./components/AppKpiCards";
 import { AppDailyBarChart } from "./components/AppDailyBarChart";
@@ -15,6 +14,7 @@ import type { SharedPageProps } from "../../App";
 export function AppDashboard({
 	logs,
 	progress,
+	apiProgress,
 	reload,
 	fileInputRef,
 	handleChange,
@@ -48,6 +48,8 @@ export function AppDashboard({
 						: `${appLogs.length.toLocaleString("pt-BR")} logs gerais`
 				}
 				spacing="dense"
+				staticProgress={progress}
+				apiProgress={apiProgress}
 			>
 				<input
 					ref={fileInputRef}
@@ -68,7 +70,6 @@ export function AppDashboard({
 				</button>
 			</PageHeader>
 
-			{progress.isLoading && <ProgressBar percent={progress.percentComplete} />}
 			{progress.error && <ErrorState message={progress.error} />}
 
 			{!progress.error && isEmpty && (

@@ -23,7 +23,7 @@ import { Settings } from "./features/settings/settingsPage";
 import { AppDashboard } from "./features/app-logs/AppDashboard";
 import { AppList } from "./features/app-logs/AppList";
 
-import type { LoadProgress, DebugInfo } from "./hooks/useProgressiveLogs";
+import type { LoadProgress, DebugInfo, ApiLoadProgress } from "./hooks/useProgressiveLogs";
 import type { Log } from "./lib/types/Log";
 import { START_STATUS } from "./lib/Variables";
 import type { SiteData } from "./features/site/hooks/useSiteData";
@@ -109,6 +109,7 @@ export interface SharedPageProps {
 	manualLogs: Log[];
 	siteData: SiteData;
 	progress: LoadProgress;
+	apiProgress: ApiLoadProgress;
 	debug: DebugInfo;
 	reload: () => void;
 
@@ -173,10 +174,11 @@ function AppContent() {
 		staticLogs,
 		manualLogs,
 		progress,
+		apiProgress,
 		debug,
 		reload,
 		fetchNewData,
-	} = useProgressiveLogs(logFiles, isAuthenticated);
+	} = useProgressiveLogs(logFiles, isAuthenticated, page);
 
 	const siteData = useSiteData();
 	const { hasNewData, dismiss, acknowledge, counts } = useNewDataDetector();
@@ -230,6 +232,7 @@ function AppContent() {
 		manualLogs,
 		siteData,
 		progress,
+		apiProgress,
 		debug,
 		reload,
 		isMobile,

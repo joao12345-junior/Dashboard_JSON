@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { PageHeader } from "../../components/PageHeader";
 import { LogTable } from "../../components/LogTable";
 import { ErrorState } from "../../components/Error";
-import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { getMapper } from "../../lib/data/LogMapperRegistry";
 import { WindowsEventLog } from "../../lib/types/Log";
@@ -14,6 +13,7 @@ import type { SharedPageProps } from "../../App";
 export function WindowsList({
 	logs,
 	progress,
+	apiProgress,
 	reload,
 	fileInputRef,
 	handleChange,
@@ -98,6 +98,8 @@ export function WindowsList({
 							: `${filteredLogs.length.toLocaleString("pt-BR")} de ${windowsLogs.length.toLocaleString("pt-BR")} eventos`
 					}
 					spacing="compact"
+					staticProgress={progress}
+					apiProgress={apiProgress}
 				>
 					<input
 						ref={fileInputRef}
@@ -115,9 +117,6 @@ export function WindowsList({
 					</button>
 				</PageHeader>
 
-				{progress.isLoading && (
-					<ProgressBar percent={progress.percentComplete} marginBottom={0} />
-				)}
 
 				{/* Filtros */}
 				<div

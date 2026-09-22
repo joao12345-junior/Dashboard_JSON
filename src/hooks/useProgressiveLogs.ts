@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Log } from "../lib/types/Log";
 import { LogRepository, FileLoadResult } from "../lib/repository/LogRepository";
 import { loadApiConfig, loadEnabledSources } from "../lib/storage/logPaths";
+import type { Page } from "../App";
 
 export interface LoadProgress {
 	loadedFiles: number;
@@ -35,7 +36,26 @@ interface UseProgressiveLogsReturn {
 	reload: () => void;
 	clearManual: () => void;
 	fetchNewData: () => Promise<void>;
+	apiProgress: ApiLoadProgress;
 }
+
+export interface ApiLoadProgress {
+	loadedRecords: number;
+	totalRecords: number;
+	percentComplete: number;
+	isLoading: boolean;
+	isDone: boolean;
+	error: string | null;
+}
+
+const EMPTY_API_PROGRESS: ApiLoadProgress = {
+	loadedRecords: 0,
+	totalRecords: 0,
+	percentComplete: 0,
+	isLoading: false,
+	isDone: false,
+	error: null,
+};
 
 const EMPTY_PROGRESS: LoadProgress = {
 	loadedFiles: 0,
@@ -61,6 +81,7 @@ const EMPTY_DEBUG: DebugInfo = {
 export function useProgressiveLogs(
 	localFiles: File[] = [],
 	isAuthenticated: boolean = false,
+	currentPage?: Page,
 ): UseProgressiveLogsReturn {
 	const [staticLogs, setStaticLogs] = useState<Log[]>([]);
 	const [manualLogs, setManualLogs] = useState<Log[]>([]);
@@ -69,6 +90,8 @@ export function useProgressiveLogs(
 
 	// API
 	const [apiLogs, setApiLogs] = useState<Log[]>([]);
+	const [apiProgress, setApiProgress] =
+		useState<ApiLoadProgress>(EMPTY_API_PROGRESS);
 
 	const reloadTick = useRef(0);
 	const [tick, setTick] = useState(0);
@@ -261,23 +284,92 @@ export function useProgressiveLogs(
 		let cancelled = false;
 		const config = loadApiConfig();
 		if (!config.enabled) return;
-		if (!isAuthenticated) return; // não tenta antes do login
+		if (!isAuthenticated) return;
+
+		const types: Array<Log["logType"]> = ["process", "windows-event", "app"];
+
+		setApiLogs([]);
+		setApiProgress({ ...EMPTY_API_PROGRESS, isLoading: true });
 
 		async function loadFromApi() {
-			const [process_logs, windows_logs, app_logs] = await Promise.all([
-				LogRepository.fetchFromAPI("process", config.api),
-				LogRepository.fetchFromAPI("windows-event", config.api),
-				LogRepository.fetchFromAPI("app", config.api),
-			]);
-			if (!cancelled)
-				setApiLogs([...process_logs, ...windows_logs, ...app_logs]);
+			try {
+				const counts = await LogRepository.fetchCounts(config.api);
+				const totalRecords = types.reduce(
+					(sum, t) => sum + (counts[t] ?? 0),
+					0,
+				);
+				if (cancelled) return;
+
+				let loadedRecords = 0;
+
+				const priorityType = pageToLogType(currentPage ?? "home");
+
+				const orderedTypes = priorityType
+					? [priorityType, ...types.filter((t) => t !== priorityType)]
+					: types;
+
+				// Sequencial (não Promise.all): as 3 chamadas concorrentes disputariam
+				// o mesmo pool de conexões do backend, e o progresso relatado ficaria
+				// embaralhado -- não daria pra saber qual tipo está em qual %. Um tipo
+				// de cada vez mantém o progresso simples e previsível.
+				for (const type of orderedTypes) {
+					if (cancelled) break;
+
+					await LogRepository.fetchProgressivelyFromApi(
+						type,
+						config.api,
+						(batch) => {
+							if (cancelled) return;
+							loadedRecords += batch.logs.length;
+							setApiLogs((prev) => [...prev, ...batch.logs]);
+							setApiProgress((prev) => ({
+								...prev,
+								loadedRecords,
+								// Math.min: se algum log novo entrar no banco ENQUANTO a leva
+								// está carregando, loadedRecords pode passar o totalRecords
+								// que foi lido no início -- sem o clamp, a barra passaria de 100%.
+								percentComplete:
+									totalRecords > 0
+										? Math.min(
+												100,
+												Math.round((loadedRecords / totalRecords) * 100),
+											)
+										: 0,
+								isLoading: true,
+								isDone: false,
+								error: null,
+							}));
+						},
+					);
+				}
+
+				if (!cancelled) {
+					setApiProgress((prev) => ({
+						...prev,
+						isLoading: false,
+						isDone: true,
+						percentComplete: 100,
+					}));
+				}
+			} catch (err) {
+				if (!cancelled) {
+					setApiProgress((prev) => ({
+						...prev,
+						isLoading: false,
+						error:
+							err instanceof Error
+								? err.message
+								: "Erro ao carregar dados da API",
+					}));
+				}
+			}
 		}
 
 		loadFromApi();
 		return () => {
 			cancelled = true;
 		};
-	}, [tick, isAuthenticated]); // isAuthenticated como dependência
+	}, [tick, isAuthenticated]);
 
 	const fetchNewData = useCallback(async () => {
 		const config = loadApiConfig();
@@ -321,6 +413,7 @@ export function useProgressiveLogs(
 		reload,
 		clearManual,
 		fetchNewData,
+		apiProgress,
 	};
 }
 
@@ -356,4 +449,23 @@ function buildDebugInfo(
 		finishedAt,
 		elapsedSeconds,
 	};
+}
+
+function pageToLogType(page: Page): Log["logType"] | null {
+	switch (page) {
+		case "app-dashboard":
+			return "app";
+		case "app-list":
+			return "app";
+		case "process-dashboard":
+			return "process";
+		case "process-list":
+			return "process";
+		case "windows-dashboard":
+			return "windows-event";
+		case "windows-list":
+			return "windows-event";
+		default:
+			return null;
+	}
 }

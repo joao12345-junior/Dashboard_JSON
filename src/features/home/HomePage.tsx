@@ -2,7 +2,6 @@
 import { useHomeStats } from "./usehomeStats";
 import { PageHeader } from "../../components/PageHeader";
 import { ErrorState } from "../../components/Error";
-import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { CriticalEventsFeed } from "./components/CriticalEventsFeed";
 import { GlobalKpiRow } from "./components/GlobalKpiRow";
@@ -14,6 +13,7 @@ export function HomePage({
 	staticLogs,
 	manualLogs,
 	progress,
+	apiProgress,
 	reload,
 	fileInputRef,
 	handleChange,
@@ -62,6 +62,8 @@ export function HomePage({
 							: `${staticLogs.length.toLocaleString("pt-BR")} do servidor · ${manualLogs.length.toLocaleString("pt-BR")} manuais`
 					}
 					spacing="compact"
+					staticProgress={progress}
+					apiProgress={apiProgress}
 				>
 					<input
 						ref={fileInputRef}
@@ -79,9 +81,6 @@ export function HomePage({
 					</button>
 				</PageHeader>
 
-				{progress.isLoading && (
-					<ProgressBar percent={progress.percentComplete} />
-				)}
 				{progress.error && <ErrorState message={progress.error} />}
 
 				{!progress.error && (

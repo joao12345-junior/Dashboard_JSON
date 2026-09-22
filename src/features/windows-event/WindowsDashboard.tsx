@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { useWindowsStats } from "./useWindowsStats";
 import { PageHeader } from "../../components/PageHeader";
 import { ErrorState } from "../../components/Error";
-import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { KpiCard } from "../../components/charts/KpiCard";
 import { WindowsEventLog } from "../../lib/types/Log";
@@ -15,6 +14,7 @@ import type { SharedPageProps } from "../../App";
 export function WindowsDashboard({
 	logs,
 	progress,
+	apiProgress,
 	reload,
 	fileInputRef,
 	handleChange,
@@ -49,6 +49,8 @@ export function WindowsDashboard({
 						: `${windowsLogs.length.toLocaleString("pt-BR")} eventos carregados`
 				}
 				spacing="dense"
+				staticProgress={progress}
+				apiProgress={apiProgress}
 			>
 				<input
 					ref={fileInputRef}
@@ -72,7 +74,6 @@ export function WindowsDashboard({
 				</button>
 			</PageHeader>
 
-			{progress.isLoading && <ProgressBar percent={progress.percentComplete} />}
 			{progress.error && <ErrorState message={progress.error} />}
 
 			{!progress.error && (

@@ -62,6 +62,11 @@ export type BatchCallback = (params: {
 	totalFiles: number;
 }) => void;
 
+export type ApiBatchCallback = (params: {
+	logs: Log[];
+	hasMore: boolean;
+}) => void;
+
 // ── Funções internas ──────────────────────────────────────────────────────────
 
 /**
@@ -294,6 +299,42 @@ export const LogRepository = {
 				totalFiles: files.length,
 			});
 		}
+	},
+
+	async fetchCounts(apiUrl: string): Promise<Record<string, number>> {
+		const response = await authorizedFetch(`${apiUrl}/api/logs/counts`);
+		if (!response.ok)
+			throw new Error(`[LogRepository] HTTPS ${response.status}`);
+
+		return response.json();
+	},
+
+	async fetchProgressivelyFromApi(
+		logType: string,
+		apiUrl: string,
+		onBatch: ApiBatchCallback,
+	): Promise<void> {
+		let cursor: number | null = null;
+
+		do {
+			const url = new URL(`${apiUrl}/api/logs`);
+			url.searchParams.set("type", logType);
+			if (cursor != null) url.searchParams.set("before_id", String(cursor));
+
+			const response = await authorizedFetch(url.toString());
+			if (!response.ok) {
+				throw new Error(`[LogRepository] HTTPS ${response.status}`);
+			}
+
+			const parsed = await response.json();
+			if (!parsed) throw new Error("[LogRepository] Parse inválido");
+
+			const raws = parsed.logs as Record<string, unknown>[];
+			const logs = raws.map((raw) => mapRawToLog(raw, logType));
+			cursor = parsed.next_cursor;
+
+			onBatch({ logs, hasMore: cursor !== null });
+		} while (cursor != null);
 	},
 
 	/**

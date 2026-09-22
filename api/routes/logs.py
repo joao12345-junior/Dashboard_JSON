@@ -1,63 +1,52 @@
 # routes/logs.py
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, request, jsonify
 from db import get_connection, release_connection
 from routes.auth import require_auth, require_sync_key
-import json
-import time
 
 logs_bp = Blueprint("logs", __name__)
 
-DEFAULT_PAGE_SIZE = 5000
-MAX_PAGE_SIZE = 1000
+# MAX_PAGE_SIZE tinha ficado menor que DEFAULT_PAGE_SIZE por engano --
+# como o limit sempre passa por min(limit, MAX_PAGE_SIZE), toda chamada
+# sem "?limit=" explicito nunca chegava a devolver os 5000 pretendidos,
+# sempre parava em 1000. O requisito e' velocidade: o dashboard precisa
+# vir com os logs de uma vez, sem o usuario esperando 2-3s olhando pra
+# tela vazia enquanto pagina em lotes menores.
+DEFAULT_PAGE_SIZE = 1000
+MAX_PAGE_SIZE = 5000
 
 PROCESS_LOGS_RETENTION_DAYS = 30
 WINDOWS_EVENT_LOGS_RETENTION_DAYS = 14
 APP_LOGS_RETENTION_DAYS = 14
 
-POLL_INTERVAL_SECONDS = 5
-_TABLE_BY_LOG_TYPE = {
-    "app": "app_logs",
-    "process": "process_logs",
-    "windows-event": "windows_event_logs",
-}
+# O endpoint de streaming (GET /api/logs/stream) saiu daqui -- agora vive
+# em stream_asgi.py, como ASGI nativo, e e' desviado pra la' direto no
+# app.py antes de chegar no Flask. Ver o docstring de stream_asgi.py
+# pra entender por que (a versao antiga, com time.sleep() dentro de um
+# generator WSGI, prendia uma thread inteira do servidor por sessao).
 
-@logs_bp.route("/api/logs/stream")
+@logs_bp.route("/api/logs/counts")
 @require_auth
-def stream_logs():
-    return Response(_generate_log_update_stream(), mimetype="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
-
-def _generate_log_update_stream():
+def counts():
     conn = get_connection()
     conn_ok = True
 
-    last_seen_ids = {}
-
     try:
         with conn.cursor() as cur:
-            for log_type, table in _TABLE_BY_LOG_TYPE.items():
-                cur.execute(f"""
-                    SELECT COALESCE(MAX(id), 0) FROM optsislog.{table}
-                """)
-                last_seen_ids[log_type] = cur.fetchone()[0]
-
-            while True:
-                    time.sleep(POLL_INTERVAL_SECONDS)
-                    counts = {}
-                    for log_type, table in _TABLE_BY_LOG_TYPE.items():
-                        query = f"""SELECT COUNT(*) FROM optsislog.{table} WHERE id > %s"""
-                        cur.execute(query, [last_seen_ids[log_type]])
-                        counts[log_type] = cur.fetchone()[0]
-
-                    if any(counts.values()):
-                        yield f"data: {json.dumps(counts)}\n\n"
-                        for log_type, table in _TABLE_BY_LOG_TYPE.items():
-                            cur.execute(f"SELECT COALESCE(MAX(id), 0) FROM optsislog.{table}")
-                            last_seen_ids[log_type] = cur.fetchone()[0]
-                    else:
-                        yield ": keep-alive\n\n"
+            cur.execute("""
+            SELECT
+                (SELECT COUNT(*) FROM optsislog.process_logs) as backup,
+                (SELECT COUNT(*) FROM optsislog.windows_event_logs) as windows,
+                (SELECT COUNT(*) FROM optsislog.app_logs) as app
+            """)
+            row = cur.fetchone()
+            return jsonify({
+                "process": row[0],
+                "windows-event": row[1],
+                "app": row[2]
+            })
     except Exception as e:
         conn_ok = False
-        print(f"stream de logs quebrou: {e}")
+        return jsonify({"error": str(e)}), 500
     finally:
         release_connection(conn, is_healthy=conn_ok)
 

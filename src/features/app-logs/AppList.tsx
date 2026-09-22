@@ -4,7 +4,6 @@ import { PageHeader } from "../../components/PageHeader";
 import { AppLogFilters } from "./components/AppLogFilters";
 import { LogTable } from "../../components/LogTable";
 import { ErrorState } from "../../components/Error";
-import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { getMapper } from "../../lib/data/LogMapperRegistry";
 import { AppLog } from "../../lib/types/Log";
@@ -15,6 +14,7 @@ import { AppLogDetailsModal } from "./components/AppLogDetailsModal";
 export function AppList({
 	logs,
 	progress,
+	apiProgress,
 	reload,
 	fileInputRef,
 	handleChange,
@@ -103,6 +103,8 @@ export function AppList({
 							: `${filteredLogs.length.toLocaleString("pt-BR")} de ${appLogs.length.toLocaleString("pt-BR")} registros`
 					}
 					spacing="compact"
+					staticProgress={progress}
+					apiProgress={apiProgress}
 				>
 					<input
 						ref={fileInputRef}
@@ -120,9 +122,6 @@ export function AppList({
 					</button>
 				</PageHeader>
 
-				{progress.isLoading && (
-					<ProgressBar percent={progress.percentComplete} marginBottom={0} />
-				)}
 				{progress.error && <ErrorState message={progress.error} />}
 
 				{!progress.error && (

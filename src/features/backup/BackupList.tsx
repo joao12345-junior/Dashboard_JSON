@@ -4,7 +4,6 @@ import { PageHeader } from "../../components/PageHeader";
 import { LogFilters } from "../../components/LogFilter";
 import { LogTable } from "../../components/LogTable";
 import { ErrorState } from "../../components/Error";
-import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { getMapper } from "../../lib/data/LogMapperRegistry";
 import { ProcessLog } from "../../lib/types/Log";
@@ -15,6 +14,7 @@ import type { SharedPageProps } from "../../App";
 export function ProcessList({
 	logs,
 	progress,
+	apiProgress,
 	reload,
 	fileInputRef,
 	handleChange,
@@ -106,6 +106,8 @@ export function ProcessList({
 							: `${filteredLogs.length.toLocaleString("pt-BR")} de ${processLogs.length.toLocaleString("pt-BR")} registros`
 					}
 					spacing="compact"
+					staticProgress={progress}
+					apiProgress={apiProgress}
 				>
 					<input
 						ref={fileInputRef}
@@ -123,9 +125,6 @@ export function ProcessList({
 					</button>
 				</PageHeader>
 
-				{progress.isLoading && (
-					<ProgressBar percent={progress.percentComplete} marginBottom={0} />
-				)}
 				{progress.error && <ErrorState message={progress.error} />}
 
 				{!progress.error && (

@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { useProcessStats } from "./useProcessStats";
 import { PageHeader } from "../../components/PageHeader";
 import { ErrorState } from "../../components/Error";
-import { ProgressBar } from "../../components/ProgressBar";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { ProcessKpiCards } from "./components/ProcessKpiCards";
 import { DailyBarChart } from "../../components/charts/DailyBarChart";
@@ -14,6 +13,7 @@ import type { SharedPageProps } from "../../App";
 export function ProcessDashboard({
 	logs,
 	progress,
+	apiProgress,
 	reload,
 	fileInputRef,
 	handleChange,
@@ -46,6 +46,8 @@ export function ProcessDashboard({
 						: `${processLogs.length.toLocaleString("pt-BR")} logs de backup`
 				}
 				spacing="dense"
+				staticProgress={progress}
+				apiProgress={apiProgress}
 			>
 				<input
 					ref={fileInputRef}
@@ -69,7 +71,6 @@ export function ProcessDashboard({
 				</button>
 			</PageHeader>
 
-			{progress.isLoading && <ProgressBar percent={progress.percentComplete} />}
 			{progress.error && <ErrorState message={progress.error} />}
 
 			{!progress.error && (

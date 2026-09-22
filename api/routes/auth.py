@@ -19,14 +19,19 @@ WINDOW_SECONDS = 300
 
 auth_bp = Blueprint("auth", __name__)
 
+from config import IS_DEV
+
 REFRESH_COOKIE_NAME = "logdash_refresh"
 REFRESH_TOKEN_DAYS = int(os.getenv("REFRESH_TOKEN_DAYS", "30"))
 ACCESS_TOKEN_MINUTES = int(os.getenv("ACCESS_TOKEN_MINUTES", "60"))
-# Em produção atrás de HTTPS isso precisa virar "true" no .env. Enquanto o
-# LogDash roda só em HTTP dentro da VPN (servidor 201), tem que ficar "false" —
-# um cookie Secure nunca é devolvido pelo navegador em conexão HTTP puro,
-# e o refresh simplesmente nunca funcionaria, silenciosamente.
-COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
+# Antes isso era uma env var independente (COOKIE_SECURE no .env), e ficou
+# dessincronizada quando o servidor passou a rodar com TLS de verdade (o
+# .env continuou "false" mesmo com HTTPS no ar -- o cookie funcionou do
+# mesmo jeito, so' sem a protecao Secure que deveria ter). Agora deriva
+# direto do mesmo IS_DEV que decide, em app.py, se o servidor sobe em
+# HTTP puro (Flask dev server) ou HTTPS (hypercorn) -- as duas coisas
+# nao tem como ficar fora de sincronia de novo, porque sao a mesma fonte.
+COOKIE_SECURE = not IS_DEV
 
 def _is_rate_limited(username: str) -> bool:
     now = time.time()
