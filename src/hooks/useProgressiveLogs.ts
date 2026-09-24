@@ -36,6 +36,7 @@ interface UseProgressiveLogsReturn {
 	reload: () => void;
 	clearManual: () => void;
 	fetchNewData: () => Promise<void>;
+	fetchError: string | null;
 	apiProgress: ApiLoadProgress;
 }
 
@@ -92,6 +93,16 @@ export function useProgressiveLogs(
 	const [apiLogs, setApiLogs] = useState<Log[]>([]);
 	const [apiProgress, setApiProgress] =
 		useState<ApiLoadProgress>(EMPTY_API_PROGRESS);
+	const [fetchError, setFetchError] = useState<string | null>(null);
+	const initialLoadDoneRef = useRef(false);
+	const isFetchingRef = useRef(false);
+	const pendingRef = useRef(false);
+	const reloadEpochRef = useRef(0);
+	const maxIdRef = useRef<Record<Log["logType"], number>>({
+		process: 0,
+		"windows-event": 0,
+		app: 0,
+	});
 
 	const reloadTick = useRef(0);
 	const [tick, setTick] = useState(0);
@@ -99,9 +110,12 @@ export function useProgressiveLogs(
 	const reload = useCallback(() => {
 		reloadTick.current += 1;
 		setTick((t) => t + 1);
+		reloadEpochRef.current += 1;
 		setStaticLogs([]);
 		setManualLogs([]);
 		setApiLogs([]);
+		maxIdRef.current = { process: 0, "windows-event": 0, app: 0 };
+		initialLoadDoneRef.current = false;
 	}, []);
 
 	const clearManual = useCallback(() => {
@@ -322,6 +336,11 @@ export function useProgressiveLogs(
 							if (cancelled) return;
 							loadedRecords += batch.logs.length;
 							setApiLogs((prev) => [...prev, ...batch.logs]);
+							for (const log of batch.logs) {
+								if (log.id > maxIdRef.current[log.logType]) {
+									maxIdRef.current[log.logType] = log.id;
+								}
+							}
 							setApiProgress((prev) => ({
 								...prev,
 								loadedRecords,
@@ -344,6 +363,7 @@ export function useProgressiveLogs(
 				}
 
 				if (!cancelled) {
+					initialLoadDoneRef.current = true;
 					setApiProgress((prev) => ({
 						...prev,
 						isLoading: false,
@@ -372,31 +392,61 @@ export function useProgressiveLogs(
 	}, [tick, isAuthenticated]);
 
 	const fetchNewData = useCallback(async () => {
-		const config = loadApiConfig();
-		if (!config.enabled) return;
-		if (!isAuthenticated) return;
-
-		const maxIdFor = (type: string): number =>
-			apiLogs
-				.filter((l) => l.logType === type)
-				.reduce((max, l) => Math.max(max, l.id), 0);
-
-		const types: Array<Log["logType"]> = ["process", "windows-event", "app"];
-
-		const pending = types.filter((type) => maxIdFor(type) > 0);
-		if (pending.length === 0) return;
-
-		const batches = await Promise.all(
-			pending.map((type) =>
-				LogRepository.fetchNewFromAPI(type, config.api, maxIdFor(type)),
-			),
-		);
-
-		const newLogs = batches.flat();
-		if (newLogs.length > 0) {
-			setApiLogs((prev) => [...prev, ...newLogs]);
+		if (isFetchingRef.current) {
+			pendingRef.current = true;
+			return;
 		}
-	}, [apiLogs, isAuthenticated]);
+		isFetchingRef.current = true;
+		const epochAtStart = reloadEpochRef.current;
+
+		try {
+			const config = loadApiConfig();
+			if (!config.enabled || !isAuthenticated) return;
+			if (!initialLoadDoneRef.current) return;
+
+			const types: Array<Log["logType"]> = ["process", "windows-event", "app"];
+
+			let batches: Log[][];
+			try {
+				batches = await Promise.all(
+					types.map((type) =>
+						LogRepository.fetchNewFromAPI(
+							type,
+							config.api,
+							maxIdRef.current[type],
+						),
+					),
+				);
+			} catch (err: unknown) {
+				if (reloadEpochRef.current === epochAtStart) {
+					setFetchError(
+						err instanceof Error ? err.message : "Erro ao buscar dados novos",
+					);
+				}
+				return;
+			}
+
+			if (reloadEpochRef.current !== epochAtStart) return;
+
+			setFetchError(null);
+
+			const newLogs = batches.flat();
+			if (newLogs.length > 0) {
+				setApiLogs((prev) => [...prev, ...newLogs]);
+				for (const log of newLogs) {
+					if (log.id > maxIdRef.current[log.logType]) {
+						maxIdRef.current[log.logType] = log.id;
+					}
+				}
+			}
+		} finally {
+			isFetchingRef.current = false;
+			if (pendingRef.current) {
+				pendingRef.current = false;
+				fetchNewData();
+			}
+		}
+	}, [isAuthenticated]);
 
 	const logs = useMemo(
 		() => [...staticLogs, ...manualLogs, ...apiLogs],
@@ -414,6 +464,7 @@ export function useProgressiveLogs(
 		clearManual,
 		fetchNewData,
 		apiProgress,
+		fetchError,
 	};
 }
 

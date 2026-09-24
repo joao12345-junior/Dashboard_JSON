@@ -25,6 +25,7 @@ export function NotificationPreferenceProvider({
 	);
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- mesmo padrão de useAuth.tsx/useTheme.tsx: Provider + hook num arquivo só
 export function useNotificationPreferenceContext(): NotificationPreferenceContextValue {
 	const context = useContext(NotificationPreferenceContext);
 	if (context === undefined) throw new Error("contexto usado fora do Provider");

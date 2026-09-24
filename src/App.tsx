@@ -23,7 +23,11 @@ import { Settings } from "./features/settings/settingsPage";
 import { AppDashboard } from "./features/app-logs/AppDashboard";
 import { AppList } from "./features/app-logs/AppList";
 
-import type { LoadProgress, DebugInfo, ApiLoadProgress } from "./hooks/useProgressiveLogs";
+import type {
+	LoadProgress,
+	DebugInfo,
+	ApiLoadProgress,
+} from "./hooks/useProgressiveLogs";
 import type { Log } from "./lib/types/Log";
 import { START_STATUS } from "./lib/Variables";
 import type { SiteData } from "./features/site/hooks/useSiteData";
@@ -31,6 +35,7 @@ import type { SiteData } from "./features/site/hooks/useSiteData";
 import { LoadingState } from "./components/Loading";
 import { Sidebar } from "./components/Sidebar";
 import { useWindowSize } from "./hooks/useWindowSize";
+import { useBannerPreferenceContext } from "./context/BannerPreferenceContext";
 
 export type Page =
 	| "home"
@@ -178,11 +183,24 @@ function AppContent() {
 		debug,
 		reload,
 		fetchNewData,
+		fetchError,
 	} = useProgressiveLogs(logFiles, isAuthenticated, page);
 
 	const siteData = useSiteData();
 	const { hasNewData, dismiss, acknowledge, counts } = useNewDataDetector();
 	const { enabled: notificationsEnabled } = useNotificationPreferenceContext();
+	const { enabled: bannerEnabled } = useBannerPreferenceContext();
+
+	// Modo automático: banner desligado + chegou dado novo -> atualiza sozinho,
+	// sem esperar clique. O guard de bannerEnabled é o que decide entre os dois
+	// modos -- o resto (hasNewData, acknowledge, fetchNewData) já existia.
+	useEffect(() => {
+		if (bannerEnabled) return;
+		if (!hasNewData) return;
+
+		acknowledge();
+		fetchNewData();
+	}, [bannerEnabled, hasNewData, acknowledge, fetchNewData]);
 
 	// Dispara notificação nativa quando chega dado novo e o usuário optou por
 	// receber notificações. Não dispara no reset (dismiss/acknowledge zera
@@ -214,6 +232,14 @@ function AppContent() {
 			// sessionStorage indisponivel -- degrada graciosamente, sem persistencia
 		}
 	}, [page]);
+
+	// Falha ao buscar dados novos (rede caiu, backend fora do ar) -- sem isso
+	// o usuário nunca saberia que o modo automático parou de atualizar.
+	useEffect(() => {
+		if (!fetchError) return;
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- toast reage à conclusão (com erro) de um fetch assíncrono externo, não é estado derivável durante o render
+		setToastMessage(`Falha ao buscar dados novos: ${fetchError}`);
+	}, [fetchError]);
 
 	useEffect(() => {
 		if (!progress.isDone) return;
@@ -300,7 +326,7 @@ function AppContent() {
 				{renderPage()}
 			</div>
 			<Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
-			{hasNewData && (
+			{bannerEnabled && hasNewData && (
 				<NewDataBanner
 					onRefresh={() => {
 						acknowledge();
