@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 const BANNER_KEY_LOCALSTORAGE = "logdash:newDataBanner:enabled";
 
 function readInitial(): boolean {
-	return localStorage.getItem(BANNER_KEY_LOCALSTORAGE) !== "true";
+	return localStorage.getItem(BANNER_KEY_LOCALSTORAGE) !== "false";
 }
 
 export function useBannerPreference() {
