@@ -10,11 +10,13 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+import re
 
 import psycopg2
 from dotenv import load_dotenv
 
 MIGRATIONS_DIR = Path(__file__).parent
+MIGRATION_NAME_RE = re.compile(r"^\d{3}_.*\.sql$")
 load_dotenv(MIGRATIONS_DIR.parent / ".env")
 
 
@@ -59,7 +61,10 @@ def get_applied_migrations(conn) -> set[str]:
 
 
 def get_pending_migrations(applied: set[str]) -> list[Path]:
-    all_files = sorted(MIGRATIONS_DIR.glob("*.sql"))
+    all_files = sorted(
+        f for f in MIGRATIONS_DIR.glob("*.sql")
+        if MIGRATION_NAME_RE.match(f.name)
+    )
     return [f for f in all_files if f.name not in applied]
 
 

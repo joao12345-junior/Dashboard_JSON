@@ -61,9 +61,27 @@ if __name__ == "__main__":
         # stream_asgi.py para o custo dessa abordagem (CORS e auth
         # duplicados fora do Flask so' pra essa rota).
         from stream_asgi import stream_logs_asgi, STREAM_PATH
+        import notify_listener
+
+        async def _handle_lifespan(scope, receive, send) -> None:
+            # Hypercorn manda esses eventos automaticamente no boot e no
+            # encerramento do processo -- e' o unico hook confiavel pra
+            # abrir/fechar a conexao de LISTEN uma vez so', fora do ciclo
+            # de vida de qualquer request individual.
+            while True:
+                message = await receive()
+                if message["type"] == "lifespan.startup":
+                    notify_listener.start(asyncio.get_running_loop())
+                    await send({"type": "lifespan.startup.complete"})
+                elif message["type"] == "lifespan.shutdown":
+                    notify_listener.stop()
+                    await send({"type": "lifespan.shutdown.complete"})
+                    return
 
         async def routed_asgi_app(scope, receive, send):
-            if scope["type"] == "http" and scope["path"] == STREAM_PATH:
+            if scope["type"] == "lifespan":
+                await _handle_lifespan(scope, receive, send)
+            elif scope["type"] == "http" and scope["path"] == STREAM_PATH:
                 await stream_logs_asgi(scope, receive, send)
             else:
                 await wsgi_asgi_app(scope, receive, send)

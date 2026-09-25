@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict NsdPA5Oa47Be9CDsunXkLhv1VUq0iaEE0I9FumdQI6AIN7bkKSLOqDH58o20tL5
+\restrict z4FeUp98eXMma9iSyKKQzwePQCKyw5ovv2GTg0N0jKLMZq6d7oqrV2VZdeSh2Pk
 
 -- Dumped from database version 13.20
 -- Dumped by pg_dump version 18.6
@@ -63,6 +63,31 @@ $$;
 
 
 ALTER FUNCTION optsislog.cleanup_refresh_tokens() OWNER TO optare3;
+
+--
+-- Name: notify_log_inserted(); Type: FUNCTION; Schema: optsislog; Owner: optare3
+--
+
+CREATE FUNCTION optsislog.notify_log_inserted() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    row_count INTEGER;
+    log_type TEXT := TG_ARGV[0];
+BEGIN
+    SELECT COUNT(*) INTO row_count FROM inserted_rows;
+
+    PERFORM pg_notify(
+        'log_inserted',
+        json_build_object('log_type', log_type, 'count', row_count)::text
+    );
+
+    RETURN NULL;
+END;
+$$;
+
+
+ALTER FUNCTION optsislog.notify_log_inserted() OWNER TO optare3;
 
 SET default_tablespace = '';
 
@@ -558,6 +583,27 @@ CREATE INDEX ix_refresh_tokens_token_hash ON optsislog.refresh_tokens USING btre
 
 
 --
+-- Name: app_logs app_logs_notify; Type: TRIGGER; Schema: optsislog; Owner: optare3
+--
+
+CREATE TRIGGER app_logs_notify AFTER INSERT ON optsislog.app_logs REFERENCING NEW TABLE AS inserted_rows FOR EACH STATEMENT EXECUTE FUNCTION optsislog.notify_log_inserted('app');
+
+
+--
+-- Name: process_logs process_logs_notify; Type: TRIGGER; Schema: optsislog; Owner: optare3
+--
+
+CREATE TRIGGER process_logs_notify AFTER INSERT ON optsislog.process_logs REFERENCING NEW TABLE AS inserted_rows FOR EACH STATEMENT EXECUTE FUNCTION optsislog.notify_log_inserted('process');
+
+
+--
+-- Name: windows_event_logs windows_event_logs_notify; Type: TRIGGER; Schema: optsislog; Owner: optare3
+--
+
+CREATE TRIGGER windows_event_logs_notify AFTER INSERT ON optsislog.windows_event_logs REFERENCING NEW TABLE AS inserted_rows FOR EACH STATEMENT EXECUTE FUNCTION optsislog.notify_log_inserted('windows-event');
+
+
+--
 -- Name: site_availability site_availability_monitored_url_id_fkey; Type: FK CONSTRAINT; Schema: optsislog; Owner: optare3
 --
 
@@ -569,5 +615,5 @@ ALTER TABLE ONLY optsislog.site_availability
 -- PostgreSQL database dump complete
 --
 
-\unrestrict NsdPA5Oa47Be9CDsunXkLhv1VUq0iaEE0I9FumdQI6AIN7bkKSLOqDH58o20tL5
+\unrestrict z4FeUp98eXMma9iSyKKQzwePQCKyw5ovv2GTg0N0jKLMZq6d7oqrV2VZdeSh2Pk
 

@@ -103,6 +103,8 @@ export function useProgressiveLogs(
 		"windows-event": 0,
 		app: 0,
 	});
+	const currentPageRef = useRef(currentPage);
+	currentPageRef.current = currentPage;
 
 	const reloadTick = useRef(0);
 	const [tick, setTick] = useState(0);
@@ -316,18 +318,16 @@ export function useProgressiveLogs(
 
 				let loadedRecords = 0;
 
-				const priorityType = pageToLogType(currentPage ?? "home");
+				const remainingTypes: Array<Log["logType"]> = [...types];
+				while (remainingTypes.length > 0) {
+					if (cancelled) return;
 
-				const orderedTypes = priorityType
-					? [priorityType, ...types.filter((t) => t !== priorityType)]
-					: types;
-
-				// Sequencial (não Promise.all): as 3 chamadas concorrentes disputariam
-				// o mesmo pool de conexões do backend, e o progresso relatado ficaria
-				// embaralhado -- não daria pra saber qual tipo está em qual %. Um tipo
-				// de cada vez mantém o progresso simples e previsível.
-				for (const type of orderedTypes) {
-					if (cancelled) break;
+					const priorityType = pageToLogType(currentPageRef.current ?? "home");
+					const priorityIndex = priorityType
+						? remainingTypes.indexOf(priorityType)
+						: -1;
+					const nextIndex = priorityIndex >= 0 ? priorityIndex : 0;
+					const [type] = remainingTypes.splice(nextIndex, 1);
 
 					await LogRepository.fetchProgressivelyFromApi(
 						type,

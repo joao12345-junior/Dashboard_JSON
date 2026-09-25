@@ -34,17 +34,11 @@ app.py/flask_cors.
 import asyncio
 import json
 
+import notify_listener
 from config import ALLOWED_ORIGINS
-from db import get_connection, release_connection
 from routes.auth import verify_token
 
-POLL_INTERVAL_SECONDS = 5
-_TABLE_BY_LOG_TYPE = {
-    "app": "app_logs",
-    "process": "process_logs",
-    "windows-event": "windows_event_logs",
-}
-
+KEEPALIVE_INTERVAL_SECONDS = 30
 STREAM_PATH = "/api/logs/stream"
 
 
@@ -120,50 +114,25 @@ async def _run_stream(send) -> None:
     """Mesma logica de negocio do generator Flask original -- so' que
     com sleep assincrono e queries delegadas pra thread apenas durante
     a execucao delas, nao durante a espera entre polls."""
-    conn = await asyncio.to_thread(get_connection)
-    conn_ok = True
+    queue = notify_listener.register_client()
     try:
-        def _fetch_max_ids():
-            with conn.cursor() as cur:
-                ids = {}
-                for log_type, table in _TABLE_BY_LOG_TYPE.items():
-                    cur.execute(f"SELECT COALESCE(MAX(id), 0) FROM optsislog.{table}")
-                    ids[log_type] = cur.fetchone()[0]
-                return ids
-
-        last_seen_ids = await asyncio.to_thread(_fetch_max_ids)
-
         while True:
-            await asyncio.sleep(POLL_INTERVAL_SECONDS)
-
-            def _poll_counts():
-                counts = {}
-                with conn.cursor() as cur:
-                    for log_type, table in _TABLE_BY_LOG_TYPE.items():
-                        cur.execute(
-                            f"SELECT COUNT(*) FROM optsislog.{table} WHERE id > %s",
-                            [last_seen_ids[log_type]],
-                        )
-                        counts[log_type] = cur.fetchone()[0]
-                return counts
-
-            counts = await asyncio.to_thread(_poll_counts)
-
-            if any(counts.values()):
-                payload = f"data: {json.dumps(counts)}\n\n".encode("utf-8")
-                await send({"type": "http.response.body", "body": payload, "more_body": True})
-                last_seen_ids = await asyncio.to_thread(_fetch_max_ids)
-            else:
+            try:
+                payload = await asyncio.wait_for(queue.get(), timeout=KEEPALIVE_INTERVAL_SECONDS)
+            except asyncio.TimeoutError:
                 await send({"type": "http.response.body", "body": b": keep-alive\n\n", "more_body": True})
+                continue
+
+            counts = {"process": 0, "app": 0, "windows-event": 0}
+            counts[payload["log_type"]] = payload["count"]
+
+            data = f"data: {json.dumps(counts)}\n\n".encode("utf-8")
+            await send({"type": "http.response.body", "body": data, "more_body": True})
     except Exception as e:
-        conn_ok = False
         print(f"stream de logs quebrou: {e}")
     finally:
-        # asyncio.to_thread aqui tambem, mesmo dentro de um finally
-        # disparado por cancelamento -- ver nota no docstring do modulo
-        # sobre cancelamento cooperativo em pontos de await.
-        await asyncio.to_thread(release_connection, conn, is_healthy=conn_ok)
-        print(f"stream de logs: conexao do pool liberada (saudavel={conn_ok})")
+        notify_listener.unregister_client(queue)
+        print(f"stream de logs: cliente removido do listener")
 
 
 async def stream_logs_asgi(scope, receive, send) -> None:
