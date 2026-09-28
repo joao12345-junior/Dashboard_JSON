@@ -8,7 +8,6 @@ import { useFileUpload } from "./hooks/useFileUpload";
 import { Toast } from "./components/Toast";
 import { useSiteData } from "./features/site/hooks/useSiteData";
 import { useNewDataDetector } from "./hooks/useNewDataDetector";
-import { NewDataBanner } from "./components/NewDataBanner";
 import { useNotificationPreferenceContext } from "./context/NotificationPreferenceContext";
 import { notifyNewLogs } from "./lib/notifyNewLogs";
 
@@ -35,7 +34,6 @@ import type { SiteData } from "./features/site/hooks/useSiteData";
 import { LoadingState } from "./components/Loading";
 import { Sidebar } from "./components/Sidebar";
 import { useWindowSize } from "./hooks/useWindowSize";
-import { useBannerPreferenceContext } from "./context/BannerPreferenceContext";
 
 export type Page =
 	| "home"
@@ -187,20 +185,18 @@ function AppContent() {
 	} = useProgressiveLogs(logFiles, isAuthenticated, page);
 
 	const siteData = useSiteData();
-	const { hasNewData, dismiss, acknowledge, counts } = useNewDataDetector();
+	const { hasNewData, acknowledge, counts } = useNewDataDetector();
 	const { enabled: notificationsEnabled } = useNotificationPreferenceContext();
-	const { enabled: bannerEnabled } = useBannerPreferenceContext();
 
-	// Modo automático: banner desligado + chegou dado novo -> atualiza sozinho,
-	// sem esperar clique. O guard de bannerEnabled é o que decide entre os dois
-	// modos -- o resto (hasNewData, acknowledge, fetchNewData) já existia.
+	// Atualização automática: chegou dado novo (via stream) -> atualiza sozinho,
+	// sem intervenção do usuário. O banner de confirmação manual foi removido
+	// (decisão de 2026-09-28) -- esse é o único modo que existe agora.
 	useEffect(() => {
-		if (bannerEnabled) return;
 		if (!hasNewData) return;
 
 		acknowledge();
 		fetchNewData();
-	}, [bannerEnabled, hasNewData, acknowledge, fetchNewData]);
+	}, [hasNewData, acknowledge, fetchNewData]);
 
 	// Dispara notificação nativa quando chega dado novo e o usuário optou por
 	// receber notificações. Não dispara no reset (dismiss/acknowledge zera
@@ -326,16 +322,6 @@ function AppContent() {
 				{renderPage()}
 			</div>
 			<Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
-			{bannerEnabled && hasNewData && (
-				<NewDataBanner
-					onRefresh={() => {
-						acknowledge();
-						fetchNewData();
-					}}
-					onDismiss={dismiss}
-					counts={counts}
-				/>
-			)}
 		</>
 	);
 }

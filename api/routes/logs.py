@@ -50,33 +50,6 @@ def counts():
     finally:
         release_connection(conn, is_healthy=conn_ok)
 
-@logs_bp.route("/api/logs/last-activity")
-@require_auth
-def last_activity():
-    conn = get_connection()
-    connection_ok = True
-    try:
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT
-                    (SELECT MAX(created_at) FROM optsislog.process_logs) as backup,
-                    (SELECT MAX(created_at) FROM optsislog.windows_event_logs) as windows,
-                    (SELECT MAX(checked_at) FROM optsislog.site_availability) as site,
-                    (SELECT MAX(coletado_em) FROM optsislog.app_logs) as app
-            """)
-            row = cur.fetchone()
-            return jsonify({
-                "backup": row[0].isoformat() if row[0] else None,
-                "windows": row[1].isoformat() if row[1] else None,
-                "site": row[2].isoformat() if row[2] else None,
-                "app": row[3].isoformat() if row[3] else None,
-            }), 200
-    except Exception as e:
-        connection_ok = False
-        return jsonify({"error": str(e)}), 500
-    finally:
-        release_connection(conn, is_healthy=connection_ok)
-
 @logs_bp.route("/api/logs/cleanup", methods=["POST"])
 @require_sync_key
 def cleanup_logs():

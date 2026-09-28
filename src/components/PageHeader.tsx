@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { ThemeToggleButton } from "./ThemeButton";
 import { NotificationToggleButton } from "./NotificationToggleButton";
 import { ProgressBar } from "./ProgressBar";
-import { BannerToggleButton } from "./BannerToggleButton";
 
 interface HeaderProgressState {
 	isLoading: boolean;
@@ -120,7 +119,6 @@ export function PageHeader({
 					{leadingControls}
 					<ThemeToggleButton />
 					<NotificationToggleButton />
-					<BannerToggleButton />
 					{children}
 				</div>
 			</div>

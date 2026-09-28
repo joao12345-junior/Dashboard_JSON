@@ -60,6 +60,11 @@ export function LogTable({
 		(col) => !col.hideOnMobile || !isMobile,
 	);
 
+	// TanStack Virtual retorna funções novas a cada render (getScrollElement,
+	// etc.) -- o React Compiler não consegue memoizar isso com segurança e
+	// avisa (warning, não erro). É limitação conhecida da biblioteca, não
+	// um problema deste componente.
+	// eslint-disable-next-line react-hooks/incompatible-library
 	const virtualizer = useVirtualizer({
 		count: logs.length,
 		getScrollElement: () => parentRef.current,
