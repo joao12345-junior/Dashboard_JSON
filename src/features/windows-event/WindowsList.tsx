@@ -9,6 +9,9 @@ import { WindowsEventLog } from "../../lib/types/Log";
 import { inputStyle } from "../../lib/styles/inputStyles";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { SharedPageProps } from "../../App";
+import { usePagination } from "../../hooks/usePagination";
+import { MAX_PAGES, PAGE_SIZE } from "../../lib/Variables";
+import { Pagination } from "../../components/Pagination";
 
 export function WindowsList({
 	logs,
@@ -67,6 +70,9 @@ export function WindowsList({
 			);
 	}, [windowsLogs, windowsFilters]);
 
+	const { pageItems, currentPage, totalPages, totalConsidered, setPage } =
+		usePagination(filteredLogs, PAGE_SIZE, MAX_PAGES, windowsFilters);
+
 	const columns = useMemo(() => getMapper("windows-event").columns ?? [], []);
 
 	return (
@@ -95,7 +101,9 @@ export function WindowsList({
 					subtitle={
 						progress.isLoading
 							? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
-							: `${filteredLogs.length.toLocaleString("pt-BR")} de ${windowsLogs.length.toLocaleString("pt-BR")} eventos`
+							: filteredLogs.length > totalConsidered
+								? `${totalConsidered.toLocaleString("pt-BR")} de ${filteredLogs.length.toLocaleString("pt-BR")} encontrados (limite de exibição atingido)`
+								: `${totalConsidered.toLocaleString("pt-BR")} de ${windowsLogs.length.toLocaleString("pt-BR")} registros`
 					}
 					spacing="compact"
 					staticProgress={progress}
@@ -116,7 +124,6 @@ export function WindowsList({
 						↺ Recarregar
 					</button>
 				</PageHeader>
-
 
 				{/* Filtros */}
 				<div
@@ -195,7 +202,14 @@ export function WindowsList({
 				{progress.error && <ErrorState message={progress.error} />}
 
 				{!progress.error && (
-					<LogTable logs={filteredLogs} columns={columns} isMobile={isMobile} />
+					<>
+						<LogTable logs={pageItems} columns={columns} isMobile={isMobile} />
+						<Pagination
+							currentPage={currentPage}
+							totalPages={totalPages}
+							onPageChange={setPage}
+						/>
+					</>
 				)}
 			</main>
 		</div>

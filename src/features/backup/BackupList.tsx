@@ -10,6 +10,9 @@ import { ProcessLog } from "../../lib/types/Log";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import { START_STATUS } from "../../lib/Variables";
 import type { SharedPageProps } from "../../App";
+import { usePagination } from "../../hooks/usePagination";
+import { MAX_PAGES, PAGE_SIZE } from "../../lib/Variables";
+import { Pagination } from "../../components/Pagination";
 
 export function ProcessList({
 	logs,
@@ -57,6 +60,9 @@ export function ProcessList({
 			);
 	}, [processLogs, processFilters]);
 
+	const { pageItems, currentPage, totalPages, totalConsidered, setPage } =
+		usePagination(filteredLogs, PAGE_SIZE, MAX_PAGES, processFilters);
+
 	const columns = useMemo(() => getMapper("process").columns ?? [], []);
 
 	return (
@@ -103,7 +109,9 @@ export function ProcessList({
 					subtitle={
 						progress.isLoading
 							? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
-							: `${filteredLogs.length.toLocaleString("pt-BR")} de ${processLogs.length.toLocaleString("pt-BR")} registros`
+							: filteredLogs.length > totalConsidered
+								? `${totalConsidered.toLocaleString("pt-BR")} de ${filteredLogs.length.toLocaleString("pt-BR")} encontrados (limite de exibição atingido)`
+								: `${totalConsidered.toLocaleString("pt-BR")} de ${processLogs.length.toLocaleString("pt-BR")} registros`
 					}
 					spacing="compact"
 					staticProgress={progress}
@@ -144,10 +152,11 @@ export function ProcessList({
 							Ele preenche todo o espaço que sobrou depois do cabeçalho
 							e dos filtros. O scroll é interno — a página não scrolla.
 						*/}
-						<LogTable
-							logs={filteredLogs}
-							columns={columns}
-							isMobile={isMobile}
+						<LogTable logs={pageItems} columns={columns} isMobile={isMobile} />
+						<Pagination
+							currentPage={currentPage}
+							totalPages={totalPages}
+							onPageChange={setPage}
 						/>
 					</>
 				)}

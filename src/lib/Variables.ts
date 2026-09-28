@@ -1,3 +1,5 @@
+// src/lib/Variables.ts
+
 export const START_STATUS = Object.freeze({
 	ALL: "all",
 	STARTED: "started",
@@ -9,3 +11,5 @@ export const INITIAL_FILTERS = Object.freeze({
 	date: "",
 	start: START_STATUS.ALL,
 });
+export const PAGE_SIZE = 100;
+export const MAX_PAGES = 30;

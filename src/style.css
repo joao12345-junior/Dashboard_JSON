@@ -369,3 +369,58 @@ body {
 		margin: 0 0.5rem;
 	}
 }
+
+/*
+ * Pagination.tsx — botoes de numero de pagina.
+ *
+ * :hover de CSS de proposito, nao onMouseEnter/onMouseLeave em JS: a janela
+ * de paginas visiveis se recentraliza a cada clique (ver getVisiblePages),
+ * trocando quais botoes aparecem embaixo do cursor sem ele se mexer
+ * fisicamente. Isso continua causando reflow de proposito (decisao do
+ * Joao: prefere a janela sempre recentralizada a travar o movimento) --
+ * o que da' pra evitar e' o corte seco: fade-in na entrada (pagination-btn-in)
+ * + transicao de cor, pra virar um "pisca" suave em vez de instantaneo.
+ * :hover real (em vez de JS) garante que a cor mostrada sempre bate com a
+ * posicao real do cursor, nunca "gruda" no botao errado.
+ */
+@keyframes pagination-btn-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.pagination-page-btn {
+	width: 32px;
+	height: 32px;
+	border-radius: 6px;
+	border: 1px solid var(--border);
+	background-color: transparent;
+	color: var(--foreground);
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	font-family: inherit;
+	/* Duracao vem do JS (--pagination-transition-ms, setado em Pagination.tsx
+	 * via PAGE_CHANGE_TRANSITION_MS) -- fonte unica pro valor, sem duplicar o
+	 * numero aqui e la (mesma logica do KEEPALIVE_INTERVAL_SECONDS). Fallback
+	 * 100ms caso a custom property nao esteja presente por algum motivo. */
+	transition:
+		background-color var(--pagination-transition-ms, 100ms) ease,
+		color var(--pagination-transition-ms, 100ms) ease;
+	animation: pagination-btn-in var(--pagination-transition-ms, 100ms) ease;
+}
+
+.pagination-page-btn:hover {
+	background-color: var(--accent);
+}
+
+.pagination-page-btn--active,
+.pagination-page-btn--active:hover {
+	background-color: var(--primary);
+	color: var(--primary-foreground);
+	font-weight: 700;
+	cursor: default;
+}

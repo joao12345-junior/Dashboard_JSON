@@ -10,6 +10,9 @@ import { AppLog } from "../../lib/types/Log";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { SharedPageProps } from "../../App";
 import { AppLogDetailsModal } from "./components/AppLogDetailsModal";
+import { usePagination } from "../../hooks/usePagination";
+import { MAX_PAGES, PAGE_SIZE } from "../../lib/Variables";
+import { Pagination } from "../../components/Pagination";
 
 export function AppList({
 	logs,
@@ -75,6 +78,10 @@ export function AppList({
 	}, [appLogs, appFilters]);
 
 	const columns = useMemo(() => getMapper("app").columns ?? [], []);
+
+	const { pageItems, currentPage, totalPages, totalConsidered, setPage } =
+		usePagination(filteredLogs, PAGE_SIZE, MAX_PAGES, appFilters);
+
 	return (
 		<div
 			style={{
@@ -100,7 +107,9 @@ export function AppList({
 					subtitle={
 						progress.isLoading
 							? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
-							: `${filteredLogs.length.toLocaleString("pt-BR")} de ${appLogs.length.toLocaleString("pt-BR")} registros`
+							: filteredLogs.length > totalConsidered
+								? `${totalConsidered.toLocaleString("pt-BR")} de ${filteredLogs.length.toLocaleString("pt-BR")} encontrados (limite de exibição atingido)`
+								: `${totalConsidered.toLocaleString("pt-BR")} de ${appLogs.length.toLocaleString("pt-BR")} registros`
 					}
 					spacing="compact"
 					staticProgress={progress}
@@ -137,7 +146,7 @@ export function AppList({
 							/>
 						</div>
 						<LogTable
-							logs={filteredLogs}
+							logs={pageItems}
 							columns={columns}
 							isMobile={isMobile}
 							showStatusColumn={false}
@@ -147,6 +156,11 @@ export function AppList({
 							isRowClickable={(log) =>
 								log.logType === "app" && Boolean(log.detalhes)
 							}
+						/>
+						<Pagination
+							currentPage={currentPage}
+							totalPages={totalPages}
+							onPageChange={setPage}
 						/>
 						<AppLogDetailsModal
 							log={selectedLog}
