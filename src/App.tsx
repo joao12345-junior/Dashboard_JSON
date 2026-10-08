@@ -98,10 +98,11 @@ export interface WindowsFilterState {
 	levelLabel: string;
 }
 
+export type TypeLog = "debug" | "info" | "aviso" | "erro";
 export interface AppFilterState {
 	message: string;
 	date: string;
-	tipo: "all" | "debug" | "info" | "aviso" | "erro";
+	tipo: TypeLog[];
 	classe: string;
 	programa: string;
 }
@@ -136,6 +137,7 @@ export interface SharedPageProps {
 	appFilters: AppFilterState;
 	onAppFilterUpdate: (key: keyof AppFilterState, value: string) => void;
 	onAppFilterReset: () => void;
+	onAppTypeToggle: (tipo: TypeLog) => void;
 }
 
 const INITIAL_PROCESS_FILTERS: ProcessFilterState = {
@@ -155,7 +157,7 @@ const INITIAL_WINDOWS_FILTERS: WindowsFilterState = {
 const INITIAL_APP_FILTERS: AppFilterState = {
 	message: "",
 	date: "",
-	tipo: "all",
+	tipo: [],
 	classe: "",
 	programa: "all",
 };
@@ -281,6 +283,14 @@ function AppContent() {
 					: { ...prev, [key]: value },
 			),
 		onAppFilterReset: () => setAppFilters(INITIAL_APP_FILTERS),
+		onAppTypeToggle(tipo) {
+			setAppFilters((prev) => ({
+				...prev,
+				tipo: prev.tipo.includes(tipo)
+					? prev.tipo.filter((t) => t !== tipo)
+					: [...prev.tipo, tipo],
+			}));
+		},
 	};
 
 	function renderPage() {

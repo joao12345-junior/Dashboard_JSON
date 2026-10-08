@@ -25,6 +25,7 @@ export function AppList({
 	appFilters,
 	onAppFilterUpdate,
 	onAppFilterReset,
+	onAppTypeToggle,
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
@@ -67,7 +68,9 @@ export function AppList({
 						: log.programa === appFilters.programa;
 				const matchDate = appFilters.date ? log.date === appFilters.date : true;
 				const matchTipo =
-					appFilters.tipo === "all" ? true : log.tipo === appFilters.tipo;
+					appFilters.tipo.length === 0
+						? true
+						: appFilters.tipo.includes(log.tipo);
 				return (
 					matchMessage && matchClasse && matchPrograma && matchDate && matchTipo
 				);
@@ -140,6 +143,7 @@ export function AppList({
 								filters={appFilters}
 								onUpdate={onAppFilterUpdate}
 								onReset={onAppFilterReset}
+								onTypeToggle={onAppTypeToggle}
 								isMobile={isMobile}
 								classesDisponiveis={classesDisponiveis}
 								programasDisponiveis={programasDisponiveis}
