@@ -36,7 +36,7 @@ export function WindowsDashboard({
 		<main
 			style={{
 				flex: 1,
-				padding: isMobile ? "16px" : "32px",
+				padding: isMobile ? "64px 16px 16px" : "32px",
 				overflowY: "auto",
 			}}
 		>

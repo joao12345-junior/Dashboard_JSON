@@ -1,10 +1,13 @@
 interface ErrorStateProps {
 	message: string;
+	/** Se passado, mostra o botão "Tentar de novo". */
+	onRetry?: () => void;
 }
 
-export function ErrorState({ message }: ErrorStateProps) {
+export function ErrorState({ message, onRetry }: ErrorStateProps) {
 	return (
 		<div
+			role="alert"
 			style={{
 				padding: 24,
 				borderRadius: 8,
@@ -15,6 +18,28 @@ export function ErrorState({ message }: ErrorStateProps) {
 			}}
 		>
 			<strong>Erro ao carregar logs:</strong> {message}
+			{onRetry && (
+				<div style={{ marginTop: 12 }}>
+					<button
+						type="button"
+						className="ld-chip"
+						onClick={onRetry}
+						style={{
+							padding: "6px 14px",
+							borderRadius: 6,
+							border: "1px solid currentColor",
+							backgroundColor: "transparent",
+							color: "inherit",
+							fontSize: 12,
+							fontWeight: 600,
+							cursor: "pointer",
+							fontFamily: "inherit",
+						}}
+					>
+						Tentar de novo
+					</button>
+				</div>
+			)}
 		</div>
 	);
 }

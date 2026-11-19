@@ -4,6 +4,7 @@ import { PageHeader } from "../../components/PageHeader";
 import { LogFilters } from "../../components/LogFilter";
 import { LogTable } from "../../components/LogTable";
 import { ErrorState } from "../../components/Error";
+import { getDataStatus } from "../../lib/dataStatus";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { getMapper } from "../../lib/data/LogMapperRegistry";
 import { ProcessLog } from "../../lib/types/Log";
@@ -28,6 +29,11 @@ export function ProcessList({
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
+	const { dataState, percent, error: loadError } = getDataStatus(
+		progress,
+		apiProgress,
+		logs.length,
+	);
 
 	const processLogs = useMemo(
 		() => logs.filter((l): l is ProcessLog => l.logType === "process"),
@@ -95,7 +101,9 @@ export function ProcessList({
 			<main
 				style={{
 					flex: 1,
-					padding: isMobile ? "16px" : "32px",
+					minWidth: 0,
+					// No mobile o botão de menu (fixo, 40px) cobriria o título.
+					padding: isMobile ? "64px 16px 16px" : "32px",
 					display: "flex",
 					flexDirection: "column",
 					gap: 16,
@@ -107,8 +115,8 @@ export function ProcessList({
 				<PageHeader
 					title="Registros — Logs de Backup"
 					subtitle={
-						progress.isLoading
-							? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
+						dataState === "loading"
+							? `Carregando… ${percent}%`
 							: filteredLogs.length > totalConsidered
 								? `${totalConsidered.toLocaleString("pt-BR")} de ${filteredLogs.length.toLocaleString("pt-BR")} encontrados (limite de exibição atingido)`
 								: `${totalConsidered.toLocaleString("pt-BR")} de ${processLogs.length.toLocaleString("pt-BR")} registros`
@@ -133,7 +141,7 @@ export function ProcessList({
 					</button>
 				</PageHeader>
 
-				{progress.error && <ErrorState message={progress.error} />}
+				{loadError && <ErrorState message={loadError} onRetry={reload} />}
 
 				{!progress.error && (
 					<>
@@ -152,7 +160,12 @@ export function ProcessList({
 							Ele preenche todo o espaço que sobrou depois do cabeçalho
 							e dos filtros. O scroll é interno — a página não scrolla.
 						*/}
-						<LogTable logs={pageItems} columns={columns} isMobile={isMobile} />
+						<LogTable
+							logs={pageItems}
+							columns={columns}
+							isMobile={isMobile}
+							loading={dataState === "loading"}
+						/>
 						<Pagination
 							currentPage={currentPage}
 							totalPages={totalPages}

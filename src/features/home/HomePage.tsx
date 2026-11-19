@@ -2,15 +2,21 @@
 import { useHomeStats } from "./usehomeStats";
 import { PageHeader } from "../../components/PageHeader";
 import { ErrorState } from "../../components/Error";
+import { LoadingNotice } from "../../components/LoadingNotice";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { CriticalEventsFeed } from "./components/CriticalEventsFeed";
 import { GlobalKpiRow } from "./components/GlobalKpiRow";
+import { DailyErrorsPanel } from "./components/DailyErrorsPanel";
+import { useDailyErrors } from "./useDailyErrors";
+import { describeLastSeen } from "../../lib/dayOverview";
+import { getDataStatus } from "../../lib/dataStatus";
+import type { ErrorGroup, ErrorSource } from "../../lib/errorGroups";
+import type { Log } from "../../lib/types/Log";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
-import type { SharedPageProps } from "../../App";
+import type { SharedPageProps, TypeLog } from "../../App";
 
 export function HomePage({
 	logs,
-	staticLogs,
 	manualLogs,
 	progress,
 	apiProgress,
@@ -19,11 +25,92 @@ export function HomePage({
 	handleChange,
 	openPicker,
 	onNavigate,
+	onProcessFilterReset,
+	onProcessFilterUpdate,
+	onWindowsFilterReset,
+	onWindowsFilterUpdate,
+	onAppFilterReset,
+	onAppFilterUpdate,
+	onAppTypeToggle,
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
 
 	const stats = useHomeStats(logs);
+	const dailyErrors = useDailyErrors(logs);
+
+	// Enquanto os registros chegam (ou se a API falhou) os totais não são confiáveis.
+	const { dataState, percent, error: loadError } = getDataStatus(
+		progress,
+		apiProgress,
+		logs.length,
+	);
+
+	/**
+	 * Abre a lista da fonte já filtrada. Reseta os filtros antes para não herdar
+	 * um filtro antigo. Compartilhado pelo painel de erros (grupo) e pelos feeds
+	 * (evento individual).
+	 */
+	function openList(target: {
+		source: ErrorSource;
+		date: string;
+		programa?: string | null;
+		classe?: string | null;
+		tipo?: TypeLog;
+		criticality?: "High" | "Medium" | "Low";
+	}) {
+		if (target.source === "app") {
+			onAppFilterReset();
+			onAppFilterUpdate("date", target.date);
+			// "programa" limpa a classe no App.tsx, então vem antes dela.
+			if (target.programa) onAppFilterUpdate("programa", target.programa);
+			if (target.classe) onAppFilterUpdate("classe", target.classe);
+			if (target.tipo) onAppTypeToggle(target.tipo);
+			onNavigate("app-list");
+		} else if (target.source === "windows-event") {
+			onWindowsFilterReset();
+			onWindowsFilterUpdate("date", target.date);
+			if (target.criticality)
+				onWindowsFilterUpdate("criticality", target.criticality);
+			onNavigate("windows-list");
+		} else {
+			onProcessFilterReset();
+			onProcessFilterUpdate("date", target.date);
+			onNavigate("process-list");
+		}
+	}
+
+	function handleOpenErrorGroup(group: ErrorGroup) {
+		openList({
+			source: group.source,
+			date: group.date,
+			programa: group.programa,
+			classe: group.classe,
+			tipo: "erro",
+			criticality: "High",
+		});
+	}
+
+	/** Evento individual: abre a lista no dia dele, na criticidade/tipo dele. */
+	function handleOpenEvent(log: Log) {
+		if (log.logType === "app") {
+			openList({
+				source: "app",
+				date: log.date,
+				programa: log.programa,
+				classe: log.classe,
+				tipo: log.tipo,
+			});
+		} else if (log.logType === "windows-event") {
+			openList({
+				source: "windows-event",
+				date: log.date,
+				criticality: log.criticality === "Unknown" ? undefined : log.criticality,
+			});
+		} else {
+			openList({ source: "process", date: log.date });
+		}
+	}
 
 	return (
 		<div
@@ -46,7 +133,8 @@ export function HomePage({
 			<main
 				style={{
 					flex: 1,
-					padding: isMobile ? "16px" : "24px 32px",
+					// No mobile o botão de menu (Sidebar, fixo em top:16/left:16, 40px) cobriria o título.
+					padding: isMobile ? "64px 16px 16px" : "24px 32px",
 					overflowY: "auto",
 					display: "flex",
 					flexDirection: "column",
@@ -57,11 +145,26 @@ export function HomePage({
 				<PageHeader
 					title="Central de Monitoramento"
 					subtitle={
-						progress.isLoading
-							? `Carregando… ${progress.percentComplete}%`
-							: `${staticLogs.length.toLocaleString("pt-BR")} do servidor · ${manualLogs.length.toLocaleString("pt-BR")} manuais`
+						dataState === "loading"
+							? `Carregando… ${percent}%`
+							: dataState === "error" && logs.length === 0
+								? "Não foi possível carregar os registros"
+								: [
+									`${logs.length.toLocaleString("pt-BR")} registros carregados`,
+									manualLogs.length > 0
+										? `${manualLogs.length.toLocaleString("pt-BR")} manuais`
+										: null,
+									describeLastSeen(
+										dailyErrors.overview.lastSeen.any,
+										dailyErrors.todayIso,
+										dailyErrors.nowTime,
+									),
+								]
+									.filter(Boolean)
+									.join(" · ")
 					}
 					spacing="compact"
+					wrap
 					staticProgress={progress}
 					apiProgress={apiProgress}
 				>
@@ -81,17 +184,32 @@ export function HomePage({
 					</button>
 				</PageHeader>
 
-				{progress.error && <ErrorState message={progress.error} />}
+				{loadError && <ErrorState message={loadError} onRetry={reload} />}
+				{dataState === "loading" && <LoadingNotice percent={percent} />}
 
 				{!progress.error && (
 					<>
 						{/* KPIs */}
 						<GlobalKpiRow
-							totalErrors={stats.totalErrors}
-							totalWarnings={stats.totalWarnings}
-							totalLogs={stats.totalLogs}
+							errors={dailyErrors.overview.errors}
+							warnings={dailyErrors.overview.warnings}
+							lastSeen={dailyErrors.overview.lastSeen}
 							byType={stats.byType}
+							todayIso={dailyErrors.todayIso}
+							nowTime={dailyErrors.nowTime}
+							loading={dataState === "loading"}
 							onNavigate={onNavigate}
+						/>
+
+						{/* Principais erros de hoje e ontem (todos os tipos de log) */}
+						<DailyErrorsPanel
+							today={dailyErrors.today}
+							yesterday={dailyErrors.yesterday}
+							yesterdayUntilNow={dailyErrors.yesterdayUntilNow}
+							nowTime={dailyErrors.nowTime}
+							isMobile={isMobile}
+							dataState={dataState}
+							onOpenGroup={handleOpenErrorGroup}
 						/>
 
 						{/*
@@ -108,29 +226,34 @@ export function HomePage({
 								// funcionem corretamente dentro de um flex container.
 								// Sem isso, o grid pode crescer além da viewport.
 								minHeight: 0,
+								// A main rola (overflow-y: auto); sem flexShrink 0 os feeds eram
+								// espremidos no mobile em vez de empurrar a rolagem.
+								flexShrink: 0,
 							}}
 						>
-							{/* Feed 1 — Críticos */}
 							<CriticalEventsFeed
 								events={stats.criticalEvents}
+								todayIso={dailyErrors.todayIso}
+								isMobile={isMobile}
+								dataState={dataState}
+								onOpenEvent={handleOpenEvent}
 								title="Eventos Críticos"
 								subtitle="Alta criticidade — ação imediata"
 								accentColor="var(--destructive)"
-								tableHeight={380}
-								onNavigate={onNavigate}
+								accentTextColor="var(--destructive-text)"
 							/>
 
-							{/* Feed 2 — Avisos (Médio-Críticos)
-								showSourceFilter=true exibe os botões Todos / Backup / Windows
-							*/}
 							<CriticalEventsFeed
 								events={stats.mediumCriticalEvents}
+								todayIso={dailyErrors.todayIso}
+								isMobile={isMobile}
+								dataState={dataState}
+								onOpenEvent={handleOpenEvent}
 								title="Avisos"
 								subtitle="Criticidade média — requer atenção"
-								accentColor="var(--chart-5)"
-								tableHeight={380}
-								showSourceFilter={true}
-								onNavigate={onNavigate}
+								accentColor="var(--chart-4)"
+								accentTextColor="var(--warning-text)"
+								showSourceFilter
 							/>
 						</div>
 					</>

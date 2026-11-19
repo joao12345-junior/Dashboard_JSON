@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import { START_STATUS } from "../lib/Variables";
 import { LogFilterState } from "../hooks/useLogsFilters";
 import { inputStyle } from "../lib/styles/inputStyles";
@@ -17,6 +17,7 @@ export function LogFilters({
 	onReset,
 	isMobile,
 }: LogFiltersProps) {
+	const uid = useId();
 	const labelStyle: React.CSSProperties = {
 		display: "block",
 		fontSize: 10,
@@ -42,8 +43,9 @@ export function LogFilters({
 			}}
 		>
 			<div>
-				<label style={labelStyle}>Mensagem</label>
+				<label htmlFor={`${uid}-message`} style={labelStyle}>Mensagem</label>
 				<input
+					id={`${uid}-message`}
 					type="text"
 					placeholder="Filtrar por mensagem..."
 					value={filters.message}
@@ -53,8 +55,9 @@ export function LogFilters({
 			</div>
 
 			<div>
-				<label style={labelStyle}>Data</label>
+				<label htmlFor={`${uid}-date`} style={labelStyle}>Data</label>
 				<input
+					id={`${uid}-date`}
 					type="date"
 					value={filters.date}
 					onChange={(e) => onUpdate("date", e.target.value)}
@@ -63,8 +66,9 @@ export function LogFilters({
 			</div>
 
 			<div>
-				<label style={labelStyle}>Status</label>
+				<label htmlFor={`${uid}-status`} style={labelStyle}>Status</label>
 				<select
+					id={`${uid}-status`}
 					value={filters.start}
 					onChange={(e) => onUpdate("start", e.target.value)}
 					style={{ ...inputStyle, cursor: "pointer" }}
@@ -77,6 +81,8 @@ export function LogFilters({
 			</div>
 
 			<button
+				type="button"
+				className="ld-chip"
 				onClick={onReset}
 				onMouseEnter={(e) =>
 					(e.currentTarget.style.backgroundColor = "var(--accent)")

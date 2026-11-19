@@ -1,116 +1,50 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useId } from "react";
 import { inputStyle } from "../../../lib/styles/inputStyles";
 import type { AppFilterState } from "../../../App";
-import type { TypeLog } from "../../../App";
 
 interface AppLogFiltersProps {
 	filters: AppFilterState;
 	onUpdate: (key: keyof AppFilterState, value: string) => void;
 	onReset: () => void;
-	onTypeToggle: (tipo: TypeLog) => void;
 	isMobile: boolean;
 	classesDisponiveis: string[];
 	programasDisponiveis: string[];
-}
-
-function TypeFilterDropdown({
-	selected,
-	onToggle,
-}: {
-	selected: TypeLog[];
-	onToggle: (t: TypeLog) => void;
-}) {
-	const [isOpen, setIsOpen] = useState(false);
-	const containerRef = useRef<HTMLDivElement>(null);
-
-	// Fecha ao clicar fora -- mesma categoria de efeito do useSiteData (sincroniza
-	// com um sistema externo, o DOM/document, não é estado derivável no render).
-	useEffect(() => {
-		if (!isOpen) return;
-		function handleClickOutside(e: MouseEvent) {
-			if (!containerRef.current?.contains(e.target as Node)) setIsOpen(false);
-		}
-		document.addEventListener("mousedown", handleClickOutside);
-		return () => document.removeEventListener("mousedown", handleClickOutside);
-	}, [isOpen]);
-
-	const label =
-		selected.length === 0 ? "Todos" : `${selected.length} selecionado(s)`;
-
-	return (
-		<div ref={containerRef} style={{ position: "relative" }}>
-			<button
-				type="button"
-				onClick={() => setIsOpen((v) => !v)}
-				style={{ ...inputStyle, cursor: "pointer" }}
-			>
-				{label}
-			</button>
-			{isOpen && (
-				<div
-					style={{
-						position: "absolute",
-						top: "calc(100% + 4px)",
-						left: 0,
-						zIndex: 10,
-						display: "flex",
-						flexDirection: "column",
-						gap: 8,
-						minWidth: 140,
-						padding: "10px 12px",
-						backgroundColor: "var(--card)",
-						border: "1px solid var(--border)",
-						borderRadius: 8,
-						boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-						userSelect: "none",
-					}}
-				>
-					{(
-						[
-							"erro",
-							"aviso",
-							"info",
-							"debug",
-						] as const satisfies readonly TypeLog[]
-					).map((tipo) => (
-						<label
-							key={tipo}
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: 6,
-								cursor: "pointer",
-								fontSize: 13,
-								color: "var(--foreground)",
-								textTransform: "capitalize",
-							}}
-						>
-							<input
-								type="checkbox"
-								checked={selected.includes(tipo)}
-								onChange={() => onToggle(tipo)}
-							/>
-							{tipo}
-						</label>
-					))}
-				</div>
-			)}
-		</div>
-	);
 }
 
 export function AppLogFilters({
 	filters,
 	onUpdate,
 	onReset,
-	onTypeToggle,
 	isMobile,
 	classesDisponiveis,
 	programasDisponiveis,
 }: AppLogFiltersProps) {
+	const uid = useId();
+	const ids = {
+		message: `${uid}-message`,
+		programa: `${uid}-programa`,
+		classe: `${uid}-classe`,
+		date: `${uid}-date`,
+	};
+	// O tipo (erro/aviso/info/debug) é filtrado pelos chips acima da lista,
+	// que já mostram a contagem de cada um. Não há campo duplicado aqui.
+	const hasActive =
+		filters.message.trim() !== "" ||
+		filters.programa !== "all" ||
+		filters.classe.trim() !== "" ||
+		filters.date !== "" ||
+		filters.tipo.length > 0;
+	// Altura única: sem isso o <select> e o <input type=date> ficavam com
+	// alturas diferentes e os rótulos desalinhavam (alignItems: end).
+	// Sem "outline: none": o foco visível vem do CSS (.ld-control).
+	const control: React.CSSProperties = {
+		...inputStyle,
+		outline: undefined,
+		height: 36,
+	};
 	const labelStyle: React.CSSProperties = {
 		display: "block",
-		fontSize: 10,
+		fontSize: 11,
 		fontWeight: 700,
 		color: "var(--muted-foreground)",
 		textTransform: "uppercase",
@@ -124,7 +58,7 @@ export function AppLogFilters({
 				display: "grid",
 				gridTemplateColumns: isMobile
 					? "1fr"
-					: "1fr minmax(140px, 160px) minmax(140px, 160px) 140px 140px auto",
+					: "1fr minmax(140px, 160px) minmax(140px, 160px) 150px auto",
 				gap: 12,
 				alignItems: "end",
 				padding: "16px 20px",
@@ -135,22 +69,30 @@ export function AppLogFilters({
 			}}
 		>
 			<div>
-				<label style={labelStyle}>Mensagem</label>
+				<label htmlFor={ids.message} style={labelStyle}>
+					Mensagem
+				</label>
 				<input
+					id={ids.message}
+					className="ld-control"
 					type="text"
-					placeholder="Filtrar por mensagem..."
+					placeholder="Filtrar por mensagem…"
 					value={filters.message}
 					onChange={(e) => onUpdate("message", e.target.value)}
-					style={inputStyle}
+					style={control}
 				/>
 			</div>
 
 			<div>
-				<label style={labelStyle}>Programa</label>
+				<label htmlFor={ids.programa} style={labelStyle}>
+					Programa
+				</label>
 				<select
+					id={ids.programa}
+					className="ld-control"
 					value={filters.programa}
 					onChange={(e) => onUpdate("programa", e.target.value)}
-					style={{ ...inputStyle, cursor: "pointer" }}
+					style={{ ...control, cursor: "pointer" }}
 				>
 					<option value="all">Todos</option>
 					{programasDisponiveis.map((programa) => (
@@ -162,14 +104,18 @@ export function AppLogFilters({
 			</div>
 
 			<div>
-				<label style={labelStyle}>Classe</label>
+				<label htmlFor={ids.classe} style={labelStyle}>
+					Classe
+				</label>
 				<input
+					id={ids.classe}
+					className="ld-control"
 					type="text"
 					list="app-log-classes"
-					placeholder="Filtrar por classe..."
+					placeholder="Filtrar por classe…"
 					value={filters.classe}
 					onChange={(e) => onUpdate("classe", e.target.value)}
-					style={inputStyle}
+					style={control}
 				/>
 				<datalist id="app-log-classes">
 					{classesDisponiveis.map((classe) => (
@@ -179,41 +125,41 @@ export function AppLogFilters({
 			</div>
 
 			<div>
-				<label style={labelStyle}>Data</label>
+				<label htmlFor={ids.date} style={labelStyle}>
+					Data
+				</label>
 				<input
+					id={ids.date}
+					className="ld-control"
 					type="date"
 					value={filters.date}
 					onChange={(e) => onUpdate("date", e.target.value)}
-					style={inputStyle}
+					style={control}
 				/>
 			</div>
 
-			<div>
-				<label style={labelStyle}>Tipo</label>
-				<TypeFilterDropdown selected={filters.tipo} onToggle={onTypeToggle} />
-			</div>
-
 			<button
+				type="button"
+				className="ld-chip"
 				onClick={onReset}
-				onMouseEnter={(e) =>
-					(e.currentTarget.style.backgroundColor = "var(--accent)")
-				}
-				onMouseLeave={(e) =>
-					(e.currentTarget.style.backgroundColor = "transparent")
-				}
+				// Sem filtro ligado não há o que limpar: o botão apaga o aspecto de ação.
+				disabled={!hasActive}
 				style={{
-					padding: "8px 14px",
+					height: 36,
+					padding: "0 14px",
 					borderRadius: 6,
 					border: "1px solid var(--border)",
 					backgroundColor: "transparent",
-					color: "var(--muted-foreground)",
+					color: hasActive ? "var(--foreground)" : "var(--muted-foreground)",
 					fontSize: 12,
-					cursor: "pointer",
+					fontWeight: 600,
+					cursor: hasActive ? "pointer" : "default",
+					opacity: hasActive ? 1 : 0.6,
 					fontFamily: "inherit",
 					whiteSpace: "nowrap",
 				}}
 			>
-				Limpar
+				Limpar filtros
 			</button>
 		</div>
 	);

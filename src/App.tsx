@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth, AuthProvider } from "./hooks/useAuth";
 import { ThemeProvider } from "./hooks/useTheme";
 import { LoginPage } from "./pages/Login";
@@ -10,6 +10,7 @@ import { useSiteData } from "./features/site/hooks/useSiteData";
 import { useNewDataDetector } from "./hooks/useNewDataDetector";
 import { useNotificationPreferenceContext } from "./context/NotificationPreferenceContext";
 import { notifyNewLogs } from "./lib/notifyNewLogs";
+import { formatLoadedToast } from "./lib/loadStatus";
 
 import { HomePage } from "./features/home/HomePage";
 import { ProcessDashboard } from "./features/backup/BackupDashboard";
@@ -31,7 +32,7 @@ import type { Log } from "./lib/types/Log";
 import { START_STATUS } from "./lib/Variables";
 import type { SiteData } from "./features/site/hooks/useSiteData";
 
-import { LoadingState } from "./components/Loading";
+import { AppPreloader } from "./components/Loading";
 import { Sidebar } from "./components/Sidebar";
 import { useWindowSize } from "./hooks/useWindowSize";
 
@@ -166,6 +167,9 @@ function AppContent() {
 	const { isAuthenticated, isInitializing } = useAuth();
 	const [page, setPage] = useState<Page>(readStoredPage);
 	const [toastMessage, setToastMessage] = useState<string | null>(null);
+	// Função estável: o Toast reinicia o timer de 4 s a cada mudança dela, e o App
+	// renderiza a cada lote carregado — com uma função nova por render o toast nunca sumia.
+	const dismissToast = useCallback(() => setToastMessage(null), []);
 
 	const {
 		files: logFiles,
@@ -239,15 +243,32 @@ function AppContent() {
 		setToastMessage(`Falha ao buscar dados novos: ${fetchError}`);
 	}, [fetchError]);
 
+	// Fonte estática (JSON): só avisa se de fato carregou algo. Com a fonte
+	// estática vazia (o normal hoje), `isDone` vira true na hora com 0 registros e
+	// o toast dizia "0 registros carregados" enquanto a API ainda carregava.
 	useEffect(() => {
-		if (!progress.isDone) return;
+		if (!progress.isDone || debug.totalRecords === 0) return;
 		// eslint-disable-next-line react-hooks/set-state-in-effect -- toast e notificacao de conclusao de um evento externo (carregamento assincrono terminou), nao estado derivavel durante o render
 		setToastMessage(
-			`${debug.totalRecords.toLocaleString("pt-BR")} registros carregados em ${debug.elapsedSeconds}s`,
+			formatLoadedToast(debug.totalRecords, debug.elapsedSeconds),
 		);
 	}, [progress.isDone, debug.elapsedSeconds, debug.totalRecords]);
 
-	if (isInitializing) return <LoadingState />;
+	// API: o toast aparece quando a carga da API termina, com a contagem e o
+	// tempo reais (medidos aqui, do início ao fim da carga).
+	const apiLoadStartRef = useRef<number | null>(null);
+	useEffect(() => {
+		if (apiProgress.isLoading) {
+			apiLoadStartRef.current ??= performance.now();
+			return;
+		}
+		if (!apiProgress.isDone || apiLoadStartRef.current === null) return;
+		const seconds = (performance.now() - apiLoadStartRef.current) / 1000;
+		apiLoadStartRef.current = null;
+		setToastMessage(formatLoadedToast(apiProgress.loadedRecords, seconds));
+	}, [apiProgress.isLoading, apiProgress.isDone, apiProgress.loadedRecords]);
+
+	if (isInitializing) return <AppPreloader label="Verificando sessão…" />;
 	if (!isAuthenticated) return <LoginPage />;
 
 	const sharedProps: SharedPageProps = {
@@ -331,7 +352,7 @@ function AppContent() {
 				<Sidebar isMobile={isMobile} currentPage={page} onNavigate={setPage} />
 				{renderPage()}
 			</div>
-			<Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
+			<Toast message={toastMessage} onDismiss={dismissToast} />
 		</>
 	);
 }

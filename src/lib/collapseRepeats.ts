@@ -34,7 +34,25 @@ export function collapseRepeats<T>(
 	return entries;
 }
 
-/** Troca sequências de dígitos por "#": "chamado 142 → 200" e "chamado 143 → 200" viram o mesmo padrão. */
+const UUID = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
+const HEX_PREFIXED = /\b0x[0-9a-f]+\b/gi;
+// Sequência hexadecimal longa (hash, id curto) com pelo menos um dígito, para não pegar palavras ("defaced").
+const LONG_HEX = /\b(?=[0-9a-f]*\d)[0-9a-f]{8,}\b/gi;
+
+/**
+ * Tira de uma mensagem as partes que mudam a cada ocorrência, para "o mesmo erro"
+ * ter sempre o mesmo texto:
+ *   - GUID/UUID  → "<id>"   ("envio cdcbbaa1-5a75-…" e "envio 0f3e9a2b-77c1-…" são iguais)
+ *   - 0x… e hex longo (hash) → "<hex>"
+ *   - qualquer sequência de dígitos → "#"   ("chamado 142 → 200" = "chamado 143 → 200")
+ *
+ * Só serve para comparar/agrupar; o texto exibido nunca é alterado.
+ * (Nome mantido por compatibilidade; antes só tratava números.)
+ */
 export function maskNumbers(text: string): string {
-	return text.replace(/\d+/g, "#");
+	return text
+		.replace(UUID, "<id>")
+		.replace(HEX_PREFIXED, "<hex>")
+		.replace(LONG_HEX, "<hex>")
+		.replace(/\d+/g, "#");
 }

@@ -1,6 +1,6 @@
 // src/components/AppTipoBadge.tsx
 import { AppLog } from "../../../lib/types/Log";
-import { COLOR_BY_TIPO } from "../appTypeColors";
+import { COLOR_BY_TIPO, TEXT_COLOR_BY_TIPO } from "../appTypeColors";
 
 export function AppTypeBadge({ tipo }: { tipo: AppLog["tipo"] }) {
 	const color = COLOR_BY_TIPO[tipo];
@@ -12,7 +12,7 @@ export function AppTypeBadge({ tipo }: { tipo: AppLog["tipo"] }) {
 				padding: "2px 10px",
 				borderRadius: 999,
 				backgroundColor: `color-mix(in oklch, ${color} 15%, transparent)`,
-				color,
+				color: TEXT_COLOR_BY_TIPO[tipo],
 				fontSize: 11,
 				fontWeight: 700,
 				textTransform: "uppercase",

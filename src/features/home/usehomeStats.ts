@@ -1,6 +1,7 @@
 // src/features/home/useHomeStats.ts
 import { useMemo } from "react";
 import { Log, ProcessLog, WindowsEventLog, AppLog } from "../../lib/types/Log";
+import { isCriticalLog, isWarningLog } from "../../lib/logSeverity";
 
 export interface HomeStats {
 	totalLogs: number;
@@ -23,23 +24,6 @@ export interface HomeStats {
 	 * Separar aqui (process vs windows) quebraria esse contrato.
 	 */
 	mediumCriticalEvents: Log[];
-}
-
-function isCritical(log: Log): boolean {
-	if (log.logType === "windows-event") return log.criticality === "High";
-	if (log.logType === "app") return log.tipo === "erro";
-	return log.status === 2;
-}
-
-/**
- * Aviso = qualquer evento que merece atenção mas não é crítico.
- * - ProcessLog:     status 0  (finalizado com aviso de backup)
- * - WindowsEventLog: criticality "Medium" (nível 3 = Warning do Windows)
- */
-function isMediumCritical(log: Log): boolean {
-	if (log.logType === "windows-event") return log.criticality === "Medium";
-	if (log.logType === "app") return log.tipo === "aviso";
-	return false;
 }
 
 const byDateTimeDesc = (a: Log, b: Log): number =>
@@ -68,9 +52,9 @@ export function useHomeStats(logs: Log[]): HomeStats {
 		const appAvisos = appLogs.filter((l) => l.tipo === "aviso").length;
 
 		// Sem .slice() — retorna todos. Paginação é responsabilidade do componente.
-		const criticalEvents = logs.filter(isCritical).sort(byDateTimeDesc);
+		const criticalEvents = logs.filter(isCriticalLog).sort(byDateTimeDesc);
 		const mediumCriticalEvents = logs
-			.filter(isMediumCritical)
+			.filter(isWarningLog)
 			.sort(byDateTimeDesc);
 
 		return {

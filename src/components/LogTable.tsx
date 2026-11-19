@@ -10,6 +10,8 @@ interface LogTableProps {
 	logs: Log[];
 	columns: ColumnDefinition[];
 	isMobile: boolean;
+	/** Dados ainda chegando: o vazio vira "Carregando…" (não diz que nada casa com os filtros). */
+	loading?: boolean;
 	/**
 	 * Altura máxima do corpo da tabela em pixels.
 	 *
@@ -49,6 +51,7 @@ export function LogTable({
 	logs,
 	columns,
 	isMobile,
+	loading = false,
 	maxBodyHeight,
 	showStatusColumn = true,
 	onRowClick,
@@ -97,6 +100,7 @@ export function LogTable({
 	if (logs.length === 0) {
 		return (
 			<div
+				role="status"
 				style={{
 					textAlign: "center",
 					padding: "56px 16px",
@@ -107,7 +111,9 @@ export function LogTable({
 					fontSize: 13,
 				}}
 			>
-				Nenhum log encontrado para os filtros aplicados.
+				{loading
+					? "Carregando registros…"
+					: "Nenhum log encontrado para os filtros aplicados."}
 			</div>
 		);
 	}

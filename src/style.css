@@ -424,3 +424,231 @@ body {
 	font-weight: 700;
 	cursor: default;
 }
+
+/*
+ * DailyErrorsPanel (Home) — linha clicável de cada grupo de erro.
+ * :hover/:focus-visible em CSS (estilo inline não alcança pseudo-classes).
+ * O fundo transparente fica aqui, e não inline, para o :hover poder sobrescrevê-lo.
+ */
+.daily-error-row {
+	background: transparent;
+}
+
+.daily-error-row:hover {
+	background: color-mix(in oklch, var(--muted) 55%, transparent);
+}
+
+.daily-error-row:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: -2px;
+}
+
+/*
+ * Lista de logs gerais. Os fundos ficam aqui (e não inline) para o hover
+ * poder se somar a eles: o hover é uma camada por cima (inset box-shadow),
+ * assim não apaga o tom de erro/aviso nem a marcação da linha aberta.
+ */
+.app-log-row[data-tipo="erro"] {
+	background: color-mix(in oklch, var(--destructive) 7%, transparent);
+}
+.app-log-row[data-tipo="aviso"] {
+	background: color-mix(in oklch, var(--chart-4) 6%, transparent);
+}
+.app-log-row[data-nested="true"] {
+	background: color-mix(in oklch, var(--muted) 45%, transparent);
+}
+.app-log-row[aria-current="true"] {
+	background: color-mix(in oklch, var(--primary) 14%, transparent);
+}
+.app-log-row:hover {
+	box-shadow: inset 0 0 0 999px color-mix(in oklch, var(--foreground) 5%, transparent);
+}
+
+/* Botão do horário: único ponto de foco por teclado da linha (abre o modal). */
+.app-log-open:hover {
+	text-decoration: underline;
+}
+.app-log-open:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* Foco visível nos campos de filtro (o outline inline antigo foi removido). */
+.ld-control:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 1px;
+}
+.ld-chip:focus-visible,
+.ld-link-btn:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 2px;
+}
+.ld-link-btn:hover {
+	text-decoration: underline;
+}
+
+/*
+ * Cores de TEXTO para erro/aviso. O --destructive e o --chart-4 funcionam bem
+ * como fundo, faixa e ícone, mas no tema claro dão ~2,8:1 a 3,8:1 como texto
+ * pequeno (o mínimo é 4,5:1). Misturar com o --foreground escurece no claro e
+ * clareia no escuro, mantendo o tom. Declarado em :root, o var(--foreground)
+ * é resolvido no próprio <html>, então cada tema usa o seu.
+ */
+:root {
+	--destructive-text: color-mix(in oklch, var(--destructive) 55%, var(--foreground));
+	--warning-text: color-mix(in oklch, var(--chart-4) 50%, var(--foreground));
+	--primary-text: color-mix(in oklch, var(--primary) 55%, var(--foreground));
+	/* ErrorState e Login usavam --status-error, que nunca foi definido (caixa sem cor). */
+	--status-error: var(--destructive-text);
+}
+
+/* Cartões de resumo da Home. O fundo fica na classe para o hover poder trocá-lo. */
+.kpi-card {
+	background-color: var(--card);
+}
+.kpi-card--link {
+	display: block;
+	width: 100%;
+	text-align: left;
+	font-family: inherit;
+	color: inherit;
+	cursor: pointer;
+}
+.kpi-card--link:hover {
+	background-color: var(--accent);
+}
+.kpi-card--link:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 2px;
+}
+
+/* Texto só para leitores de tela (legenda de tabela, etc.). */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Linhas dos feeds da Home: zebra e hover em CSS (antes eram handlers de mouse). */
+.feed-row {
+	background-color: var(--card);
+	cursor: pointer;
+}
+.feed-row:nth-child(even) {
+	background-color: color-mix(in oklch, var(--muted) 30%, var(--card));
+}
+.feed-row:hover {
+	background-color: var(--accent);
+}
+
+/* Botão da mensagem nos feeds da Home: parece texto, mas é o ponto de foco da linha. */
+.feed-open {
+	display: block;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	border: none;
+	background: none;
+	font: inherit;
+	font-weight: 500;
+	color: var(--foreground);
+	text-align: left;
+	cursor: pointer;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.feed-open:hover {
+	text-decoration: underline;
+}
+.feed-open:focus-visible,
+.feed-scroll:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+.feed-scroll:focus-visible {
+	outline-offset: -2px;
+}
+
+/* ── Carregamento ─────────────────────────────────────────────────────────────
+   Estes keyframes eram usados por estilos inline (spinner, toast) mas nunca
+   foram definidos: o spinner não girava e o toast não fazia fade. */
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes ld-indeterminate {
+	0% {
+		transform: translateX(-110%);
+	}
+	100% {
+		transform: translateX(280%);
+	}
+}
+
+.ld-spinner {
+	animation: spin 0.8s linear infinite;
+}
+
+/* O preloader só aparece depois de 150 ms: sessão que restaura rápido não pisca. */
+.ld-preloader {
+	animation: fadeIn 0.25s ease 0.15s both;
+}
+
+/* Barra indeterminada (não sabemos quanto falta). */
+.ld-indeterminate {
+	position: relative;
+	width: 160px;
+	height: 3px;
+	border-radius: 9999px;
+	background-color: var(--muted);
+	overflow: hidden;
+}
+.ld-indeterminate > span {
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 40%;
+	border-radius: 9999px;
+	background-color: var(--primary);
+	animation: ld-indeterminate 1.3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ld-spinner,
+	.ld-indeterminate > span,
+	.ld-preloader {
+		animation: none;
+	}
+	.ld-indeterminate > span {
+		width: 100%;
+		opacity: 0.45;
+	}
+}
+
+/* Foco visível em qualquer campo de formulário. Antes o `inputStyle` compartilhado
+   tinha `outline: none` inline, então os filtros não mostravam onde estava o foco. */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 1px;
+}

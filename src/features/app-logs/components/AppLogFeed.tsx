@@ -6,7 +6,9 @@ import { formatDayLabel } from "../../../lib/dayLabel";
 import { collapseRepeats, maskNumbers } from "../../../lib/collapseRepeats";
 import type { CollapsedEntry } from "../../../lib/collapseRepeats";
 import { AppTypeBadge } from "./AppTypeBadge";
-import { COLOR_BY_TIPO } from "../appTypeColors";
+import { BAR_COLOR_BY_TIPO, TEXT_COLOR_BY_TIPO } from "../appTypeColors";
+import { btnSecondary } from "../../../lib/styles/buttonStyles";
+import { plural } from "../../../lib/plural";
 
 /** Totais de um dia considerando TODOS os registros filtrados (não só a página). */
 export interface DayTotals {
@@ -40,6 +42,10 @@ interface AppLogFeedProps {
 	onFilterPrograma: (programa: string) => void;
 	/** Clique na classe → filtra por ela. */
 	onFilterClasse: (classe: string) => void;
+	/** Ação do estado vazio: tira todos os filtros. */
+	onClearFilters?: () => void;
+	/** Dados ainda chegando: o estado vazio vira "Carregando…" (não diz que nada casa com os filtros). */
+	loading?: boolean;
 }
 
 interface DayGroup {
@@ -145,6 +151,8 @@ export function AppLogFeed({
 	highlight,
 	onFilterPrograma,
 	onFilterClasse,
+	onClearFilters,
+	loading = false,
 }: AppLogFeedProps) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	// ids (do primeiro registro de cada grupo) que o usuário expandiu
@@ -172,10 +180,34 @@ export function AppLogFeed({
 		});
 	}
 
+	if (logs.length === 0 && loading) {
+		return (
+			<div
+				role="status"
+				style={{
+					padding: "56px 16px",
+					textAlign: "center",
+					backgroundColor: "var(--card)",
+					border: "1px solid var(--border)",
+					borderRadius: 8,
+					color: "var(--muted-foreground)",
+					fontSize: 13,
+				}}
+			>
+				Carregando registros…
+			</div>
+		);
+	}
+
 	if (logs.length === 0) {
 		return (
 			<div
+				role="status"
 				style={{
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+					gap: 6,
 					textAlign: "center",
 					padding: "56px 16px",
 					backgroundColor: "var(--card)",
@@ -185,7 +217,20 @@ export function AppLogFeed({
 					fontSize: 13,
 				}}
 			>
-				Nenhum log encontrado para os filtros aplicados.
+				<strong style={{ color: "var(--foreground)", fontSize: 14 }}>
+					Nenhum registro com esses filtros
+				</strong>
+				<span>Amplie o período ou remova algum filtro para ver mais.</span>
+				{onClearFilters && (
+					<button
+						type="button"
+						className="ld-chip"
+						onClick={onClearFilters}
+						style={{ ...btnSecondary, marginTop: 10 }}
+					>
+						Limpar filtros
+					</button>
+				)}
 			</div>
 		);
 	}
@@ -239,17 +284,17 @@ export function AppLogFeed({
 											color: "var(--muted-foreground)",
 										}}
 									>
-										{totals.total.toLocaleString("pt-BR")} registro(s)
+										{plural(totals.total, "registro", "registros")}
 										{totals.erros > 0 && (
-											<span style={{ color: COLOR_BY_TIPO.erro }}>
+											<span style={{ color: TEXT_COLOR_BY_TIPO.erro }}>
 												{" "}
-												· {totals.erros.toLocaleString("pt-BR")} erro(s)
+												· {plural(totals.erros, "erro", "erros")}
 											</span>
 										)}
 										{totals.avisos > 0 && (
-											<span style={{ color: COLOR_BY_TIPO.aviso }}>
+											<span style={{ color: TEXT_COLOR_BY_TIPO.aviso }}>
 												{" "}
-												· {totals.avisos.toLocaleString("pt-BR")} aviso(s)
+												· {plural(totals.avisos, "aviso", "avisos")}
 											</span>
 										)}
 									</span>
@@ -369,17 +414,18 @@ function FeedRow({
 
 	return (
 		<div
-			role="button"
-			tabIndex={0}
+			className="app-log-row"
 			data-log-id={log.id}
+			data-tipo={log.tipo}
+			data-nested={nested ? "true" : undefined}
 			aria-current={selected ? "true" : undefined}
-			onClick={() => onSelect(log)}
-			onKeyDown={(e) => {
-				if (e.target !== e.currentTarget) return;
-				if (e.key === "Enter" || e.key === " ") {
-					e.preventDefault();
-					onSelect(log);
-				}
+			onClick={(e) => {
+				// Mouse: a linha toda abre o modal, exceto cliques em botões internos
+				// (programa, classe, ×N, horário — eles têm ação própria) e quando a
+				// pessoa está selecionando texto para copiar.
+				if ((e.target as HTMLElement).closest("button")) return;
+				if (window.getSelection()?.toString()) return;
+				onSelect(log);
 			}}
 			style={{
 				// Sticky (cabeçalho de colunas + dia) cobre o topo: a rolagem automática
@@ -398,11 +444,6 @@ function FeedRow({
 				borderBottom: "1px solid var(--border)",
 				cursor: "pointer",
 				opacity: nested ? 0.75 : 1,
-				backgroundColor: selected
-					? "color-mix(in oklch, var(--primary) 14%, transparent)"
-					: nested
-						? "color-mix(in oklch, var(--muted) 45%, transparent)"
-						: undefined,
 			}}
 		>
 			{/*
@@ -419,18 +460,32 @@ function FeedRow({
 					bottom: 8,
 					width: 3,
 					borderRadius: 2,
-					backgroundColor: COLOR_BY_TIPO[log.tipo],
+					backgroundColor: BAR_COLOR_BY_TIPO[log.tipo],
 				}}
 			/>
-			<span
+			{/*
+				O horário é o ponto de entrada por teclado e leitor de tela: a linha
+				em si não é um botão (ela contém outros botões, e botão dentro de
+				botão fica invisível para tecnologias assistivas).
+			*/}
+			<button
+				type="button"
+				className="app-log-open"
+				title="Ver detalhes do registro"
+				aria-label={`Abrir registro das ${log.time}: ${origin}. ${log.message.slice(0, 80)}`}
+				onClick={(e) => {
+					e.stopPropagation();
+					onSelect(log);
+				}}
 				style={{
+					...linkButtonStyle,
 					fontFamily: "monospace",
 					fontSize: 12,
 					color: "var(--muted-foreground)",
 				}}
 			>
 				{log.time}
-			</span>
+			</button>
 			<span>
 				<AppTypeBadge tipo={log.tipo} />
 			</span>
@@ -445,6 +500,7 @@ function FeedRow({
 				{log.programa ? (
 					<button
 						type="button"
+						className="ld-link-btn"
 						title={`Filtrar por programa: ${log.programa}`}
 						onClick={(e) => {
 							e.stopPropagation();
@@ -473,6 +529,7 @@ function FeedRow({
 				{log.classe && (
 					<button
 						type="button"
+						className="ld-link-btn"
 						title={`Filtrar por classe: ${log.classe}`}
 						onClick={(e) => {
 							e.stopPropagation();
@@ -505,6 +562,7 @@ function FeedRow({
 					<FileText
 						size={14}
 						color="var(--muted-foreground)"
+						role="img"
 						aria-label="Tem detalhes"
 						style={{ flexShrink: 0, marginTop: wrapLines ? 2 : 0 }}
 					/>
@@ -524,11 +582,12 @@ function FeedRow({
 				{repeatCount > 0 && (
 					<button
 						type="button"
+						className="ld-chip"
 						aria-expanded={isOpen}
 						title={
 							isOpen
 								? "Recolher os repetidos"
-								: `Mostrar mais ${repeatCount} registro(s) parecido(s)`
+								: `Mostrar mais ${plural(repeatCount, "registro parecido", "registros parecidos")}`
 						}
 						onClick={(e) => {
 							e.stopPropagation();

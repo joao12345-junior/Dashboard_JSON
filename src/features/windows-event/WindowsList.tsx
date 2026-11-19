@@ -2,6 +2,7 @@
 import { useMemo } from "react";
 import { PageHeader } from "../../components/PageHeader";
 import { LogTable } from "../../components/LogTable";
+import { getDataStatus } from "../../lib/dataStatus";
 import { ErrorState } from "../../components/Error";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { getMapper } from "../../lib/data/LogMapperRegistry";
@@ -27,6 +28,11 @@ export function WindowsList({
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
+	const { dataState, percent, error: loadError } = getDataStatus(
+		progress,
+		apiProgress,
+		logs.length,
+	);
 
 	const windowsLogs = useMemo(
 		() =>
@@ -87,7 +93,9 @@ export function WindowsList({
 			<main
 				style={{
 					flex: 1,
-					padding: isMobile ? "16px" : "32px",
+					minWidth: 0,
+					// No mobile o botão de menu (fixo, 40px) cobriria o título.
+					padding: isMobile ? "64px 16px 16px" : "32px",
 					display: "flex",
 					flexDirection: "column",
 					gap: 16,
@@ -99,8 +107,8 @@ export function WindowsList({
 				<PageHeader
 					title="Registros — Windows Event Log"
 					subtitle={
-						progress.isLoading
-							? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
+						dataState === "loading"
+							? `Carregando… ${percent}%`
 							: filteredLogs.length > totalConsidered
 								? `${totalConsidered.toLocaleString("pt-BR")} de ${filteredLogs.length.toLocaleString("pt-BR")} encontrados (limite de exibição atingido)`
 								: `${totalConsidered.toLocaleString("pt-BR")} de ${windowsLogs.length.toLocaleString("pt-BR")} registros`
@@ -142,6 +150,7 @@ export function WindowsList({
 				>
 					<input
 						type="text"
+						aria-label="Filtrar por descrição"
 						placeholder="Filtrar por descrição..."
 						value={windowsFilters.message}
 						onChange={(e) => onWindowsFilterUpdate("message", e.target.value)}
@@ -149,11 +158,13 @@ export function WindowsList({
 					/>
 					<input
 						type="date"
+						aria-label="Filtrar por data"
 						value={windowsFilters.date}
 						onChange={(e) => onWindowsFilterUpdate("date", e.target.value)}
 						style={inputStyle}
 					/>
 					<select
+						aria-label="Filtrar por criticidade"
 						value={windowsFilters.criticality}
 						onChange={(e) =>
 							onWindowsFilterUpdate("criticality", e.target.value)
@@ -167,6 +178,7 @@ export function WindowsList({
 					</select>
 					<input
 						type="text"
+						aria-label="Filtrar por provider"
 						placeholder="Filtrar por provider..."
 						value={windowsFilters.provider}
 						onChange={(e) => onWindowsFilterUpdate("provider", e.target.value)}
@@ -174,6 +186,7 @@ export function WindowsList({
 					/>
 					<input
 						type="text"
+						aria-label="Filtrar por nível"
 						placeholder="Filtrar por levelLabel..."
 						value={windowsFilters.levelLabel}
 						onChange={(e) =>
@@ -182,6 +195,8 @@ export function WindowsList({
 						style={inputStyle}
 					/>
 					<button
+						type="button"
+						className="ld-chip"
 						onClick={onWindowsFilterReset}
 						style={{
 							padding: "8px 14px",
@@ -199,11 +214,16 @@ export function WindowsList({
 					</button>
 				</div>
 
-				{progress.error && <ErrorState message={progress.error} />}
+				{loadError && <ErrorState message={loadError} onRetry={reload} />}
 
 				{!progress.error && (
 					<>
-						<LogTable logs={pageItems} columns={columns} isMobile={isMobile} />
+						<LogTable
+							logs={pageItems}
+							columns={columns}
+							isMobile={isMobile}
+							loading={dataState === "loading"}
+						/>
 						<Pagination
 							currentPage={currentPage}
 							totalPages={totalPages}

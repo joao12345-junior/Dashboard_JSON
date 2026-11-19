@@ -17,6 +17,7 @@ import { AppLogDetailsModal } from "./components/AppLogDetailsModal";
 import { usePagination } from "../../hooks/usePagination";
 import { MAX_PAGES, PAGE_SIZE } from "../../lib/Variables";
 import { Pagination } from "../../components/Pagination";
+import { getDataStatus } from "../../lib/dataStatus";
 
 /** Pílula pequena usada nos filtros rápidos e nas opções de leitura. */
 function chipStyle(active: boolean): React.CSSProperties {
@@ -51,6 +52,11 @@ export function AppList({
 	onAppFilterReset,
 	onAppTypeToggle,
 }: SharedPageProps) {
+	const { dataState, percent, error: loadError } = getDataStatus(
+		progress,
+		apiProgress,
+		logs.length,
+	);
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
 
@@ -232,10 +238,10 @@ export function AppList({
 				<PageHeader
 					title="Registros — Logs Gerais"
 					subtitle={
-						progress.isLoading
-							? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
+						dataState === "loading"
+							? `Carregando… ${percent}%`
 							: filteredLogs.length > totalConsidered
-								? `${totalConsidered.toLocaleString("pt-BR")} de ${filteredLogs.length.toLocaleString("pt-BR")} encontrados (limite de exibição atingido)`
+								? `Mostrando os ${totalConsidered.toLocaleString("pt-BR")} mais recentes de ${filteredLogs.length.toLocaleString("pt-BR")} encontrados`
 								: `${totalConsidered.toLocaleString("pt-BR")} de ${appLogs.length.toLocaleString("pt-BR")} registros`
 					}
 					spacing="compact"
@@ -259,7 +265,7 @@ export function AppList({
 					</button>
 				</PageHeader>
 
-				{progress.error && <ErrorState message={progress.error} />}
+				{loadError && <ErrorState message={loadError} onRetry={reload} />}
 
 				{!progress.error && (
 					<>
@@ -282,6 +288,7 @@ export function AppList({
 									<button
 										key={chip.label}
 										type="button"
+										className="ld-chip"
 										title={chip.value ? formatDayLabel(chip.value, today) : undefined}
 										aria-pressed={active}
 										onClick={() => onAppFilterUpdate("date", chip.value)}
@@ -302,6 +309,7 @@ export function AppList({
 									<button
 										key={key}
 										type="button"
+										className="ld-chip"
 										aria-pressed={active}
 										title={`Filtrar por ${label.toLowerCase()}`}
 										onClick={() => onAppTypeToggle(key)}
@@ -328,6 +336,7 @@ export function AppList({
 							{isMobile && (
 								<button
 									type="button"
+									className="ld-chip"
 									aria-expanded={showFilters}
 									onClick={() => setShowFilters((v) => !v)}
 									style={chipStyle(showFilters || activePanelFilters > 0)}
@@ -339,24 +348,29 @@ export function AppList({
 							{/* Opções de leitura */}
 							<button
 								type="button"
+								className="ld-chip"
 								aria-pressed={groupRepeats}
 								title="Junta registros parecidos que aparecem em sequência (ignora números)"
 								onClick={() => setGroupRepeats((v) => !v)}
 								style={chipStyle(groupRepeats)}
 							>
+								{groupRepeats ? "✓ " : ""}
 								Agrupar repetidos
 							</button>
 							<button
 								type="button"
+								className="ld-chip"
 								aria-pressed={wrapLines}
 								title="Mostra a mensagem inteira em várias linhas"
 								onClick={() => setWrapLines((v) => !v)}
 								style={chipStyle(wrapLines)}
 							>
+								{wrapLines ? "✓ " : ""}
 								Quebrar linhas
 							</button>
 							<button
 								type="button"
+								className="ld-chip"
 								aria-pressed={frozen !== null}
 								title={
 									frozen
@@ -372,6 +386,7 @@ export function AppList({
 							</button>
 							<button
 								type="button"
+								className="ld-chip"
 								title="Baixa todos os registros que passam pelos filtros (CSV)"
 								onClick={handleExportCsv}
 								style={chipStyle(false)}
@@ -385,7 +400,6 @@ export function AppList({
 									filters={appFilters}
 									onUpdate={onAppFilterUpdate}
 									onReset={onAppFilterReset}
-									onTypeToggle={onAppTypeToggle}
 									isMobile={isMobile}
 									classesDisponiveis={classesDisponiveis}
 									programasDisponiveis={programasDisponiveis}
@@ -406,6 +420,8 @@ export function AppList({
 								onAppFilterUpdate("programa", programa)
 							}
 							onFilterClasse={(classe) => onAppFilterUpdate("classe", classe)}
+							onClearFilters={onAppFilterReset}
+							loading={dataState === "loading"}
 						/>
 						<Pagination
 							currentPage={currentPage}

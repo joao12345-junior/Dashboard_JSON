@@ -9,6 +9,5 @@ export const inputStyle: React.CSSProperties = {
 	color: "var(--foreground)",
 	fontSize: 13,
 	fontFamily: "inherit",
-	outline: "none",
 	boxSizing: "border-box",
 };

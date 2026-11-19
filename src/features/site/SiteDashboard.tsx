@@ -249,7 +249,7 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 		<main
 			style={{
 				flex: 1,
-				padding: isMobile ? "16px" : "24px 32px",
+				padding: isMobile ? "64px 16px 16px" : "24px 32px",
 				overflowY: "auto",
 				display: "flex",
 				flexDirection: "column",
