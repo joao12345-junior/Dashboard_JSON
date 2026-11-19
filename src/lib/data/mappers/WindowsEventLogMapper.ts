@@ -2,6 +2,7 @@
 import { WindowsEventLog } from "../../types/Log";
 import { ColumnDefinition } from "../../types/ColumnDefinition";
 import { normalizeDateToView } from "../../normalizeDateToView";
+import { parseTimestamp } from "../../parseTimestamp";
 
 // ── Funções de parse — cada uma valida e converte um campo ──────────────────
 
@@ -23,13 +24,6 @@ function levelToStatus(level: string): number {
 	if (level === "1" || level === "2") return 2;
 	if (level === "3") return 0;
 	return 1;
-}
-
-// "2026-09-17T19:12:14.123456+00:00" → { date: "2026-09-17", time: "19:12:14" }
-function parseTimestamp(timestamp: string): { date: string; time: string } {
-	const [datePart = "", timePart = ""] = timestamp.split("T");
-	const time = timePart.split(".")[0].replace("Z", "");
-	return { date: datePart, time };
 }
 
 // ── Mapper principal ────────────────────────────────────────────────────────

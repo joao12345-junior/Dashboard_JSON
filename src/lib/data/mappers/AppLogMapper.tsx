@@ -3,6 +3,7 @@ import { FileText } from "lucide-react";
 import { AppLog } from "../../types/Log";
 import { ColumnDefinition } from "../../types/ColumnDefinition";
 import { normalizeDateToView } from "../../normalizeDateToView";
+import { parseTimestamp } from "../../parseTimestamp";
 import { AppTypeBadge } from "../../../features/app-logs/components/AppTypeBadge";
 
 type RawAppLog = {
@@ -29,13 +30,6 @@ function parseTipo(value: unknown): AppLog["tipo"] {
 		return value;
 	}
 	return "info";
-}
-
-// "2026-07-21T14:23:05.123Z" → { date: "2026-07-21", time: "14:23:05" }
-function parseTimestamp(timestamp: string): { date: string; time: string } {
-	const [datePart = "", timePart = ""] = timestamp.split("T");
-	const time = timePart.split(".")[0].replace("Z", "");
-	return { date: datePart, time };
 }
 
 export const AppLogMapper = {
