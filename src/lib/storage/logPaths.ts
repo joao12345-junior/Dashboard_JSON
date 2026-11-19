@@ -55,7 +55,6 @@ export interface ApiConfig {
  */
 const PLUGINS_KEY = "logdash:converters:v1";
 const SOURCES_KEY = "logdash:sources:v2";
-const LOG_TYPES_KEY = "logdash:logtype:v3";
 const API_CONFIG_KEY = "logdash:API:v4";
 
 // ── Fontes padrão ─────────────────────────────────────────────────────────────
@@ -119,26 +118,6 @@ export function saveLogSources(sources: LogSource[]): void {
 		localStorage.setItem(SOURCES_KEY, JSON.stringify(sources));
 	} catch {
 		console.warn("[logPaths] Falha ao salvar fontes no localStorage");
-	}
-}
-
-export function loadLogTypes(): string[] {
-	try {
-		const raw = localStorage.getItem(LOG_TYPES_KEY);
-		if (!raw) return [];
-		const parsed = JSON.parse(raw) as string[];
-		if (!Array.isArray(parsed)) return [];
-		return parsed;
-	} catch {
-		return [];
-	}
-}
-
-export function saveLogTypes(types: string[]): void {
-	try {
-		localStorage.setItem(LOG_TYPES_KEY, JSON.stringify(types));
-	} catch {
-		console.warn("[logPaths] Falha ao salvar tipos de log no localStorage");
 	}
 }
 

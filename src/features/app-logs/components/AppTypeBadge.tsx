@@ -1,14 +1,6 @@
 // src/components/AppTipoBadge.tsx
 import { AppLog } from "../../../lib/types/Log";
-
-// Mesmas cores já usadas na coluna Tipo do AppLogMapper — centralizado aqui
-// pra não divergir entre os dois lugares que precisam desse badge.
-const COLOR_BY_TIPO: Record<AppLog["tipo"], string> = {
-	erro: "var(--destructive)",
-	aviso: "var(--chart-4)",
-	info: "var(--primary)",
-	debug: "var(--muted-foreground)",
-};
+import { COLOR_BY_TIPO } from "../appTypeColors";
 
 export function AppTypeBadge({ tipo }: { tipo: AppLog["tipo"] }) {
 	const color = COLOR_BY_TIPO[tipo];
