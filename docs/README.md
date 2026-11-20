@@ -3,6 +3,7 @@
 Regra de trabalho (definida em 2026-11-19): **toda mudança no LogDash gera um registro nesta pasta**, um arquivo por mudança, no padrão `AAAA-MM-DD-assunto.md` (contexto/motivo, o que mudou, arquivos alterados, como testar, pendências). Mudanças em arquivos ignorados pelo git (`*.ps1`, `.env`, `certs/`) devem dizer que precisam ser copiadas manualmente para o servidor 201.
 
 ## Índice (mais recente primeiro)
+- [2026-11-19 — update.ps1: pull abortado e reescrita para o serviço NSSM](2026-11-19-update-ps1-pull-abortado-e-modelo-servico.md) — causa do abort (`ingest.py` apagado no GitHub × editado no servidor), script que confere cada passo, para/religa o serviço e verifica Vite/Flask, `-Stash`/`-Force`; **copiar manualmente para o servidor 201**; não testado em PowerShell.
 - [2026-11-19 — Lista de Logs Gerais: acabamento visual, acessibilidade e copy](2026-11-19-acabamento-visual-lista-logs-gerais.md) — faixa cinza nos INFO, tom em erro/aviso, hover, linha sem botão aninhado (horário abre o modal), foco/rótulos nos filtros, contraste, estado vazio com ação
 - [2026-11-19 — Lista de Logs Gerais, segunda rodada](2026-11-19-melhorias-lista-logs-gerais-v2.md) — chips de severidade com contagem, clique para filtrar, agrupar repetidos, pausar, exportar CSV
 - [2026-11-19 — Lista de Logs Gerais, terceira rodada](2026-11-19-melhorias-lista-logs-gerais-v3.md) — modal: copiar log, eventos ao redor, navegação ← → pela lista filtrada, JSON formatado (histograma descartado: já existe no Dashboard)
