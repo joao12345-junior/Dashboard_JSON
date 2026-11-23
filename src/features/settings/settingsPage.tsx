@@ -59,6 +59,7 @@ export function Settings({
 					url: values.url,
 					timeout_seconds: values.timeout_seconds,
 					has_sentry: values.has_sentry,
+					save_response_body: values.save_response_body,
 				}),
 			});
 			if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -192,6 +193,7 @@ export function Settings({
 										url: mu.url,
 										timeout_seconds: mu.timeout_seconds,
 										has_sentry: mu.has_sentry,
+										save_response_body: mu.save_response_body,
 									});
 									setMonitoredUrlModalOpen(true);
 								}}
@@ -506,6 +508,7 @@ function MonitoredUrlCard({
 		active: boolean;
 		timeout_seconds: number;
 		has_sentry: boolean;
+		save_response_body: boolean;
 	};
 	onToggle: () => void;
 	onEdit: () => void;
@@ -605,6 +608,20 @@ function MonitoredUrlCard({
 							}}
 						>
 							Sentry
+						</span>
+					)}
+					{monitoredUrl.save_response_body && (
+						<span
+							style={{
+								fontSize: 10,
+								fontWeight: 700,
+								color: "var(--muted-foreground)",
+								backgroundColor: "var(--muted)",
+								padding: "2px 7px",
+								borderRadius: 20,
+							}}
+						>
+							Guarda resposta
 						</span>
 					)}
 				</div>

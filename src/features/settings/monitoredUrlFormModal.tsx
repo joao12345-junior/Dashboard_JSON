@@ -9,6 +9,7 @@ export interface MonitoredUrlFormValues {
 	url: string;
 	timeout_seconds: number;
 	has_sentry: boolean;
+	save_response_body: boolean;
 }
 
 interface MonitoredUrlFormModalProps {
@@ -23,6 +24,7 @@ const EMPTY_FORM: MonitoredUrlFormValues = {
 	url: "",
 	timeout_seconds: 10,
 	has_sentry: false,
+	save_response_body: false,
 };
 
 export function MonitoredUrlFormModal({
@@ -171,6 +173,33 @@ export function MonitoredUrlFormModal({
 					onChange={(e) => setField("has_sentry", e.target.checked)}
 				/>
 				Tem integração com Sentry
+			</label>
+
+			<label
+				style={{ ...fieldStyle, display: "flex", alignItems: "flex-start", gap: 8 }}
+			>
+				<input
+					type="checkbox"
+					checked={form.save_response_body}
+					onChange={(e) => setField("save_response_body", e.target.checked)}
+					style={{ marginTop: 2 }}
+				/>
+				<span>
+					Guardar o corpo da resposta
+					<span
+						style={{
+							display: "block",
+							fontSize: 11,
+							fontWeight: 400,
+							color: "var(--muted-foreground)",
+							marginTop: 2,
+						}}
+					>
+						Use em endereços de saúde (ex.: /health). Guarda até 4 KB por
+						checagem e fica visível a quem usa o LogDash — evite páginas
+						inteiras ou respostas com dados sensíveis.
+					</span>
+				</span>
 			</label>
 
 			<div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>

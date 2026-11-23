@@ -37,6 +37,8 @@ export interface MonitoredUrl {
 	active: boolean;
 	timeout_seconds: number;
 	has_sentry: boolean;
+	/** Guarda o corpo da resposta (até 4 KB) em cada check — ver modal de detalhes do Site. */
+	save_response_body: boolean;
 }
 
 export interface SiteData {

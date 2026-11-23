@@ -161,7 +161,7 @@ def get_monitored_urls():
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
                 """
-                SELECT id, label, url, active, timeout_seconds, has_sentry
+                SELECT id, label, url, active, timeout_seconds, has_sentry, save_response_body
                 FROM optsislog.monitored_urls
                 ORDER BY label
                 """
@@ -191,6 +191,9 @@ def _validate_monitored_url_payload(data: dict, *, partial: bool = False) -> str
                 return "timeout_seconds deve ser maior que zero."
         except (TypeError, ValueError):
             return "timeout_seconds deve ser um número inteiro."
+    # Booleano estrito: "false" (string) é truthy no Python e ligaria a flag sem querer.
+    if "save_response_body" in data and not isinstance(data["save_response_body"], bool):
+        return "save_response_body deve ser true ou false."
     return None
 
 
@@ -208,6 +211,8 @@ def create_monitored_url():
         fields["timeout_seconds"] = data["timeout_seconds"]
     if "has_sentry" in data:
         fields["has_sentry"] = data["has_sentry"]
+    if "save_response_body" in data:
+        fields["save_response_body"] = data["save_response_body"]
 
     columns = ", ".join(fields.keys())
     placeholders = ", ".join(f"%({k})s" for k in fields.keys())
@@ -220,7 +225,7 @@ def create_monitored_url():
                 f"""
                 INSERT INTO optsislog.monitored_urls ({columns})
                 VALUES ({placeholders})
-                RETURNING id, label, url, active, timeout_seconds, has_sentry
+                RETURNING id, label, url, active, timeout_seconds, has_sentry, save_response_body
                 """,
                 fields,
             )
@@ -248,7 +253,9 @@ def update_monitored_url(url_id: int):
     if error:
         return jsonify({"error": error}), 400
 
-    allowed_fields = {"label", "url", "active", "timeout_seconds", "has_sentry"}
+    allowed_fields = {
+        "label", "url", "active", "timeout_seconds", "has_sentry", "save_response_body",
+    }
     updates = {k: v for k, v in data.items() if k in allowed_fields}
     if not updates:
         return jsonify({"error": "Nenhum campo válido para atualizar."}), 400
@@ -264,7 +271,7 @@ def update_monitored_url(url_id: int):
                 UPDATE optsislog.monitored_urls
                 SET {set_clause}
                 WHERE id = %(id)s
-                RETURNING id, label, url, active, timeout_seconds, has_sentry
+                RETURNING id, label, url, active, timeout_seconds, has_sentry, save_response_body
                 """,
                 {**updates, "id": url_id},
             )

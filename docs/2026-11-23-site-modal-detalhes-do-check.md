@@ -15,7 +15,7 @@ Monitorar o `/health` do cofre e ver, no Site, o que ele devolve (texto simples 
 - `api/routes/site_monitor.py`: `_get_active_monitored_urls` lê `save_response_body`; `_check_url` guarda `response.text[:4096]` só nas URLs com a flag (`None` sem resposta); `_save_check_result` grava `response_body`; `GET /api/site/availability` devolve o campo; `POST /api/site/check` não devolve o corpo ao `sync_site.ps1`.
 - `AvailabilityRecord.response_body?` entrou em `useSiteData.ts` e o tipo temporário do modal saiu.
 - **Não testado com o Flask rodando**: só `py_compile`, `tsc` e `eslint`. O corpo aparece depois do próximo ciclo do `sync_site.ps1` (ou um `POST /api/site/check`).
-- Pendente: `save_response_body` no `PATCH`/`POST` de monitored-urls e checkbox no `monitoredUrlFormModal` (hoje só por SQL).
+- Flag na tela de Settings (2026-11-23): `GET`/`POST`/`PATCH` de `monitored-urls` leem, aceitam e devolvem `save_response_body` (booleano estrito: `"false"` em string é rejeitado); checkbox "Guardar o corpo da resposta" no `monitoredUrlFormModal` e selo "Guarda resposta" no card do site. Cuidado coberto: o formulário de edição carrega o valor atual, para um `PATCH` não desligar a flag sem querer. Verificado só com `py_compile`, `tsc` e `eslint` (sem teste no navegador/Flask).
 
 ## Proposta original (histórico)
 1. Migration `012_availability_response_body.sql`:

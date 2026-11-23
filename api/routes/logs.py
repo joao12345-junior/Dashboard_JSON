@@ -17,6 +17,8 @@ MAX_PAGE_SIZE = 5000
 PROCESS_LOGS_RETENTION_DAYS = 30
 WINDOWS_EVENT_LOGS_RETENTION_DAYS = 14
 APP_LOGS_RETENTION_DAYS = 14
+# Eventos de rede (UniFi/syslog) sao os mais volumosos: retencao menor.
+NETWORK_EVENTS_RETENTION_DAYS = 7
 
 # O endpoint de streaming (GET /api/logs/stream) saiu daqui -- agora vive
 # em stream_asgi.py, como ASGI nativo, e e' desviado pra la' direto no
@@ -87,17 +89,27 @@ def cleanup_logs():
             )
             deleted_app = cur.rowcount
 
+            cur.execute(
+                """
+                DELETE FROM optsislog.network_events
+                WHERE created_at < now() - (%s || ' days')::interval
+                """, (NETWORK_EVENTS_RETENTION_DAYS,),
+            )
+            deleted_network = cur.rowcount
+
             conn.commit()
         return jsonify({
             "deleted": {
                 "process": deleted_process,
                 "windows": deleted_windows_event,
                 "app": deleted_app,
+                "network": deleted_network,
             },
             "retention_days":{
                 "process": PROCESS_LOGS_RETENTION_DAYS,
                 "windows": WINDOWS_EVENT_LOGS_RETENTION_DAYS,
                 "app": APP_LOGS_RETENTION_DAYS,
+                "network": NETWORK_EVENTS_RETENTION_DAYS,
             },
         }), 200
     except Exception as e:
