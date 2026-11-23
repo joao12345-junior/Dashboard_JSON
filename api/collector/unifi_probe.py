@@ -6,11 +6,15 @@ Objetivo: descobrir, no equipamento real, quais endpoints respondem com a chave
 de API e qual o formato do JSON (clientes, dispositivos, alertas, topologia),
 antes de escrever o coletor. Faz apenas GET, nunca altera nada no UCG.
 
-Uso (a partir de api/, no servidor 201 — ele enxerga o UCG na LAN):
+Uso (a partir de api/, no servidor 201 — ele enxerga o UCG na LAN).
+Coloque no api/.env (fora do git) e rode:
 
-    $env:UNIFI_HOST    = "https://192.168.16.1"
-    $env:UNIFI_API_KEY = "<chave criada em Network > Integrations>"
+    UNIFI_HOST=https://192.168.16.1
+    UNIFI_API_KEY=<chave criada em Network > Integrations>
+
     python -m collector.unifi_probe
+
+Variaveis de ambiente ja definidas no shell tem prioridade sobre o .env.
 
 A saida mascara MACs (mantem os 3 primeiros bytes) e esconde campos com cara de
 segredo (pass, psk, secret, token, key, x_*). Mesmo assim, confira antes de colar.
@@ -21,9 +25,17 @@ import json
 import os
 import re
 import sys
+from pathlib import Path
 
 import requests
 import urllib3
+
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+except ImportError:  # sem python-dotenv, vale so o ambiente do shell
+    pass
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -97,7 +109,7 @@ def main() -> int:
     host = os.environ.get("UNIFI_HOST", "").rstrip("/")
     api_key = os.environ.get("UNIFI_API_KEY", "")
     if not host or not api_key:
-        print("Defina UNIFI_HOST (ex.: https://192.168.16.1) e UNIFI_API_KEY.")
+        print("Defina UNIFI_HOST (ex.: https://192.168.16.1) e UNIFI_API_KEY no api/.env.")
         return 2
 
     session = requests.Session()
