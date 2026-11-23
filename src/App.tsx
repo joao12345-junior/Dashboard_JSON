@@ -21,6 +21,8 @@ import { SiteDashboard } from "./features/site/SiteDashboard";
 import { SiteList } from "./features/site/SiteList";
 import { Settings } from "./features/settings/settingsPage";
 import { NetworkEventsPage } from "./features/network/NetworkEventsPage";
+import { NetworkClientsPage } from "./features/network/NetworkClientsPage";
+import { NetworkDevicesPage } from "./features/network/NetworkDevicesPage";
 import { AppDashboard } from "./features/app-logs/AppDashboard";
 import { AppList } from "./features/app-logs/AppList";
 
@@ -48,6 +50,8 @@ export type Page =
 	| "app-dashboard"
 	| "app-list"
 	| "network-events"
+	| "network-clients"
+	| "network-devices"
 	| "settings";
 
 // ── Persistencia da pagina atual ─────────────────────────────────────────────
@@ -71,6 +75,8 @@ const VALID_PAGES: readonly Page[] = [
 	"app-dashboard",
 	"app-list",
 	"network-events",
+	"network-clients",
+	"network-devices",
 	"settings",
 ];
 
@@ -339,6 +345,10 @@ function AppContent() {
 				return <AppList {...sharedProps} />;
 			case "network-events":
 				return <NetworkEventsPage {...sharedProps} />;
+			case "network-clients":
+				return <NetworkClientsPage {...sharedProps} />;
+			case "network-devices":
+				return <NetworkDevicesPage {...sharedProps} />;
 			case "settings":
 				return <Settings {...sharedProps} />;
 		}

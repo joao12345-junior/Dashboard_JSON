@@ -7,6 +7,8 @@ import {
 	ScrollText,
 	Globe,
 	Network,
+	Router,
+	Users,
 	Settings,
 	LayoutDashboard,
 	List,
@@ -95,7 +97,11 @@ const NAV_SECTIONS = [
 	{
 		label: "Rede",
 		icon: Network,
-		items: [{ page: "network-events" as Page, label: "Rede", icon: Network }],
+		items: [
+			{ page: "network-clients" as Page, label: "Clientes", icon: Users },
+			{ page: "network-devices" as Page, label: "Dispositivos", icon: Router },
+			{ page: "network-events" as Page, label: "Eventos", icon: List },
+		],
 	},
 	{
 		label: "Configurações",

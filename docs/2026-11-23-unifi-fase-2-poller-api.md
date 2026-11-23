@@ -37,6 +37,13 @@ UNIFI_API_KEY=<chave>
 - O campo "nota" dos clientes (UniFi) pode conter nome de pessoa; fica visível para quem acessa o LogDash.
 - Tentativa de usar uma conta somente leitura: a página Integrations não aparece nem com Network "Total"; por isso a chave foi criada com a conta principal.
 
+## Front (Rede)
+- Menu: grupo **Rede** com Clientes, Dispositivos e Eventos.
+- **Rede — Clientes** (`NetworkClientsPage`): chips Conectados/Desconectados/Todos e Wi-Fi/cabo, busca (nome, nota, IP, MAC, fabricante) no servidor, lista no padrão de Logs Gerais (cliente, IP, conexão com AP e sinal, rede, estado e há quanto tempo), Exportar CSV.
+- **Rede — Dispositivos** (`NetworkDevicesPage`): um cartão por dispositivo com estado, CPU, memória, uptime, firmware (e aviso de atualização), tráfego do uplink e último sinal.
+- As duas atualizam sozinhas a cada 30 s (só com a aba visível; falha mantém os últimos dados) e mostram um aviso se o último ciclo do coletor tiver mais de 3 min (`StaleDataBanner`).
+- Verificado no Chrome com os dados reais (16 clientes, 2 dispositivos). Não há modal de detalhes nem versão mobile conferida em 390 px.
+
 ## Como aplicar
 1. Commit/push; no 201 `update.ps1` (reinicia `LogDash`, que carrega as rotas novas).
 2. Migration: `python api\migrations\run_migration.py` (como nas anteriores).
@@ -46,6 +53,5 @@ UNIFI_API_KEY=<chave>
 Não testado contra o banco real nem em PowerShell: o SQL do sink e das rotas e o instalador rodam pela primeira vez no 201.
 
 ## Pendências
-- Páginas no front (Rede: dispositivos e clientes conectados).
 - Fase 3: mapa de topologia (`stat/device`).
 - Histórico de métricas dos dispositivos (hoje só o último valor).
