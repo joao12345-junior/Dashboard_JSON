@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict EC9MAW1wRb6nf1jpez6WWfgl04fYPWjoc5t8GOgvfIbk0xTjzONl9xN7pRAEzDx
+\restrict y5YHuLuxyNEjIABcBeAKj2uNohc5bH2cONiMezU3MwWTh35fORzsp01LbIFfYjf
 
 -- Dumped from database version 13.23
 -- Dumped by pg_dump version 18.6
@@ -187,6 +187,63 @@ ALTER SEQUENCE optsislog.monitored_urls_id_seq OWNER TO optare3;
 --
 
 ALTER SEQUENCE optsislog.monitored_urls_id_seq OWNED BY optsislog.monitored_urls.id;
+
+
+--
+-- Name: network_events; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.network_events (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    event_time timestamp with time zone,
+    source_ip text,
+    cef_version text,
+    device_vendor text,
+    device_product text,
+    device_version text,
+    signature_id text,
+    name text,
+    severity smallint,
+    extension jsonb DEFAULT '{}'::jsonb NOT NULL,
+    raw text NOT NULL
+);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN id SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN created_at SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN event_time SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN source_ip SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN cef_version SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN device_vendor SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN device_product SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN device_version SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN signature_id SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN name SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN severity SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN extension SET (pg_attver=36864054902456);
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN raw SET (pg_attver=36864054902456);
+
+
+ALTER TABLE optsislog.network_events OWNER TO optare3;
+
+--
+-- Name: network_events_id_seq; Type: SEQUENCE; Schema: optsislog; Owner: optare3
+--
+
+CREATE SEQUENCE optsislog.network_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE optsislog.network_events_id_seq OWNER TO optare3;
+
+--
+-- Name: network_events_id_seq; Type: SEQUENCE OWNED BY; Schema: optsislog; Owner: optare3
+--
+
+ALTER SEQUENCE optsislog.network_events_id_seq OWNED BY optsislog.network_events.id;
 
 
 --
@@ -531,6 +588,13 @@ ALTER TABLE ONLY optsislog.monitored_urls ALTER COLUMN id SET DEFAULT nextval('o
 
 
 --
+-- Name: network_events id; Type: DEFAULT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_events ALTER COLUMN id SET DEFAULT nextval('optsislog.network_events_id_seq'::regclass);
+
+
+--
 -- Name: process_logs id; Type: DEFAULT; Schema: optsislog; Owner: optare3
 --
 
@@ -587,6 +651,14 @@ ALTER TABLE ONLY optsislog.marcadores_leitura
 
 ALTER TABLE ONLY optsislog.monitored_urls
     ADD CONSTRAINT monitored_urls_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: network_events network_events_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_events
+    ADD CONSTRAINT network_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -707,6 +779,20 @@ ALTER TABLE ONLY optsislog.usuarios_app
 
 ALTER TABLE ONLY optsislog.windows_event_logs
     ADD CONSTRAINT windows_event_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_network_events_created_at; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX idx_network_events_created_at ON optsislog.network_events USING btree (created_at DESC);
+
+
+--
+-- Name: idx_network_events_signature_id; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX idx_network_events_signature_id ON optsislog.network_events USING btree (signature_id);
 
 
 --
@@ -835,5 +921,5 @@ ALTER TABLE ONLY optsislog.tokens_renovacao
 -- PostgreSQL database dump complete
 --
 
-\unrestrict EC9MAW1wRb6nf1jpez6WWfgl04fYPWjoc5t8GOgvfIbk0xTjzONl9xN7pRAEzDx
+\unrestrict y5YHuLuxyNEjIABcBeAKj2uNohc5bH2cONiMezU3MwWTh35fORzsp01LbIFfYjf
 
