@@ -40,6 +40,15 @@ adaptadores nas pontas, trocáveis (por isso os testes usam um sink em memória)
 Depois de qualquer `update.ps1` que mude `api/collector/`, reiniciar: `Restart-Service LogDashSyslog`
 (o `update.ps1` ainda só gerencia o serviço `LogDash`).
 
+## Primeiros dados reais (2026-11-23 16:17)
+Funcionou de ponta a ponta (UCG Ultra `UDRULT` 6.0.17 -> firewall -> coletor -> `network_events`).
+- Origem aceita: `192.168.16.1`. Eventos vistos: `1` "Test Syslog" e `1005` "Admin Made Config Changes" (severidade 2).
+- Campos de `extension`: `msg`, `UNIFIhost`, `UNIFIutcTime`, `UNIFIdeviceIp` (IP **publico/WAN**), `UNIFIdeviceMac`, `UNIFIdeviceName`, `UNIFIdeviceModel`, `UNIFIdeviceVersion`.
+- **O UniFi não manda `rt`**: o horário do evento vem em `UNIFIutcTime` (ISO com "Z"). Parser corrigido para ler esse campo; linhas gravadas antes da correção ficaram com `event_time` NULL. Backfill opcional (quem roda é o João):
+  `UPDATE optsislog.network_events SET event_time = (extension->>'UNIFIutcTime')::timestamptz WHERE event_time IS NULL AND extension ? 'UNIFIutcTime';`
+- Quase tudo útil está no texto livre de `msg` (ex.: quem mudou o quê). Extrair "quem conectou" disso seria frágil: isso é papel da fase 2 (API).
+- Atenção de privacidade: `msg` traz nome do administrador e IP de origem; a tabela fica visível a quem usa o LogDash.
+
 ## Não verificado
 - `PostgresEventSink` (precisa de banco; não rodou) e o `.ps1` (sem PowerShell no ambiente).
 - O formato real das mensagens do UCG Ultra: o parser segue a especificação CEF; os nomes de campos

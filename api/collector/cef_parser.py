@@ -112,7 +112,11 @@ def _parse_severity(value: str) -> int | None:
 
 
 def _parse_event_time(extension: dict[str, str]) -> datetime | None:
-    """`rt` (receipt time) e `start` do CEF: milissegundos desde 1970 (UTC)."""
+    """
+    Hora do evento. Ordem: `rt` e `start` do CEF (milissegundos desde 1970, UTC)
+    e, se nao houver, `UNIFIutcTime` -- o UniFi (UCG Ultra) NAO manda `rt`, so
+    esse campo em ISO 8601 com "Z" (ex.: 2026-11-23T19:17:27.382Z).
+    """
     for key in ("rt", "start"):
         raw = extension.get(key)
         if raw and raw.isdigit():
@@ -120,6 +124,13 @@ def _parse_event_time(extension: dict[str, str]) -> datetime | None:
                 return datetime.fromtimestamp(int(raw) / 1000, tz=timezone.utc)
             except (OverflowError, OSError, ValueError):
                 continue
+    iso = extension.get("UNIFIutcTime")
+    if iso:
+        try:
+            # fromisoformat (Python < 3.11) nao aceita o sufixo "Z".
+            return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(timezone.utc)
+        except ValueError:
+            return None
     return None
 
 

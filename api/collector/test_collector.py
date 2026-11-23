@@ -76,6 +76,20 @@ class CefParserTests(unittest.TestCase):
         self.assertIsNone(e.signature_id)
         self.assertTrue(e.raw)
 
+    def test_amostra_real_do_ucg_ultra(self):
+        # Evento real recebido em 2026-11-23 (so o IP publico foi trocado).
+        raw = (
+            "CEF:0|Ubiquiti|UniFi Network|6.0.17|1|Test Syslog|1|msg=Test Syslog "
+            "UNIFIhost=Optare UNIFIutcTime=2026-11-23T19:17:27.382Z "
+            "UNIFIdeviceIp=203.0.113.9 UNIFIdeviceMac=0C:EA:14:55:BB:37 "
+            "UNIFIdeviceName=Optare UNIFIdeviceModel=UDRULT UNIFIdeviceVersion=6.0.17"
+        )
+        e = parse_syslog_line(raw, "192.168.16.1")
+        self.assertEqual(e.signature_id, "1")
+        self.assertEqual(e.extension["msg"], "Test Syslog")
+        self.assertEqual(e.extension["UNIFIdeviceModel"], "UDRULT")
+        self.assertEqual(e.event_time.isoformat(), "2026-11-23T19:17:27.382000+00:00")
+
     def test_rt_invalido_e_ignorado(self):
         e = parse_syslog_line("CEF:0|V|P|1|s|N|1|rt=abc", None)
         self.assertIsNone(e.event_time)
