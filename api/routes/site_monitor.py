@@ -69,7 +69,15 @@ def _check_url(monitored_url: dict) -> dict:
             "is_up": response.status_code < 500,
             "response_body": response_body,
         }
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
+        # Sem isto um status_code NULL no historico nao diz o motivo
+        # (DNS, certificado, conexao recusada, timeout...).
+        logger.warning(
+            "[site_check] Falha em %s: %s: %s",
+            monitored_url["url"],
+            type(e).__name__,
+            e,
+        )
         response_time_ms = int(
             (datetime.now(timezone.utc) - start).total_seconds() * 1000
         )

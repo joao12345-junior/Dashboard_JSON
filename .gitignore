@@ -20,6 +20,7 @@ dist-ssr
 **/__pycache__/
 *.pyc
 tree.txt
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
