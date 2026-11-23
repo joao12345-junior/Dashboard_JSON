@@ -32,6 +32,9 @@ app.register_blueprint(site_monitor_bp)
 from routes.test_connection import test_connection_bp
 app.register_blueprint(test_connection_bp)
 
+from routes.network_events import network_events_bp
+app.register_blueprint(network_events_bp)
+
 if __name__ == "__main__":
     if IS_DEV:
         app.run(host='0.0.0.0', port=8765, debug=True, use_reloader=False)

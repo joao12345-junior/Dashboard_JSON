@@ -20,6 +20,7 @@ import { WindowsList } from "./features/windows-event/WindowsList";
 import { SiteDashboard } from "./features/site/SiteDashboard";
 import { SiteList } from "./features/site/SiteList";
 import { Settings } from "./features/settings/settingsPage";
+import { NetworkEventsPage } from "./features/network/NetworkEventsPage";
 import { AppDashboard } from "./features/app-logs/AppDashboard";
 import { AppList } from "./features/app-logs/AppList";
 
@@ -46,6 +47,7 @@ export type Page =
 	| "site-list"
 	| "app-dashboard"
 	| "app-list"
+	| "network-events"
 	| "settings";
 
 // ── Persistencia da pagina atual ─────────────────────────────────────────────
@@ -68,6 +70,7 @@ const VALID_PAGES: readonly Page[] = [
 	"site-list",
 	"app-dashboard",
 	"app-list",
+	"network-events",
 	"settings",
 ];
 
@@ -334,6 +337,8 @@ function AppContent() {
 				return <AppDashboard {...sharedProps} />;
 			case "app-list":
 				return <AppList {...sharedProps} />;
+			case "network-events":
+				return <NetworkEventsPage {...sharedProps} />;
 			case "settings":
 				return <Settings {...sharedProps} />;
 		}

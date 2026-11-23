@@ -347,7 +347,7 @@ export function AppLogFeed({
 }
 
 /** Destaca (case-insensitive) todas as ocorrências de `term` dentro de `text`. */
-function Highlighted({ text, term }: { text: string; term: string }) {
+export function Highlighted({ text, term }: { text: string; term: string }) {
 	const needle = term.trim().toLowerCase();
 	if (!needle) return <>{text}</>;
 

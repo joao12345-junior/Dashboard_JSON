@@ -1,10 +1,16 @@
 interface ErrorStateProps {
 	message: string;
+	/** Texto em negrito antes da mensagem. Padrão: "Erro ao carregar logs". */
+	title?: string;
 	/** Se passado, mostra o botão "Tentar de novo". */
 	onRetry?: () => void;
 }
 
-export function ErrorState({ message, onRetry }: ErrorStateProps) {
+export function ErrorState({
+	message,
+	title = "Erro ao carregar logs",
+	onRetry,
+}: ErrorStateProps) {
 	return (
 		<div
 			role="alert"
@@ -17,7 +23,7 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
 				fontSize: 13,
 			}}
 		>
-			<strong>Erro ao carregar logs:</strong> {message}
+			<strong>{title}:</strong> {message}
 			{onRetry && (
 				<div style={{ marginTop: 12 }}>
 					<button

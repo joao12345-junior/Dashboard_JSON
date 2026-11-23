@@ -6,6 +6,7 @@ import {
 	AppWindow,
 	ScrollText,
 	Globe,
+	Network,
 	Settings,
 	LayoutDashboard,
 	List,
@@ -90,6 +91,11 @@ const NAV_SECTIONS = [
 			},
 			{ page: "site-list" as Page, label: "Registros", icon: List },
 		],
+	},
+	{
+		label: "Rede",
+		icon: Network,
+		items: [{ page: "network-events" as Page, label: "Rede", icon: Network }],
 	},
 	{
 		label: "Configurações",

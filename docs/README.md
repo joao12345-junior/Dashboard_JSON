@@ -3,6 +3,7 @@
 Regra de trabalho (definida em 2026-11-19): **toda mudança no LogDash gera um registro nesta pasta**, um arquivo por mudança, no padrão `AAAA-MM-DD-assunto.md` (contexto/motivo, o que mudou, arquivos alterados, como testar, pendências). Mudanças em arquivos ignorados pelo git (`*.ps1`, `.env`, `certs/`) devem dizer que precisam ser copiadas manualmente para o servidor 201.
 
 ## Índice (mais recente primeiro)
+- [2026-11-23 — UniFi: página Rede (eventos)](2026-11-23-unifi-eventos-pagina.md) — lista dos eventos do syslog no estilo de Logs Gerais (por dia, chips Hoje/Ontem/gravidade, busca, CSV), "Carregar mais" e modal; rota `GET /api/network/events`; exige reiniciar o Flask local.
 - [2026-11-23 — UniFi fase 1: coletor syslog](2026-11-23-unifi-fase-1-coletor-syslog.md) — receptor UDP (CEF) no 201 como serviço NSSM, tabela `network_events`, retenção 7 dias; 10 testes passando; escrita no banco e script `.ps1` não verificados; frontend só depois de dados reais.
 - [2026-11-23 — Site: modal com o corpo da resposta do check](2026-11-23-site-modal-detalhes-do-check.md) — clique numa linha da disponibilidade abre os detalhes + corpo (texto/JSON) devolvido pelo site, no padrão do modal dos logs; frontend pronto (tsc/eslint ok), falta coluna `response_body` + flag por URL na API/DB (proposta no doc).
 - [2026-11-23 — Modal: Tab preso dentro do diálogo](2026-11-23-modal-prende-tab.md) — Tab/Shift+Tab ciclam dentro do `Modal` compartilhado (antes o foco escapava para a página por trás); verificado com teclas reais no modal de detalhes.
