@@ -39,3 +39,23 @@ export function getDataStatus(
 		error: progress.error ?? apiProgress.error,
 	};
 }
+
+/**
+ * Subtítulo padrão das páginas de dashboard:
+ *  - carregando → "Carregando… 42%";
+ *  - erro sem nenhum registro → "Não foi possível carregar os registros";
+ *  - senão → `readyText` (ex.: "1.339 logs gerais").
+ *
+ * Com erro e registros parciais mantém `readyText`: o banner de erro já avisa.
+ */
+export function describeStatus(
+	status: DataStatus,
+	hasData: boolean,
+	readyText: string,
+): string {
+	if (status.dataState === "loading") return `Carregando… ${status.percent}%`;
+	if (status.dataState === "error" && !hasData) {
+		return "Não foi possível carregar os registros";
+	}
+	return readyText;
+}

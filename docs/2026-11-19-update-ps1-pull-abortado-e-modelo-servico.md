@@ -1,6 +1,6 @@
 # update.ps1: pull abortado por conflito e reescrita para o modelo de serviço (NSSM)
 
-Data: 2026-11-19 | Status: **script novo pronto no repositório de desenvolvimento; NÃO testado no servidor 201 nem em PowerShell (ver "Não verificado").**
+Data: 2026-11-19 (atualizado em 2026-11-20) | Status: **rodou no servidor 201: detecção de conflito, `-Stash`, pull e dependências funcionaram; 1ª execução falhou ao iniciar o serviço por falta de elevação (provável); 2ª execução (`-Force`, PowerShell elevado) concluiu: parou o serviço em execução, atualizou, religou e confirmou Vite e Flask escutando.**
 
 ## O que aconteceu
 Ao rodar o `update.ps1` no servidor 201:
@@ -37,8 +37,20 @@ Original preservado em `Claude outputs/update.ps1.original-2026-11-19`.
 ## Como destravar o servidor agora
 1. Copie o `update.ps1` novo para o servidor.
 2. Opcional, para ver o que foi editado: `cd C:\Optare\LogDash; git diff api/routes/ingest.py`
-3. `.\update.ps1 -Stash` (guarda a edição do `ingest.py` no stash e atualiza). Se preferir não usar o script novo ainda: `git stash push -m "ingest local" -- api/routes/ingest.py` e depois `git pull --ff-only`.
+3. Em **PowerShell elevado** (Executar como administrador): `.\update.ps1 -Stash` (guarda a edição do `ingest.py` no stash e atualiza). Se preferir não usar o script novo ainda: `git stash push -m "ingest local" -- api/routes/ingest.py` e depois `git pull --ff-only`.
 4. Depois: conferir o serviço (`sc.exe query LogDash`), abrir o dashboard e, se a edição guardada não fizer falta, `git stash drop` (só você decide).
+
+## Primeira execução no servidor 201 (2026-11-20)
+- Sem `-Stash`: parou **antes de mexer em qualquer coisa**, listando `api/routes/ingest.py   <- apagado no GitHub`.
+- Com `-Stash`: stash `update.ps1 2026-11-20 12:02:46`, `git pull --ff-only` (`79bf382` → `8ba8353`, 68 arquivos), `npm install` e `pip install` sem erro.
+- **Falha:** `Start-Service` respondeu "Não é possível abrir o serviço LogDash no computador '.'", mensagem típica de PowerShell **sem elevação**. O passo de parar o serviço imprimiu "parado" sem erro, o que indica (inferência, não confirmada) que o serviço já estava parado e o `Stop-Service` nem foi chamado; se estivesse rodando, ele também teria falhado.
+- Efeito: o código do servidor já está em `8ba8353`, mas o serviço ficou parado até alguém iniciá-lo.
+- **Correção no script:** checa elevação **primeiro** (nada é alterado se não for administrador) e diz "Serviço já estava parado" em vez de "parado" quando não chamou o `Stop-Service`. Esta versão precisa ser copiada de novo para o servidor.
+
+### Segunda execução (2026-11-20, `.\update.ps1 -Force` elevado)
+- `Start-Service LogDash` manual funcionou; em seguida o script parou o serviço **em execução**, fez `git pull --ff-only` (`8ba8353` → `f96b9fe`), `npm install`/`pip install` e religou. Saída: "Vite escutando." e "Flask escutando na porta 8765." Confirma o ciclo parar → atualizar → iniciar → verificar portas.
+- O aviso "Aguardando que o serviço ... seja parado..." vem do próprio `Stop-Service`; é normal.
+- O script informou **9 arquivos com alteração local que não conflitam** (mantidos). Não foi investigado o que são; se forem só diferenças de fim de linha, vão reaparecer como conflito quando o GitHub mexer neles (aí `-Stash` resolve). Para ver: `git status --short` no servidor.
 
 ## Como testar
 - `.\update.ps1` sem novidade: deve dizer "Já está na versão mais recente" sem mexer no serviço.
@@ -47,9 +59,9 @@ Original preservado em `Claude outputs/update.ps1.original-2026-11-19`.
 - Simular falha (ex.: renomear `api\.venv\Scripts\pip.exe` temporariamente): o serviço deve voltar mesmo assim e o script sair com código 1.
 
 ## Não verificado
-- **Nenhuma execução em PowerShell**: não havia `pwsh`/`powershell` disponível aqui. O script foi revisado à mão (chaves/parênteses balanceados, só ASCII, CRLF) mas pode ter erro de sintaxe ou de comportamento no PowerShell 5.1 do servidor.
+- A checagem de administrador e a mensagem "já estava parado" (versão de 2026-11-20) nunca rodaram. A versão anterior executou no PowerShell 5.1 do servidor até o `Start-Service` sem erro de sintaxe, mas só a parte de pré-checagens, stash, pull e instalação de dependências foi exercitada.
 - A lógica de git (detecção de conflito, stash só do arquivo conflitante, pull) foi testada num repositório de teste com `git` no Linux, reproduzindo este caso.
-- Não testado: parada/religação do serviço NSSM, tempo real até as portas abrirem (60 s é palpite), `Get-NetTCPConnection` no Windows Server do 201.
+- Já exercitado em 2026-11-20: parar serviço em execução, religar e verificar as portas. Ainda **não** exercitado: o caminho de falha (um passo falhando no meio com o serviço já parado, para confirmar que o `finally` religa) e a checagem de administrador (não dá para saber pela saída se o servidor já tem a versão com essa checagem: `Select-String Test-IsAdministrator .\update.ps1`).
 
 ## Pendências / decisões suas
 - Apagar `ingestor/` do repositório e, no servidor, a `ingestor/.venv`.

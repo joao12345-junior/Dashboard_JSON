@@ -11,6 +11,11 @@ export interface AvailabilityRecord {
 	is_up: boolean;
 	checked_at: string;
 	monitored_url_id: number | null;
+	/**
+	 * Corpo da resposta HTTP (texto/JSON), até 4 KB. `null` = não guardado (URL sem
+	 * `save_response_body`, ou sem resposta). `undefined` = API antiga, sem o campo.
+	 */
+	response_body?: string | null;
 }
 
 export interface SentryEvent {

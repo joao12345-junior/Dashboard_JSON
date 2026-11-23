@@ -20,6 +20,9 @@ SITE_AVAILABILITY_RETENTION_DAYS = 14  # revisar quando/se a Settings UI existir
 
 CHECK_MAX_WORKERS = 5  # teto fixo, independente de quantas URLs existirem
 
+# Limite do corpo da resposta guardado em site_availability.response_body.
+RESPONSE_BODY_MAX_CHARS = 4096
+
 def _get_active_monitored_urls() -> list[dict]:
     """Busca URLs ativas. Conexão liberada antes de iniciar os checks HTTP."""
     conn = get_connection()
@@ -28,7 +31,7 @@ def _get_active_monitored_urls() -> list[dict]:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
                 """
-                SELECT id, url, timeout_seconds
+                SELECT id, url, timeout_seconds, save_response_body
                 FROM optsislog.monitored_urls
                 WHERE active = true
                 """
@@ -51,12 +54,20 @@ def _check_url(monitored_url: dict) -> dict:
         response_time_ms = int(
             (datetime.now(timezone.utc) - start).total_seconds() * 1000
         )
+        # Corpo so e guardado nas URLs com save_response_body (ex.: /health);
+        # o limite evita encher o banco com uma pagina inteira.
+        response_body = (
+            response.text[:RESPONSE_BODY_MAX_CHARS]
+            if monitored_url.get("save_response_body")
+            else None
+        )
         return {
             "monitored_url_id": monitored_url["id"],
             "url": monitored_url["url"],
             "status_code": response.status_code,
             "response_time_ms": response_time_ms,
             "is_up": response.status_code < 500,
+            "response_body": response_body,
         }
     except requests.exceptions.RequestException:
         response_time_ms = int(
@@ -68,6 +79,7 @@ def _check_url(monitored_url: dict) -> dict:
             "status_code": None,
             "response_time_ms": response_time_ms,
             "is_up": False,
+            "response_body": None,
         }
 
 
@@ -80,8 +92,8 @@ def _save_check_result(result: dict) -> bool:
             cur.execute(
                 """
                 INSERT INTO optsislog.site_availability
-                    (url, status_code, response_time_ms, is_up, monitored_url_id)
-                VALUES (%s, %s, %s, %s, %s)
+                    (url, status_code, response_time_ms, is_up, monitored_url_id, response_body)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 """,
                 (
                     result["url"],
@@ -89,6 +101,7 @@ def _save_check_result(result: dict) -> bool:
                     result["response_time_ms"],
                     result["is_up"],
                     result["monitored_url_id"],
+                    result["response_body"],
                 ),
             )
             conn.commit()
@@ -281,7 +294,8 @@ def check_availability():
             result = future.result()
             if not _save_check_result(result):
                 failed_saves.append(result["url"])
-            results.append(result)
+            # O corpo fica so no banco: o sync_site.ps1 nao precisa recebe-lo de volta.
+            results.append({k: v for k, v in result.items() if k != "response_body"})
 
     return jsonify({
         "checked": len(results),
@@ -383,7 +397,7 @@ def get_availability():
             if monitored_url_id is not None:
                 cur.execute(
                     """
-                    SELECT id, url, status_code, response_time_ms, is_up, checked_at, monitored_url_id
+                    SELECT id, url, status_code, response_time_ms, is_up, checked_at, monitored_url_id, response_body
                     FROM optsislog.site_availability
                     WHERE monitored_url_id = %s
                     ORDER BY checked_at DESC
@@ -394,7 +408,7 @@ def get_availability():
             else:
                 cur.execute(
                     """
-                    SELECT id, url, status_code, response_time_ms, is_up, checked_at, monitored_url_id
+                    SELECT id, url, status_code, response_time_ms, is_up, checked_at, monitored_url_id, response_body
                     FROM optsislog.site_availability
                     ORDER BY checked_at DESC
                     LIMIT 500

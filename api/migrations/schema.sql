@@ -2,9 +2,9 @@
 -- PostgreSQL database dump
 --
 
-\restrict z4FeUp98eXMma9iSyKKQzwePQCKyw5ovv2GTg0N0jKLMZq6d7oqrV2VZdeSh2Pk
+\restrict EC9MAW1wRb6nf1jpez6WWfgl04fYPWjoc5t8GOgvfIbk0xTjzONl9xN7pRAEzDx
 
--- Dumped from database version 13.20
+-- Dumped from database version 13.23
 -- Dumped by pg_dump version 18.6
 
 SET statement_timeout = 0;
@@ -134,6 +134,20 @@ ALTER SEQUENCE optsislog.app_logs_id_seq OWNED BY optsislog.app_logs.id;
 
 
 --
+-- Name: marcadores_leitura; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.marcadores_leitura (
+    servidor text NOT NULL,
+    canal text NOT NULL,
+    ultimo_id_registro bigint NOT NULL,
+    atualizado_em timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE optsislog.marcadores_leitura OWNER TO optare3;
+
+--
 -- Name: monitored_urls; Type: TABLE; Schema: optsislog; Owner: optare3
 --
 
@@ -145,8 +159,10 @@ CREATE TABLE optsislog.monitored_urls (
     timeout_seconds integer DEFAULT 10 NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     has_sentry boolean DEFAULT false NOT NULL,
+    save_response_body boolean DEFAULT false NOT NULL,
     CONSTRAINT monitored_urls_timeout_seconds_check CHECK ((timeout_seconds > 0))
 );
+ALTER TABLE ONLY optsislog.monitored_urls ALTER COLUMN save_response_body SET (pg_attver=36863825882000);
 
 
 ALTER TABLE optsislog.monitored_urls OWNER TO optare3;
@@ -171,6 +187,45 @@ ALTER SEQUENCE optsislog.monitored_urls_id_seq OWNER TO optare3;
 --
 
 ALTER SEQUENCE optsislog.monitored_urls_id_seq OWNED BY optsislog.monitored_urls.id;
+
+
+--
+-- Name: problemas_servidor; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.problemas_servidor (
+    id bigint NOT NULL,
+    servidor text NOT NULL,
+    canal text NOT NULL,
+    provedor text NOT NULL,
+    id_evento integer NOT NULL,
+    severidade smallint NOT NULL,
+    status smallint DEFAULT 0 NOT NULL,
+    total_ocorrencias integer DEFAULT 0 NOT NULL,
+    reincidencias integer DEFAULT 0 NOT NULL,
+    primeira_ocorrencia timestamp with time zone NOT NULL,
+    ultima_ocorrencia timestamp with time zone NOT NULL,
+    ultima_mensagem text,
+    nota text,
+    resolvido_em timestamp with time zone,
+    versao integer DEFAULT 1 NOT NULL
+);
+
+
+ALTER TABLE optsislog.problemas_servidor OWNER TO optare3;
+
+--
+-- Name: problemas_servidor_id_seq; Type: SEQUENCE; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE optsislog.problemas_servidor ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME optsislog.problemas_servidor_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
 
 --
@@ -290,8 +345,10 @@ CREATE TABLE optsislog.site_availability (
     response_time_ms integer,
     is_up boolean NOT NULL,
     checked_at timestamp with time zone DEFAULT now() NOT NULL,
-    monitored_url_id integer NOT NULL
+    monitored_url_id integer NOT NULL,
+    response_body text
 );
+ALTER TABLE ONLY optsislog.site_availability ALTER COLUMN response_body SET (pg_attver=36863825851152);
 
 
 ALTER TABLE optsislog.site_availability OWNER TO optare3;
@@ -315,6 +372,37 @@ ALTER SEQUENCE optsislog.site_availability_id_seq OWNER TO optare3;
 --
 
 ALTER SEQUENCE optsislog.site_availability_id_seq OWNED BY optsislog.site_availability.id;
+
+
+--
+-- Name: tokens_renovacao; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.tokens_renovacao (
+    id bigint NOT NULL,
+    usuario_id bigint NOT NULL,
+    hash text NOT NULL,
+    criado_em timestamp with time zone NOT NULL,
+    expira_em timestamp with time zone NOT NULL,
+    revogado_em timestamp with time zone,
+    substituido_por_id bigint
+);
+
+
+ALTER TABLE optsislog.tokens_renovacao OWNER TO optare3;
+
+--
+-- Name: tokens_renovacao_id_seq; Type: SEQUENCE; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE optsislog.tokens_renovacao ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME optsislog.tokens_renovacao_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
 
 --
@@ -353,6 +441,37 @@ ALTER SEQUENCE optsislog.users_id_seq OWNED BY optsislog.users.id;
 
 
 --
+-- Name: usuarios_app; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.usuarios_app (
+    id bigint NOT NULL,
+    login text NOT NULL,
+    nome text NOT NULL,
+    hash_senha text NOT NULL,
+    ativo boolean DEFAULT true NOT NULL,
+    criado_em timestamp with time zone DEFAULT now() NOT NULL,
+    ultimo_acesso_em timestamp with time zone
+);
+
+
+ALTER TABLE optsislog.usuarios_app OWNER TO optare3;
+
+--
+-- Name: usuarios_app_id_seq; Type: SEQUENCE; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE optsislog.usuarios_app ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME optsislog.usuarios_app_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: windows_event_logs; Type: TABLE; Schema: optsislog; Owner: optare3
 --
 
@@ -369,7 +488,8 @@ CREATE TABLE optsislog.windows_event_logs (
     criticality optsislog.criticality_level,
     summary text,
     source_file text,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    record_id bigint
 );
 
 
@@ -454,11 +574,27 @@ ALTER TABLE ONLY optsislog.app_logs
 
 
 --
+-- Name: marcadores_leitura marcadores_leitura_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.marcadores_leitura
+    ADD CONSTRAINT marcadores_leitura_pkey PRIMARY KEY (servidor, canal);
+
+
+--
 -- Name: monitored_urls monitored_urls_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
 --
 
 ALTER TABLE ONLY optsislog.monitored_urls
     ADD CONSTRAINT monitored_urls_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: problemas_servidor problemas_servidor_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.problemas_servidor
+    ADD CONSTRAINT problemas_servidor_pkey PRIMARY KEY (id);
 
 
 --
@@ -510,6 +646,38 @@ ALTER TABLE ONLY optsislog.site_availability
 
 
 --
+-- Name: tokens_renovacao tokens_renovacao_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.tokens_renovacao
+    ADD CONSTRAINT tokens_renovacao_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: problemas_servidor uq_problemas_servidor_assinatura; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.problemas_servidor
+    ADD CONSTRAINT uq_problemas_servidor_assinatura UNIQUE (servidor, canal, provedor, id_evento);
+
+
+--
+-- Name: tokens_renovacao uq_tokens_renovacao_hash; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.tokens_renovacao
+    ADD CONSTRAINT uq_tokens_renovacao_hash UNIQUE (hash);
+
+
+--
+-- Name: usuarios_app uq_usuarios_app_login; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.usuarios_app
+    ADD CONSTRAINT uq_usuarios_app_login UNIQUE (login);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
 --
 
@@ -523,6 +691,14 @@ ALTER TABLE ONLY optsislog.users
 
 ALTER TABLE ONLY optsislog.users
     ADD CONSTRAINT users_username_key UNIQUE (username);
+
+
+--
+-- Name: usuarios_app usuarios_app_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.usuarios_app
+    ADD CONSTRAINT usuarios_app_pkey PRIMARY KEY (id);
 
 
 --
@@ -576,10 +752,38 @@ CREATE INDEX ix_app_logs_ocorrido ON optsislog.app_logs USING btree (ocorrido_em
 
 
 --
+-- Name: ix_problemas_servidor_pendentes; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX ix_problemas_servidor_pendentes ON optsislog.problemas_servidor USING btree (status, severidade, ultima_ocorrencia DESC);
+
+
+--
 -- Name: ix_refresh_tokens_token_hash; Type: INDEX; Schema: optsislog; Owner: optare3
 --
 
 CREATE INDEX ix_refresh_tokens_token_hash ON optsislog.refresh_tokens USING btree (token_hash);
+
+
+--
+-- Name: ix_tokens_renovacao_usuario_ativos; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX ix_tokens_renovacao_usuario_ativos ON optsislog.tokens_renovacao USING btree (usuario_id) WHERE (revogado_em IS NULL);
+
+
+--
+-- Name: ix_windows_event_logs_assinatura; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX ix_windows_event_logs_assinatura ON optsislog.windows_event_logs USING btree (computer, channel, provider, event_id, time_created DESC);
+
+
+--
+-- Name: ux_windows_event_logs_registro; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE UNIQUE INDEX ux_windows_event_logs_registro ON optsislog.windows_event_logs USING btree (computer, channel, record_id) WHERE (record_id IS NOT NULL);
 
 
 --
@@ -612,8 +816,24 @@ ALTER TABLE ONLY optsislog.site_availability
 
 
 --
+-- Name: tokens_renovacao tokens_renovacao_substituido_por_id_fkey; Type: FK CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.tokens_renovacao
+    ADD CONSTRAINT tokens_renovacao_substituido_por_id_fkey FOREIGN KEY (substituido_por_id) REFERENCES optsislog.tokens_renovacao(id);
+
+
+--
+-- Name: tokens_renovacao tokens_renovacao_usuario_id_fkey; Type: FK CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.tokens_renovacao
+    ADD CONSTRAINT tokens_renovacao_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES optsislog.usuarios_app(id) ON DELETE CASCADE;
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-\unrestrict z4FeUp98eXMma9iSyKKQzwePQCKyw5ovv2GTg0N0jKLMZq6d7oqrV2VZdeSh2Pk
+\unrestrict EC9MAW1wRb6nf1jpez6WWfgl04fYPWjoc5t8GOgvfIbk0xTjzONl9xN7pRAEzDx
 

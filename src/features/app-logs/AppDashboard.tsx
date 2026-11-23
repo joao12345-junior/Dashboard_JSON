@@ -2,12 +2,13 @@
 import { useMemo } from "react";
 import { useAppStats } from "./useAppStats";
 import { PageHeader } from "../../components/PageHeader";
-import { ErrorState } from "../../components/Error";
+import { DataGate } from "../../components/DataGate";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { AppKpiCards } from "./components/AppKpiCards";
 import { AppDailyBarChart } from "./components/AppDailyBarChart";
 import { AppTopProgramas } from "./components/AppTopProgramas";
 import { AppLog } from "../../lib/types/Log";
+import { describeStatus, getDataStatus } from "../../lib/dataStatus";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { SharedPageProps } from "../../App";
 
@@ -30,7 +31,9 @@ export function AppDashboard({
 	);
 
 	const stats = useAppStats(appLogs);
-	const isEmpty = !progress.isLoading && appLogs.length === 0;
+
+	const status = getDataStatus(progress, apiProgress, appLogs.length);
+	const hasData = appLogs.length > 0;
 
 	return (
 		<main
@@ -42,11 +45,11 @@ export function AppDashboard({
 		>
 			<PageHeader
 				title="Dashboard — Logs Gerais"
-				subtitle={
-					progress.isLoading
-						? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
-						: `${appLogs.length.toLocaleString("pt-BR")} logs gerais`
-				}
+				subtitle={describeStatus(
+					status,
+					hasData,
+					`${appLogs.length.toLocaleString("pt-BR")} logs gerais`,
+				)}
 				spacing="dense"
 				staticProgress={progress}
 				apiProgress={apiProgress}
@@ -70,49 +73,51 @@ export function AppDashboard({
 				</button>
 			</PageHeader>
 
-			{progress.error && <ErrorState message={progress.error} />}
-
-			{!progress.error && isEmpty && (
-				<div
-					style={{
-						backgroundColor: "var(--card)",
-						border: "1px solid var(--border)",
-						borderRadius: 10,
-						padding: "40px 24px",
-						textAlign: "center",
-						color: "var(--muted-foreground)",
-						fontSize: 13,
-					}}
-				>
-					Nenhum log geral registrado ainda. Assim que um programa externo (ex.:
-					OptRevit) inserir dados em <code>app_logs</code>, eles aparecem aqui.
-				</div>
-			)}
-
-			{!progress.error && !isEmpty && (
-				<div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-					<AppKpiCards stats={stats} isMobile={isMobile} />
+			<DataGate
+				dataState={status.dataState}
+				percent={status.percent}
+				error={status.error}
+				hasData={hasData}
+				onRetry={reload}
+				emptyMessage={
 					<div
 						style={{
-							display: "grid",
-							gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr",
-							gap: 16,
+							backgroundColor: "var(--card)",
+							border: "1px solid var(--border)",
+							borderRadius: 10,
+							padding: "40px 24px",
+							textAlign: "center",
+							color: "var(--muted-foreground)",
+							fontSize: 13,
 						}}
 					>
-						{stats.dailyStats.length > 0 && (
-							<AppDailyBarChart
-								data={stats.dailyStats}
-								programaData={stats.dailyProgramStats}
-								topProgramas={stats.topProgramas}
-							/>
-						)}
-						<AppTopProgramas
-							programas={stats.topProgramas}
-							total={stats.total}
-						/>
+						Nenhum log geral registrado ainda. Assim que um programa externo
+						(ex.: OptRevit) inserir dados em <code>app_logs</code>, eles
+						aparecem aqui.
 					</div>
+				}
+			>
+				<AppKpiCards stats={stats} isMobile={isMobile} />
+				<div
+					style={{
+						display: "grid",
+						gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr",
+						gap: 16,
+					}}
+				>
+					{stats.dailyStats.length > 0 && (
+						<AppDailyBarChart
+							data={stats.dailyStats}
+							programaData={stats.dailyProgramStats}
+							topProgramas={stats.topProgramas}
+						/>
+					)}
+					<AppTopProgramas
+						programas={stats.topProgramas}
+						total={stats.total}
+					/>
 				</div>
-			)}
+			</DataGate>
 		</main>
 	);
 }

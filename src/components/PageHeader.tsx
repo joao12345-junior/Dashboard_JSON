@@ -28,7 +28,13 @@ interface PageHeaderProps {
 	spacing: "dense" | "compact";
 	/** Alinhamento vertical do container — "flex-start" usado pelas páginas de Site (título de 2 linhas). */
 	align?: "center" | "flex-start";
-	/** Permite quebra de linha do cabeçalho em telas estreitas (usado pela página de Configurações). */
+	/**
+	 * Quebra de linha do cabeçalho quando título e botões não cabem lado a lado
+	 * (celular: a linha de ações desce para baixo do título). Padrão `true`: onde
+	 * cabe, o layout é o mesmo de antes. Em 390 px a linha de ações (tema,
+	 * notificações e 2–3 botões) somava ~366 px e vazava do `<main>`, cortando
+	 * o último botão. Passe `false` só se precisar forçar uma linha.
+	 */
 	wrap?: boolean;
 	/** Controles extras renderizados ANTES do ThemeToggleButton (ex.: select de URL monitorada). */
 	leadingControls?: ReactNode;
@@ -67,7 +73,7 @@ export function PageHeader({
 	titleArea,
 	spacing,
 	align = "center",
-	wrap = false,
+	wrap = true,
 	leadingControls,
 	children,
 	staticProgress,
@@ -115,7 +121,14 @@ export function PageHeader({
 						</p>
 					</div>
 				)}
-				<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+				<div
+					style={{
+						display: "flex",
+						gap: 8,
+						alignItems: "center",
+						...(wrap ? { flexWrap: "wrap" } : {}),
+					}}
+				>
 					{leadingControls}
 					<ThemeToggleButton />
 					<NotificationToggleButton />

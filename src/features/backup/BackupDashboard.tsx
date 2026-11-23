@@ -2,11 +2,12 @@
 import { useMemo } from "react";
 import { useProcessStats } from "./useProcessStats";
 import { PageHeader } from "../../components/PageHeader";
-import { ErrorState } from "../../components/Error";
+import { DataGate } from "../../components/DataGate";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { ProcessKpiCards } from "./components/ProcessKpiCards";
 import { DailyBarChart } from "../../components/charts/DailyBarChart";
 import { ProcessLog } from "../../lib/types/Log";
+import { describeStatus, getDataStatus } from "../../lib/dataStatus";
 import { btnPrimary, btnSecondary } from "../../lib/styles/buttonStyles";
 import type { SharedPageProps } from "../../App";
 
@@ -30,6 +31,9 @@ export function ProcessDashboard({
 
 	const stats = useProcessStats(processLogs);
 
+	const status = getDataStatus(progress, apiProgress, processLogs.length);
+	const hasData = processLogs.length > 0;
+
 	return (
 		<main
 			style={{
@@ -40,11 +44,11 @@ export function ProcessDashboard({
 		>
 			<PageHeader
 				title="Dashboard — Logs de Backup"
-				subtitle={
-					progress.isLoading
-						? `Carregando… ${progress.percentComplete}% (${progress.loadedFiles}/${progress.totalFiles} arquivos)`
-						: `${processLogs.length.toLocaleString("pt-BR")} logs de backup`
-				}
+				subtitle={describeStatus(
+					status,
+					hasData,
+					`${processLogs.length.toLocaleString("pt-BR")} logs de backup`,
+				)}
 				spacing="dense"
 				staticProgress={progress}
 				apiProgress={apiProgress}
@@ -71,16 +75,18 @@ export function ProcessDashboard({
 				</button>
 			</PageHeader>
 
-			{progress.error && <ErrorState message={progress.error} />}
-
-			{!progress.error && (
-				<div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-					<ProcessKpiCards stats={stats} isMobile={isMobile} />
-					{stats.dailyStats.length > 0 && (
-						<DailyBarChart data={stats.dailyStats} />
-					)}
-				</div>
-			)}
+			<DataGate
+				dataState={status.dataState}
+				percent={status.percent}
+				error={status.error}
+				hasData={hasData}
+				onRetry={reload}
+			>
+				<ProcessKpiCards stats={stats} isMobile={isMobile} />
+				{stats.dailyStats.length > 0 && (
+					<DailyBarChart data={stats.dailyStats} />
+				)}
+			</DataGate>
 		</main>
 	);
 }

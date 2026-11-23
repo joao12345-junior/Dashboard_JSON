@@ -1,5 +1,7 @@
 // src/features/site/SiteDashboard.tsx
 import { PageHeader } from "../../components/PageHeader";
+import { ErrorState } from "../../components/Error";
+import { LoadingState } from "../../components/Loading";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import type { SharedPageProps } from "../../App";
 import type { AvailabilityRecord } from "./hooks/useSiteData";
@@ -222,6 +224,7 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 		error,
 		lastRefresh,
 		refresh,
+		refreshMonitoredUrls,
 	} = siteData;
 
 	const selectedLabel =
@@ -230,6 +233,13 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 
 	const selectedSite =
 		monitoredUrls.find((mu) => mu.id === selectedUrlId) ?? null;
+
+	// Já há dados DESTE site? (`monitored_url_id` evita mostrar o site anterior enquanto
+	// o novo carrega.) Com isso o painel fica na tela durante a atualização periódica e o
+	// "Recarregar", em vez de sumir e voltar a cada 5 min.
+	const hasCurrentData =
+		availability.length > 0 && availability[0].monitored_url_id === selectedUrlId;
+	const refreshing = loading && hasCurrentData;
 
 	const lastCheck = availability[0];
 	const upCount = availability.filter((r) => r.is_up).length;
@@ -295,9 +305,11 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 								margin: "0 0 0 14px",
 							}}
 						>
-							{lastRefresh
-								? `Atualizado às ${formatTime(lastRefresh.toISOString())}`
-								: "Carregando..."}
+							{refreshing
+								? "Atualizando…"
+								: lastRefresh
+									? `Atualizado às ${formatTime(lastRefresh.toISOString())}`
+									: "Carregando..."}
 						</p>
 					</div>
 				}
@@ -343,16 +355,19 @@ export function SiteDashboard({ onNavigate, siteData }: SharedPageProps) {
 				</button>
 			</PageHeader>
 
-			{loading && (
-				<p style={{ color: "var(--muted-foreground)", fontSize: 13 }}>
-					Carregando dados...
-				</p>
+			{loading && !hasCurrentData && !error && (
+				<LoadingState label="Carregando dados do site…" />
 			)}
 			{error && (
-				<p style={{ color: "var(--destructive)", fontSize: 13 }}>{error}</p>
+				// Sem site selecionado, `refresh` não faz nada (fetchData sai cedo): nesse
+				// caso a falha foi ao buscar a lista de sites, então tenta ela de novo.
+				<ErrorState
+					message={error}
+					onRetry={selectedUrlId !== null ? refresh : refreshMonitoredUrls}
+				/>
 			)}
 
-			{!loading && !error && (
+			{!error && (!loading || hasCurrentData) && (
 				<>
 					{/* KPIs */}
 					<div

@@ -4,6 +4,7 @@ import { PageHeader } from "../../components/PageHeader";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import type { SharedPageProps } from "../../App";
 import type { AvailabilityRecord, SentryEvent } from "./hooks/useSiteData";
+import { AvailabilityDetailsModal } from "./components/AvailabilityDetailsModal";
 
 const OPTARE_RED = "oklch(0.3800 0.1523 18.6219)";
 
@@ -102,6 +103,8 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 		"all",
 	);
 	const [dateFilter, setDateFilter] = useState("");
+	// Check aberto no modal de detalhes (`null` = fechado).
+	const [selected, setSelected] = useState<AvailabilityRecord | null>(null);
 
 	const filtered = useMemo(() => {
 		return records.filter((r) => {
@@ -315,7 +318,9 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 							filtered.map((r, index) => (
 								<tr
 									key={r.id}
+									onClick={() => setSelected(r)}
 									style={{
+										cursor: "pointer",
 										height: ROW_HEIGHT,
 										borderBottom: "1px solid var(--border)",
 										backgroundColor:
@@ -338,7 +343,26 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 											...tdBaseStyle,
 										}}
 									>
-										{formatDate(r.checked_at)}
+										{/* Único ponto de foco por teclado da linha: abre o modal. */}
+										<button
+											type="button"
+											className="ld-link-btn"
+											title="Ver resposta do check"
+											onClick={(e) => {
+												e.stopPropagation();
+												setSelected(r);
+											}}
+											style={{
+												background: "none",
+												border: "none",
+												padding: 0,
+												color: "inherit",
+												font: "inherit",
+												cursor: "pointer",
+											}}
+										>
+											{formatDate(r.checked_at)}
+										</button>
 									</td>
 									<td
 										style={{
@@ -414,6 +438,10 @@ function AvailabilityTable({ records }: { records: AvailabilityRecord[] }) {
 				{filtered.length.toLocaleString("pt-BR")} de{" "}
 				{records.length.toLocaleString("pt-BR")} registros
 			</div>
+			<AvailabilityDetailsModal
+				record={selected}
+				onClose={() => setSelected(null)}
+			/>
 		</div>
 	);
 }
