@@ -9,6 +9,8 @@ Fontes (Network 11.0.x):
   - dispositivos: Integration API  GET /integration/v1/sites/{id}/devices
                   + .../devices/{id}/statistics/latest
   - clientes:     API legada       GET /api/s/{site}/stat/sta
+  - WAN:          API legada       GET /api/s/{site}/stat/device (gateway)
+                                   + GET /api/s/{site}/rest/networkconf (nomes)
 """
 from __future__ import annotations
 
@@ -176,3 +178,100 @@ def map_client(sta: Mapping[str, Any]) -> Optional[NetworkClient]:
         connected_since=_epoch(sta.get("latest_assoc_time") or sta.get("assoc_time")),
         first_seen_at=_epoch(sta.get("first_seen")),
     )
+
+
+# ---- WAN (links de internet do gateway) ------------------------------------
+
+#: Chave do bloco no `stat/device` do gateway -> nome do grupo usado no restante da API.
+_WAN_KEYS = (("wan1", "WAN"), ("wan2", "WAN2"), ("wan3", "WAN3"))
+_GATEWAY_TYPES = {"udm", "ugw", "uxg"}
+
+
+@dataclass(frozen=True, slots=True)
+class WanLink:
+    """Um link de internet do gateway (WAN, WAN2...) com o estado deste ciclo."""
+
+    wan_group: str
+    #: Nome dado no UniFi (Settings > Internet), ex.: "Unifique".
+    name: Optional[str]
+    #: Provedor detectado pelo UniFi (geo_info), pode diferir do nome.
+    isp_name: Optional[str]
+    ip_address: Optional[str]
+    is_up: Optional[bool]
+    is_enabled: Optional[bool]
+    failover_only: Optional[bool]
+    availability_pct: Optional[float]
+    latency_ms: Optional[float]
+    rx_bps: Optional[int]
+    tx_bps: Optional[int]
+    gateway_mac: Optional[str]
+
+
+def _mapping(value: Any) -> Mapping[str, Any]:
+    return value if isinstance(value, Mapping) else {}
+
+
+def _bool(value: Any) -> Optional[bool]:
+    return value if isinstance(value, bool) else None
+
+
+def find_gateway(stat_devices: Any) -> Optional[Mapping[str, Any]]:
+    """O gateway dentro da lista do `stat/device` (pelo tipo, ou por ter bloco `wan1`)."""
+    if not isinstance(stat_devices, list):
+        return None
+    rows = [d for d in stat_devices if isinstance(d, Mapping)]
+    return next((d for d in rows if d.get("type") in _GATEWAY_TYPES), None) or next(
+        (d for d in rows if isinstance(d.get("wan1"), Mapping)), None
+    )
+
+
+def map_wans(
+    gateway: Mapping[str, Any], network_confs: Any = ()
+) -> list[WanLink]:
+    """
+    WANs do gateway (`stat/device`) + nomes/papel das redes de purpose "wan"
+    (`rest/networkconf`, opcional). Um grupo entra se aparece em QUALQUER das duas
+    fontes; campo ausente vira None (o formato muda entre firmwares).
+    """
+    confs: dict[str, Mapping[str, Any]] = {}
+    if isinstance(network_confs, list):
+        for conf in network_confs:
+            if isinstance(conf, Mapping) and conf.get("purpose") == "wan":
+                confs[_str(conf.get("wan_networkgroup")) or "WAN"] = conf
+    uptime = _mapping(gateway.get("uptime_stats"))
+    geo = _mapping(gateway.get("geo_info"))
+    status = _mapping(gateway.get("last_wan_status"))
+    gateway_mac = _mac(gateway.get("mac"))
+
+    links: list[WanLink] = []
+    for key, group in _WAN_KEYS:
+        raw = gateway.get(key)
+        conf = confs.get(group)
+        if not isinstance(raw, Mapping) and conf is None:
+            continue
+        wan = _mapping(raw)
+        conf = conf or {}
+        stats = _mapping(uptime.get(group))
+        is_up = _bool(wan.get("up"))
+        if is_up is None and isinstance(status.get(group), str):
+            is_up = status[group].strip().lower() == "online"
+        rx = _int(wan.get("rx_bytes-r"))
+        tx = _int(wan.get("tx_bytes-r"))
+        balance = _str(conf.get("wan_load_balance_type"))
+        links.append(
+            WanLink(
+                wan_group=group,
+                name=_str(conf.get("name")),
+                isp_name=_str(_mapping(geo.get(group)).get("isp_name")),
+                ip_address=_str(wan.get("ip")),
+                is_up=is_up,
+                is_enabled=_bool(wan.get("enable")) if "enable" in wan else _bool(conf.get("enabled")),
+                failover_only=None if balance is None else balance == "failover-only",
+                availability_pct=_float(stats.get("availability")),
+                latency_ms=_float(stats.get("latency_average")),
+                rx_bps=None if rx is None else rx * 8,
+                tx_bps=None if tx is None else tx * 8,
+                gateway_mac=gateway_mac,
+            )
+        )
+    return links

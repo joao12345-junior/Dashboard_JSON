@@ -1,6 +1,8 @@
 // src/features/network/components/NetworkEventFeed.tsx
 import React, { useEffect, useRef } from "react";
 import type { NetworkEvent } from "../hooks/useNetworkEvents";
+import type { NetworkClient } from "../hooks/useNetworkState";
+import { clientTitle } from "../sortClients";
 import { formatDayLabel } from "../../../lib/dayLabel";
 import { plural } from "../../../lib/plural";
 import { btnSecondary } from "../../../lib/styles/buttonStyles";
@@ -33,6 +35,10 @@ interface NetworkEventFeedProps {
 	/** Há filtro ligado (muda o texto do estado vazio). */
 	filtered: boolean;
 	loading: boolean;
+	/** Cliente citado no evento (se houver), para mostrar o atalho. */
+	clientFor?: (event: NetworkEvent) => NetworkClient | null;
+	/** Clique no cliente citado → abre os detalhes dele. */
+	onOpenClient?: (client: NetworkClient) => void;
 }
 
 interface DayGroup {
@@ -142,6 +148,8 @@ export function NetworkEventFeed({
 	onClearFilters,
 	filtered,
 	loading,
+	clientFor,
+	onOpenClient,
 }: NetworkEventFeedProps) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -251,6 +259,8 @@ export function NetworkEventFeed({
 									selected={ev.id === selectedId}
 									onSelect={onSelect}
 									onFilterName={onFilterName}
+									client={clientFor?.(ev) ?? null}
+									onOpenClient={onOpenClient}
 								/>
 							))}
 						</section>
@@ -269,6 +279,8 @@ interface EventRowProps {
 	selected: boolean;
 	onSelect: (event: NetworkEvent) => void;
 	onFilterName: (name: string) => void;
+	client: NetworkClient | null;
+	onOpenClient?: (client: NetworkClient) => void;
 }
 
 function EventRow({
@@ -279,6 +291,8 @@ function EventRow({
 	selected,
 	onSelect,
 	onFilterName,
+	client,
+	onOpenClient,
 }: EventRowProps) {
 	const when = ev.event_time ?? ev.created_at;
 	const name = ev.name ?? "Sem nome";
@@ -392,6 +406,27 @@ function EventRow({
 					>
 						{device}
 					</span>
+				)}
+				{client && onOpenClient && (
+					<button
+						type="button"
+						className="ld-link-btn"
+						title={`Ver cliente ${clientTitle(client)}${client.ip_address ? ` (${client.ip_address})` : ""}`}
+						onClick={(e) => {
+							e.stopPropagation();
+							onOpenClient(client);
+						}}
+						style={{
+							...linkButtonStyle,
+							fontSize: 11,
+							fontWeight: 600,
+							color: "var(--foreground)",
+							textDecoration: "underline",
+							textUnderlineOffset: 2,
+						}}
+					>
+						Cliente: {clientTitle(client)}
+					</button>
 				)}
 			</span>
 			<span

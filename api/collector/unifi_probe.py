@@ -150,6 +150,29 @@ def main() -> int:
         status, body = _get(session, host, path)
         _report(title, status, body)
 
+    # WAN (fase 4): o que o poller usa para a aba Infraestrutura. Mostra so os blocos
+    # de WAN do gateway (o stat/device inteiro e grande demais e e cortado acima).
+    from .unifi_mapper import find_gateway, map_wans
+
+    status, body = _get(session, host, f"{legacy}/stat/device")
+    gateway = find_gateway(body.get("data") if isinstance(body, dict) else None)
+    print("\n=== WAN: blocos do gateway em stat/device ===")
+    if gateway is None:
+        print(f"status: {status} -- nenhum gateway encontrado")
+    else:
+        wan_keys = ("wan1", "wan2", "wan3", "uptime_stats", "geo_info", "last_wan_status", "uplink")
+        print(f"chaves presentes: {[k for k in wan_keys if k in gateway]}")
+        print(json.dumps(_mask({k: gateway.get(k) for k in wan_keys if k in gateway}), ensure_ascii=False, indent=2)[:MAX_SAMPLE_CHARS])
+    status, confs = _get(session, host, f"{legacy}/rest/networkconf")
+    wan_confs = [c for c in (_items(confs) or []) if isinstance(c, dict) and c.get("purpose") == "wan"]
+    print(f"\n=== WAN: rest/networkconf (purpose=wan) ===\nstatus: {status}")
+    for c in wan_confs:
+        print({k: c.get(k) for k in ("name", "wan_networkgroup", "wan_load_balance_type", "enabled")})
+    if gateway is not None:
+        print("\n=== WAN: resultado do mapeador (o que vai para o banco) ===")
+        for link in map_wans(gateway, wan_confs):
+            print(link)
+
     return 0
 
 

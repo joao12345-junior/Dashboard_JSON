@@ -23,6 +23,7 @@ import { Settings } from "./features/settings/settingsPage";
 import { NetworkEventsPage } from "./features/network/NetworkEventsPage";
 import { NetworkClientsPage } from "./features/network/NetworkClientsPage";
 import { NetworkDevicesPage } from "./features/network/NetworkDevicesPage";
+import { NetworkTopologyPage } from "./features/network/NetworkTopologyPage";
 import { AppDashboard } from "./features/app-logs/AppDashboard";
 import { AppList } from "./features/app-logs/AppList";
 
@@ -52,6 +53,7 @@ export type Page =
 	| "network-events"
 	| "network-clients"
 	| "network-devices"
+	| "network-topology"
 	| "settings";
 
 // ── Persistencia da pagina atual ─────────────────────────────────────────────
@@ -77,6 +79,7 @@ const VALID_PAGES: readonly Page[] = [
 	"network-events",
 	"network-clients",
 	"network-devices",
+	"network-topology",
 	"settings",
 ];
 
@@ -349,6 +352,8 @@ function AppContent() {
 				return <NetworkClientsPage {...sharedProps} />;
 			case "network-devices":
 				return <NetworkDevicesPage {...sharedProps} />;
+			case "network-topology":
+				return <NetworkTopologyPage {...sharedProps} />;
 			case "settings":
 				return <Settings {...sharedProps} />;
 		}

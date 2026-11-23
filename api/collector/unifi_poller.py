@@ -49,7 +49,14 @@ class UnifiPoller:
         clients = self._source.fetch_clients()
         # So chega aqui com as DUAS leituras ok: gravar so metade desconectaria clientes
         # ou removeria dispositivos por engano.
-        self._sink.replace_snapshot(devices, clients, datetime.now(timezone.utc))
+        polled_at = datetime.now(timezone.utc)
+        self._sink.replace_snapshot(devices, clients, polled_at)
+        # WAN e EXTRA: se falhar, o ciclo de dispositivos/clientes continua valendo e
+        # a tabela de WAN fica com o ultimo estado bom (a pagina mostra a idade).
+        try:
+            self._sink.replace_wans(self._source.fetch_wans(), polled_at)
+        except Exception as e:
+            logger.warning("WAN nao atualizada neste ciclo: %s: %s", type(e).__name__, e)
         return len(devices), len(clients)
 
     def next_delay(self) -> float:

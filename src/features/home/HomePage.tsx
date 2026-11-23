@@ -7,6 +7,7 @@ import { useWindowSize } from "../../hooks/useWindowSize";
 import { CriticalEventsFeed } from "./components/CriticalEventsFeed";
 import { GlobalKpiRow } from "./components/GlobalKpiRow";
 import { DailyErrorsPanel } from "./components/DailyErrorsPanel";
+import { NetworkSummaryCard } from "../network/components/NetworkSummaryCard";
 import { useDailyErrors } from "./useDailyErrors";
 import { describeLastSeen } from "../../lib/dayOverview";
 import { getDataStatus } from "../../lib/dataStatus";
@@ -200,6 +201,9 @@ export function HomePage({
 							loading={dataState === "loading"}
 							onNavigate={onNavigate}
 						/>
+
+						{/* Rede UniFi: internet, clientes, dispositivos e último alerta */}
+						<NetworkSummaryCard onNavigate={onNavigate} isMobile={isMobile} />
 
 						{/* Principais erros de hoje e ontem (todos os tipos de log) */}
 						<DailyErrorsPanel

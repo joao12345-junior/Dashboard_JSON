@@ -55,3 +55,9 @@ Não testado contra o banco real nem em PowerShell: o SQL do sink e das rotas e 
 ## Pendências
 - Fase 3: mapa de topologia (`stat/device`).
 - Histórico de métricas dos dispositivos (hoje só o último valor).
+
+## Melhorias nas páginas Rede > Clientes e Dispositivos
+
+- **Clientes**: cabeçalhos clicáveis (Cliente, IP, Conexão, Estado) alternam crescente/decrescente (`sortClients.ts`; IP compara numericamente, sem IP vai ao fim); chips Wi-Fi/Cabo mostram contagem; clicar na linha (ou no nome, via teclado) abre o modal `NetworkClientDetailsModal` com todos os dados; sinal ≤ -75 dBm aparece como "sinal fraco" (`isWeakSignal` em `format.ts`).
+- **Dispositivos**: KPIs (online/total, clientes conectados, atualizações de firmware), campo "Clientes" por card (contagem por `uplink_mac`), gateway primeiro e offline logo depois, borda avermelhada quando offline.
+- Só front-end: sem migração nem reinício de serviço; basta `update.ps1` no servidor 201.

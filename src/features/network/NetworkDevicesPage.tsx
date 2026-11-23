@@ -1,11 +1,13 @@
 // src/features/network/NetworkDevicesPage.tsx
-import React from "react";
+import React, { useMemo } from "react";
 import { PageHeader } from "../../components/PageHeader";
 import { ErrorState } from "../../components/Error";
 import type { SharedPageProps } from "../../App";
 import { btnSecondary } from "../../lib/styles/buttonStyles";
 import { plural } from "../../lib/plural";
-import { useNetworkDevices, type NetworkDevice } from "./hooks/useNetworkState";
+import { KpiCard } from "../../components/charts/KpiCard";
+import { Router, Wifi } from "lucide-react";
+import { useNetworkClients, useNetworkDevices, type NetworkDevice } from "./hooks/useNetworkState";
 import { StaleDataBanner } from "./components/StaleDataBanner";
 import { formatBitrate, formatSince, formatUptime } from "./format";
 import { formatEventTime } from "./formatEventTime";
@@ -27,6 +29,17 @@ function deviceKinds(d: NetworkDevice): string {
 		return ["Gateway", ...labels.filter((l) => l !== "Switch")].join(", ");
 	}
 	return labels.join(", ");
+}
+
+/** Gateway primeiro, depois o restante por nome; o que está offline sobe logo após o gateway. */
+function sortDevices(devices: NetworkDevice[]): NetworkDevice[] {
+	const rank = (d: NetworkDevice) =>
+		d.model && GATEWAY_MODEL.test(d.model) ? 0 : d.state !== "ONLINE" ? 1 : 2;
+	return [...devices].sort(
+		(a, b) =>
+			rank(a) - rank(b) ||
+			(a.name ?? a.mac).localeCompare(b.name ?? b.mac, "pt-BR", { numeric: true }),
+	);
 }
 
 const emptyBoxStyle: React.CSSProperties = {
@@ -101,14 +114,23 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 	);
 }
 
-function DeviceCard({ device: d, now }: { device: NetworkDevice; now: Date }) {
+function DeviceCard({
+	device: d,
+	now,
+	clientCount,
+}: {
+	device: NetworkDevice;
+	now: Date;
+	/** Clientes conectados diretamente neste dispositivo; null se ainda não carregou. */
+	clientCount: number | null;
+}) {
 	const online = d.state === "ONLINE";
 	const kinds = deviceKinds(d);
 	return (
 		<article
 			style={{
 				backgroundColor: "var(--card)",
-				border: "1px solid var(--border)",
+				border: `1px solid ${online ? "var(--border)" : "color-mix(in oklch, var(--destructive) 55%, var(--border))"}`,
 				borderRadius: 8,
 				padding: 16,
 				display: "flex",
@@ -117,7 +139,24 @@ function DeviceCard({ device: d, now }: { device: NetworkDevice; now: Date }) {
 			}}
 		>
 			<header style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
-				<div style={{ minWidth: 0 }}>
+				<span
+					aria-hidden
+					style={{
+						flexShrink: 0,
+						width: 36,
+						height: 36,
+						borderRadius: "50%",
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+						backgroundColor: d.features.includes("accessPoint") ? "var(--foreground)" : "transparent",
+						color: d.features.includes("accessPoint") ? "var(--background)" : "var(--foreground)",
+						border: "1px solid var(--border)",
+					}}
+				>
+					{d.features.includes("accessPoint") ? <Wifi size={18} /> : <Router size={18} />}
+				</span>
+				<div style={{ minWidth: 0, flex: 1 }}>
 					<h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>
 						{d.name ?? d.mac}
 					</h2>
@@ -162,6 +201,9 @@ function DeviceCard({ device: d, now }: { device: NetworkDevice; now: Date }) {
 					<span style={{ fontFamily: "monospace" }}>{d.ip_address ?? "—"}</span>
 				</Field>
 				<Field label="Ligado há">{formatUptime(d.uptime_sec)}</Field>
+				<Field label="Clientes">
+					{clientCount === null ? "—" : clientCount.toLocaleString("pt-BR")}
+				</Field>
 				<Field label="Firmware">
 					{d.firmware_version ?? "—"}
 					{d.firmware_updatable ? (
@@ -190,8 +232,21 @@ function DeviceCard({ device: d, now }: { device: NetworkDevice; now: Date }) {
 /// </summary>
 export function NetworkDevicesPage({ isMobile }: SharedPageProps) {
 	const { data, loading, error, lastRefresh, reload } = useNetworkDevices();
-	const devices = data?.devices ?? [];
+	const { data: clientsData } = useNetworkClients("connected", "");
+	const devices = useMemo(() => sortDevices(data?.devices ?? []), [data]);
 	const now = new Date();
+
+	// Clientes conectados por dispositivo (uplink_mac), para o card e o KPI.
+	const clientsByUplink = useMemo(() => {
+		const map = new Map<string, number>();
+		for (const c of clientsData?.clients ?? []) {
+			if (c.uplink_mac) map.set(c.uplink_mac, (map.get(c.uplink_mac) ?? 0) + 1);
+		}
+		return map;
+	}, [clientsData]);
+
+	const onlineCount = devices.filter((d) => d.state === "ONLINE").length;
+	const updatableCount = devices.filter((d) => d.firmware_updatable).length;
 
 	return (
 		<div
@@ -260,6 +315,30 @@ export function NetworkDevicesPage({ isMobile }: SharedPageProps) {
 							</div>
 						)}
 						<div
+							style={{
+								display: "grid",
+								gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+								gap: 12,
+							}}
+						>
+							<KpiCard
+								label="Dispositivos online"
+								value={`${onlineCount}/${devices.length}`}
+								accentColor={onlineCount === devices.length ? "var(--primary)" : "var(--destructive-text)"}
+							/>
+							<KpiCard
+								label="Clientes conectados"
+								value={clientsData ? clientsData.connected_count : "—"}
+								accentColor="var(--chart-4)"
+							/>
+							<KpiCard
+								label="Atualizações"
+								value={updatableCount}
+								accentColor={updatableCount > 0 ? "var(--warning-text)" : "var(--muted-foreground)"}
+								subtitle={updatableCount > 0 ? "firmware disponível" : "tudo em dia"}
+							/>
+						</div>
+						<div
 							aria-busy={loading}
 							style={{
 								display: "grid",
@@ -269,7 +348,7 @@ export function NetworkDevicesPage({ isMobile }: SharedPageProps) {
 							}}
 						>
 							{devices.map((d) => (
-								<DeviceCard key={d.mac} device={d} now={now} />
+								<DeviceCard key={d.mac} device={d} now={now} clientCount={clientsData ? (clientsByUplink.get(d.mac) ?? 0) : null} />
 							))}
 						</div>
 					</>

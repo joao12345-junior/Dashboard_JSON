@@ -130,3 +130,82 @@ def get_network_clients():
         return jsonify({"error": "Não foi possível buscar os clientes de rede."}), 500
     finally:
         release_connection(conn, is_healthy=connection_ok)
+
+
+@network_state_bp.route("/api/network/wan", methods=["GET"])
+@require_auth
+def get_network_wan():
+    """
+    Links de internet do gateway (WAN, WAN2...), ultimo estado gravado pelo poller.
+    Devolve {"wans": [...], "polled_at": iso|null}. `polled_at` velho = o poller
+    nao esta conseguindo ler a WAN (os dados sao do ultimo ciclo bom).
+    """
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT wan_group, name, isp_name, ip_address, is_up, is_enabled,
+                       failover_only, availability_pct, latency_ms, rx_bps, tx_bps,
+                       gateway_mac, last_polled_at
+                FROM optsislog.network_wan
+                ORDER BY wan_group
+                """
+            )
+            rows = cur.fetchall()
+        polled_at = max((r["last_polled_at"] for r in rows), default=None)
+        for row in rows:
+            _iso(row, "last_polled_at")
+        return jsonify({"wans": rows, "polled_at": polled_at.isoformat() if polled_at else None}), 200
+    except Exception as e:
+        connection_ok = False
+        logger.error(f"[network_wan] Erro: {e}")
+        return jsonify({"error": "Não foi possível buscar os links de internet."}), 500
+    finally:
+        release_connection(conn, is_healthy=connection_ok)
+
+
+SESSION_DAYS_DEFAULT = 7
+SESSION_DAYS_MAX = 30
+
+
+@network_state_bp.route("/api/network/clients/<mac>/sessions", methods=["GET"])
+@require_auth
+def get_network_client_sessions(mac: str):
+    """
+    Historico de conexoes de um cliente: periodos em que esteve conectado nos
+    ultimos `days` dias (padrao 7, maximo 30), do mais recente ao mais antigo.
+    `disconnected_at` null = ainda conectado. Comeca a contar quando a migracao 015
+    entrou (antes disso nao ha historico).
+    """
+    mac = (mac or "").strip().lower()[:32]
+    days = request.args.get("days", SESSION_DAYS_DEFAULT, type=int)
+    days = max(1, min(days, SESSION_DAYS_MAX))
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT s.connected_at, s.disconnected_at, s.ip_address, s.uplink_mac,
+                       d.name AS uplink_name
+                FROM optsislog.network_client_sessions s
+                LEFT JOIN optsislog.network_devices d ON d.mac = s.uplink_mac
+                WHERE s.mac = %s
+                  AND COALESCE(s.disconnected_at, now()) >= now() - make_interval(days => %s)
+                ORDER BY s.connected_at DESC
+                LIMIT 200
+                """,
+                (mac, days),
+            )
+            rows = cur.fetchall()
+        for row in rows:
+            _iso(row, "connected_at", "disconnected_at")
+        return jsonify({"sessions": rows, "days": days}), 200
+    except Exception as e:
+        connection_ok = False
+        logger.error(f"[network_client_sessions] Erro: {e}")
+        return jsonify({"error": "Não foi possível buscar o histórico do cliente."}), 500
+    finally:
+        release_connection(conn, is_healthy=connection_ok)

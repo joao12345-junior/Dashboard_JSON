@@ -179,6 +179,21 @@ class HttpSourceTests(unittest.TestCase):
         self.assertEqual(len(devices), 1)
         self.assertIsNone(devices[0].cpu_pct)
 
+    def test_fetch_wans_with_names_and_without_networkconf(self):
+        gateway = {"type": "udm", "mac": "0c:ea:14:00:00:01", "wan1": {"ip": "172.16.0.24", "up": True}}
+        legacy = "/proxy/network/api/s/default"
+        conf = {"data": [{"purpose": "wan", "wan_networkgroup": "WAN", "name": "Unifique"}]}
+        source, session = self._source({f"{legacy}/stat/device": {"data": [gateway]}, f"{legacy}/rest/networkconf": conf})
+        self.assertEqual(source.fetch_wans()[0].name, "Unifique")
+        self.assertTrue(all(method == "GET" for method, _, _ in session.calls))
+        source, _ = self._source({f"{legacy}/stat/device": {"data": [gateway]}, f"{legacy}/rest/networkconf": FakeResponse({}, 404)})
+        self.assertIsNone(source.fetch_wans()[0].name)
+
+    def test_fetch_wans_without_gateway_raises(self):
+        source, _ = self._source({"/proxy/network/api/s/default/stat/device": {"data": [{"type": "uap"}]}})
+        with self.assertRaises(RuntimeError):
+            source.fetch_wans()
+
     def test_unexpected_sta_response_raises(self):
         source, _ = self._source({"/proxy/network/api/s/default/stat/sta": {"meta": {}}})
         with self.assertRaises(RuntimeError):
@@ -186,8 +201,14 @@ class HttpSourceTests(unittest.TestCase):
 
 
 class FakeSource:
-    def __init__(self, devices=(), clients=(), error=None):
+    def __init__(self, devices=(), clients=(), error=None, wans=(), wan_error=None):
         self.devices, self.clients, self.error = list(devices), list(clients), error
+        self.wans, self.wan_error = list(wans), wan_error
+
+    def fetch_wans(self):
+        if self.wan_error:
+            raise self.wan_error
+        return self.wans
 
     def fetch_devices(self):
         if self.error:
@@ -201,9 +222,13 @@ class FakeSource:
 class MemorySink:
     def __init__(self):
         self.snapshots = []
+        self.wans = []
 
     def replace_snapshot(self, devices, clients, polled_at):
         self.snapshots.append((list(devices), list(clients), polled_at))
+
+    def replace_wans(self, wans, polled_at):
+        self.wans.append((list(wans), polled_at))
 
     def close(self):
         pass
@@ -224,6 +249,19 @@ class PollerTests(unittest.TestCase):
         with self.assertRaises(ConnectionError):
             poller.poll_once()
         self.assertEqual(sink.snapshots, [])  # nao "desconecta" ninguem por falha de leitura
+
+    def test_wan_failure_does_not_fail_the_cycle(self):
+        sink = MemorySink()
+        poller = UnifiPoller(FakeSource(wan_error=RuntimeError("sem gateway")), sink)
+        self.assertEqual(poller.poll_once(), (0, 0))
+        self.assertEqual(len(sink.snapshots), 1)
+        self.assertEqual(sink.wans, [])  # mantem o ultimo estado bom da WAN
+
+    def test_wans_are_written_with_the_same_time(self):
+        sink = MemorySink()
+        UnifiPoller(FakeSource(wans=["w"]), sink).poll_once()
+        self.assertEqual(sink.wans[0][0], ["w"])
+        self.assertEqual(sink.wans[0][1], sink.snapshots[0][2])
 
     def test_run_backs_off_and_recovers(self):
         stop = threading.Event()

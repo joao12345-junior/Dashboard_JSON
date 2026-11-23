@@ -57,3 +57,20 @@ export function isPollerStale(polledAt: string | null, now: Date = new Date()): 
 	if (!polledAt) return false;
 	return now.getTime() - new Date(polledAt).getTime() > STALE_AFTER_MS;
 }
+
+/** Abaixo disso (dBm) o Wi-Fi costuma dar lentidão e quedas. */
+const WEAK_SIGNAL_DBM = -75;
+
+/** `true` se o sinal Wi-Fi é fraco (≤ -75 dBm). `null` (cabo/sem dado): false. */
+export function isWeakSignal(dbm: number | null): boolean {
+	return dbm !== null && dbm <= WEAK_SIGNAL_DBM;
+}
+
+/** Qualidade do sinal Wi-Fi em palavras: ótimo, bom, razoável ou fraco. */
+export function signalQuality(dbm: number | null): string {
+	if (dbm === null) return "—";
+	if (dbm >= -60) return "ótimo";
+	if (dbm >= -70) return "bom";
+	if (dbm > WEAK_SIGNAL_DBM) return "razoável";
+	return "fraco";
+}

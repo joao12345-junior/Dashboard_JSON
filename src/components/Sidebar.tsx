@@ -8,6 +8,7 @@ import {
 	Globe,
 	Network,
 	Router,
+	Share2,
 	Users,
 	Settings,
 	LayoutDashboard,
@@ -100,6 +101,7 @@ const NAV_SECTIONS = [
 		items: [
 			{ page: "network-clients" as Page, label: "Clientes", icon: Users },
 			{ page: "network-devices" as Page, label: "Dispositivos", icon: Router },
+			{ page: "network-topology" as Page, label: "Topologia", icon: Share2 },
 			{ page: "network-events" as Page, label: "Eventos", icon: List },
 		],
 	},

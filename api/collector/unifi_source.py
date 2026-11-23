@@ -14,7 +14,15 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional, Protocol
 
-from .unifi_mapper import NetworkClient, NetworkDevice, map_client, map_device
+from .unifi_mapper import (
+    NetworkClient,
+    NetworkDevice,
+    WanLink,
+    find_gateway,
+    map_client,
+    map_device,
+    map_wans,
+)
 
 logger = logging.getLogger("unifi_source")
 
@@ -30,6 +38,8 @@ class UnifiSource(Protocol):
     def fetch_devices(self) -> list[NetworkDevice]: ...
 
     def fetch_clients(self) -> list[NetworkClient]: ...
+
+    def fetch_wans(self) -> list[WanLink]: ...
 
 
 class UnifiHttpSource:
@@ -123,3 +133,22 @@ class UnifiHttpSource:
             raise RuntimeError("Resposta inesperada de stat/sta (sem 'data').")
         clients = (map_client(r) for r in rows if isinstance(r, dict))
         return [c for c in clients if c is not None]
+
+    def fetch_wans(self) -> list[WanLink]:
+        """
+        WANs do gateway (`stat/device`). Os nomes ("Unifique", "Claro NET") vem do
+        `rest/networkconf`; se esse endpoint falhar, segue sem nomes (nao e essencial).
+        Levanta excecao se o `stat/device` falhar ou nao houver gateway.
+        """
+        _, site_ref = self._resolve_site()
+        body = self._get(f"{LEGACY_PREFIX}/{site_ref}/stat/device")
+        gateway = find_gateway(body.get("data") if isinstance(body, dict) else None)
+        if gateway is None:
+            raise RuntimeError("Nenhum gateway encontrado em stat/device.")
+        confs: list = []
+        try:
+            conf_body = self._get(f"{LEGACY_PREFIX}/{site_ref}/rest/networkconf")
+            confs = conf_body.get("data") or [] if isinstance(conf_body, dict) else []
+        except Exception as e:
+            logger.warning("Sem nomes das WANs (rest/networkconf): %s: %s", type(e).__name__, e)
+        return map_wans(gateway, confs)

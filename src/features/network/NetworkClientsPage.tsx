@@ -9,7 +9,10 @@ import { downloadCsv, toCsv } from "../../lib/exportCsv";
 import { Highlighted } from "../app-logs/components/AppLogFeed";
 import { useNetworkClients, type ClientStatus, type NetworkClient } from "./hooks/useNetworkState";
 import { StaleDataBanner } from "./components/StaleDataBanner";
-import { formatBytes, formatSince } from "./format";
+import { formatBytes, formatSince, isWeakSignal } from "./format";
+import { clientTitle, sortClients, type ClientSortKey, type SortDirection } from "./sortClients";
+import { NetworkClientDetailsModal } from "./components/NetworkClientDetailsModal";
+import { clientIcon } from "./topologyIcons";
 import { eventDayKey, formatEventTime } from "./formatEventTime";
 
 /** Espera o usuário parar de digitar antes de buscar na API. */
@@ -50,6 +53,19 @@ const columnHeaderStyle: React.CSSProperties = {
 	color: "var(--muted-foreground)",
 	textTransform: "uppercase",
 	letterSpacing: "0.1em",
+};
+
+const sortButtonStyle: React.CSSProperties = {
+	all: "unset",
+	cursor: "pointer",
+	display: "inline-flex",
+	alignItems: "center",
+	gap: 4,
+	fontSize: "inherit",
+	fontWeight: "inherit",
+	letterSpacing: "inherit",
+	textTransform: "inherit",
+	color: "inherit",
 };
 
 const subLineStyle: React.CSSProperties = {
@@ -93,11 +109,6 @@ const emptyBoxStyle: React.CSSProperties = {
 	fontSize: 13,
 };
 
-/** Nome principal do cliente: o que o UniFi chama, senão hostname, senão MAC. */
-function clientTitle(c: NetworkClient): string {
-	return c.name ?? c.hostname ?? c.mac;
-}
-
 /** "Wi-Fi · optare" ou "Cabo". */
 function connectionLabel(c: NetworkClient): string {
 	if (c.is_wired) return "Cabo";
@@ -123,6 +134,18 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 	const [connection, setConnection] = useState<ConnectionFilter>("all");
 	const [search, setSearch] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
+	const [sortKey, setSortKey] = useState<ClientSortKey>("name");
+	const [sortDir, setSortDir] = useState<SortDirection>("asc");
+	const [selected, setSelected] = useState<NetworkClient | null>(null);
+
+	function handleSort(key: ClientSortKey) {
+		if (key === sortKey) {
+			setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+		} else {
+			setSortKey(key);
+			setSortDir("asc");
+		}
+	}
 
 	useEffect(() => {
 		const timer = setTimeout(
@@ -137,11 +160,20 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 		debouncedSearch,
 	);
 
+	const allClients = useMemo(() => data?.clients ?? [], [data]);
+
+	const connectionCounts = useMemo(() => {
+		const wired = allClients.filter((c) => c.is_wired).length;
+		return { all: allClients.length, wired, wifi: allClients.length - wired };
+	}, [allClients]);
+
 	const clients = useMemo(() => {
-		const all = data?.clients ?? [];
-		if (connection === "all") return all;
-		return all.filter((c) => (connection === "wired" ? c.is_wired : !c.is_wired));
-	}, [data, connection]);
+		const base =
+			connection === "all"
+				? allClients
+				: allClients.filter((c) => (connection === "wired" ? c.is_wired : !c.is_wired));
+		return sortClients(base, sortKey, sortDir);
+	}, [allClients, connection, sortKey, sortDir]);
 
 	const filtered = status !== "connected" || connection !== "all" || debouncedSearch !== "";
 	const now = new Date();
@@ -254,6 +286,7 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 							style={chipStyle(connection === opt.value)}
 						>
 							{opt.label}
+							{data ? ` (${connectionCounts[opt.value].toLocaleString("pt-BR")})` : ""}
 						</button>
 					))}
 					<span style={{ flex: 1 }} />
@@ -345,15 +378,15 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 						<div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
 							{!isMobile && (
 								<div style={columnHeaderStyle}>
-									<span>Cliente</span>
-									<span>IP</span>
-									<span>Conexão</span>
+									<SortHeader label="Cliente" k="name" sortKey={sortKey} dir={sortDir} onSort={handleSort} />
+									<SortHeader label="IP" k="ip" sortKey={sortKey} dir={sortDir} onSort={handleSort} />
+									<SortHeader label="Conexão" k="connection" sortKey={sortKey} dir={sortDir} onSort={handleSort} />
 									<span>Rede</span>
-									<span>Estado</span>
+									<SortHeader label="Estado" k="state" sortKey={sortKey} dir={sortDir} onSort={handleSort} />
 								</div>
 							)}
 							{clients.map((c) => (
-								<ClientRow key={c.mac} client={c} isMobile={isMobile} highlight={debouncedSearch} now={now} />
+								<ClientRow key={c.mac} client={c} isMobile={isMobile} highlight={debouncedSearch} now={now} onOpen={setSelected} />
 							))}
 						</div>
 						{error && (
@@ -372,7 +405,34 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 					</div>
 				)}
 			</main>
+			<NetworkClientDetailsModal client={selected} onClose={() => setSelected(null)} />
 		</div>
+	);
+}
+
+interface SortHeaderProps {
+	label: string;
+	k: ClientSortKey;
+	sortKey: ClientSortKey;
+	dir: SortDirection;
+	onSort: (key: ClientSortKey) => void;
+}
+
+/** Cabeçalho de coluna clicável: alterna crescente/decrescente e mostra a seta. */
+function SortHeader({ label, k, sortKey, dir, onSort }: SortHeaderProps) {
+	const active = sortKey === k;
+	return (
+		<button
+			type="button"
+			className="ld-link-btn"
+			onClick={() => onSort(k)}
+			title={`Ordenar por ${label.toLowerCase()}`}
+			aria-label={`Ordenar por ${label.toLowerCase()}${active ? (dir === "asc" ? ", crescente" : ", decrescente") : ""}`}
+			style={{ ...sortButtonStyle, color: active ? "var(--foreground)" : "inherit" }}
+		>
+			{label}
+			<span aria-hidden>{active ? (dir === "asc" ? "▲" : "▼") : ""}</span>
+		</button>
 	);
 }
 
@@ -381,11 +441,13 @@ interface ClientRowProps {
 	isMobile: boolean;
 	highlight: string;
 	now: Date;
+	onOpen: (client: NetworkClient) => void;
 }
 
-function ClientRow({ client: c, isMobile, highlight, now }: ClientRowProps) {
+function ClientRow({ client: c, isMobile, highlight, now, onOpen }: ClientRowProps) {
 	const title = clientTitle(c);
 	const detail = connectionDetail(c);
+	const weak = !c.is_wired && isWeakSignal(c.signal_dbm);
 	const stateText = c.connected ? "Conectado" : "Desconectado";
 	const sinceIso = c.connected ? c.connected_since : (c.disconnected_at ?? c.last_seen_at);
 	const sinceText = c.connected
@@ -398,11 +460,36 @@ function ClientRow({ client: c, isMobile, highlight, now }: ClientRowProps) {
 			? `↑ ${formatBytes(c.tx_bytes)} · ↓ ${formatBytes(c.rx_bytes)}`
 			: undefined;
 
+	const icon = React.createElement(clientIcon(c), { size: 16, "aria-hidden": true });
 	const identity = (
+		<span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+		<span
+			style={{
+				flexShrink: 0,
+				width: 30,
+				height: 30,
+				borderRadius: 6,
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				border: "1px solid var(--border)",
+				color: c.connected ? "var(--foreground)" : "var(--muted-foreground)",
+			}}
+		>
+			{icon}
+		</span>
 		<span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-			<span
+			<button
+				type="button"
+				className="ld-link-btn"
 				title={title}
+				onClick={(e) => {
+					e.stopPropagation();
+					onOpen(c);
+				}}
 				style={{
+					all: "unset",
+					cursor: "pointer",
 					fontSize: 13,
 					fontWeight: 600,
 					color: "var(--foreground)",
@@ -412,11 +499,12 @@ function ClientRow({ client: c, isMobile, highlight, now }: ClientRowProps) {
 				}}
 			>
 				<Highlighted text={title} term={highlight} />
-			</span>
+			</button>
 			<span style={subLineStyle} title={c.mac}>
 				{c.note ? <Highlighted text={`${c.note} · `} term={highlight} /> : null}
 				<span style={{ fontFamily: "monospace" }}>{c.mac}</span>
 			</span>
+		</span>
 		</span>
 	);
 
@@ -450,6 +538,8 @@ function ClientRow({ client: c, isMobile, highlight, now }: ClientRowProps) {
 	if (isMobile) {
 		return (
 			<div
+				className="app-log-row"
+				onClick={() => onOpen(c)}
 				style={{
 					display: "grid",
 					gridTemplateColumns: "1fr auto",
@@ -457,6 +547,7 @@ function ClientRow({ client: c, isMobile, highlight, now }: ClientRowProps) {
 					rowGap: 4,
 					padding: "10px 16px",
 					borderBottom: "1px solid var(--border)",
+					cursor: "pointer",
 				}}
 			>
 				{identity}
@@ -475,6 +566,8 @@ function ClientRow({ client: c, isMobile, highlight, now }: ClientRowProps) {
 
 	return (
 		<div
+			className="app-log-row"
+			onClick={() => onOpen(c)}
 			style={{
 				display: "grid",
 				gridTemplateColumns: DESKTOP_COLUMNS,
@@ -482,6 +575,7 @@ function ClientRow({ client: c, isMobile, highlight, now }: ClientRowProps) {
 				alignItems: "center",
 				padding: "8px 16px",
 				borderBottom: "1px solid var(--border)",
+				cursor: "pointer",
 			}}
 		>
 			{identity}
@@ -496,7 +590,18 @@ function ClientRow({ client: c, isMobile, highlight, now }: ClientRowProps) {
 					{connectionLabel(c)}
 					{c.is_guest ? " · Convidado" : ""}
 				</span>
-				{detail && <span style={subLineStyle}>{detail}</span>}
+				{detail && (
+					<span
+						style={{
+							...subLineStyle,
+							color: weak ? "var(--warning-text)" : undefined,
+							fontWeight: weak ? 600 : undefined,
+						}}
+					>
+						{detail}
+						{weak ? " · sinal fraco" : ""}
+					</span>
+				)}
 			</span>
 			<span style={{ fontSize: 12, color: "var(--foreground)" }}>{c.network_name ?? "—"}</span>
 			{state}

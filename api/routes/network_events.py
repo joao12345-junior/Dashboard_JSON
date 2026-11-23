@@ -29,6 +29,9 @@ def get_network_events():
     Paginacao por cursor (keyset): `before_id` = id do ultimo item ja carregado.
     Filtros: `min_severity` (inteiro CEF 0-10), `q` (texto em nome ou mensagem)
     e `date` (AAAA-MM-DD, dia inteiro no horario de Brasilia).
+    `client_mac` / `client_ip`: so eventos que citam esse cliente (algum valor do
+    `extension` igual ao MAC/IP, ou o MAC dentro da mensagem). Comparacao EXATA do
+    IP, para 192.168.16.1 nao casar com 192.168.16.10.
     Devolve {"events": [...], "has_more": bool}. A linha original (`raw`) nao vai
     na lista, so o cabecalho e o `extension` (JSONB).
     """
@@ -37,6 +40,8 @@ def get_network_events():
     before_id = request.args.get("before_id", type=int)
     min_severity = request.args.get("min_severity", type=int)
     q = (request.args.get("q") or "").strip()[:200]
+    client_mac = (request.args.get("client_mac") or "").strip().lower()[:32]
+    client_ip = (request.args.get("client_ip") or "").strip()[:64]
     date = (request.args.get("date") or "").strip()
     if date and not DATE_PATTERN.match(date):
         return jsonify({"error": "Parametro date invalido (use AAAA-MM-DD)."}), 400
@@ -63,6 +68,24 @@ def get_network_events():
             "(name ILIKE %s ESCAPE '\\' OR extension->>'msg' ILIKE %s ESCAPE '\\')"
         )
         params.extend([pattern, pattern])
+
+    if client_mac or client_ip:
+        conditions = []
+        if client_mac:
+            conditions.append("lower(e.value) = %s")
+            params.append(client_mac)
+        if client_ip:
+            conditions.append("e.value = %s")
+            params.append(client_ip)
+        clause = (
+            "EXISTS (SELECT 1 FROM jsonb_each_text(extension) e WHERE "
+            + " OR ".join(conditions)
+            + ")"
+        )
+        if client_mac:
+            clause = f"({clause} OR lower(extension->>'msg') LIKE %s ESCAPE '\\')"
+            params.append(f"%{_escape_like(client_mac)}%")
+        where.append(clause)
 
     where_sql = f"WHERE {' AND '.join(where)}" if where else ""
 

@@ -1,11 +1,14 @@
 // src/features/network/NetworkEventsPage.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../components/PageHeader";
 import { ErrorState } from "../../components/Error";
 import type { SharedPageProps } from "../../App";
 import { useNetworkEvents, type NetworkEvent } from "./hooks/useNetworkEvents";
 import { NetworkEventDetailsModal } from "./components/NetworkEventDetailsModal";
 import { NetworkEventFeed } from "./components/NetworkEventFeed";
+import { NetworkClientDetailsModal } from "./components/NetworkClientDetailsModal";
+import { useNetworkClients, type NetworkClient } from "./hooks/useNetworkState";
+import { buildClientLookup, findEventClient } from "./eventClient";
 import { eventClock, eventDayKey } from "./formatEventTime";
 import { SEVERITY_FILTER_OPTIONS, severityLabel } from "./severity";
 import { formatDayLabel } from "../../lib/dayLabel";
@@ -58,6 +61,10 @@ export function NetworkEventsPage({ isMobile }: SharedPageProps) {
 	const [date, setDate] = useState("");
 	const [wrapLines, setWrapLines] = useState(false);
 	const [selected, setSelected] = useState<NetworkEvent | null>(null);
+	const [selectedClient, setSelectedClient] = useState<NetworkClient | null>(null);
+	// Todos os clientes (inclusive desconectados) para ligar evento → cliente.
+	const { data: clientsData } = useNetworkClients("all", "");
+	const clientLookup = useMemo(() => buildClientLookup(clientsData?.clients ?? []), [clientsData]);
 
 	useEffect(() => {
 		const timer = setTimeout(
@@ -283,6 +290,8 @@ export function NetworkEventsPage({ isMobile }: SharedPageProps) {
 							onClearFilters={clearFilters}
 							filtered={filtered}
 							loading={loading}
+							clientFor={(ev) => findEventClient(ev, clientLookup)}
+							onOpenClient={setSelectedClient}
 						/>
 						)}
 
@@ -322,6 +331,10 @@ export function NetworkEventsPage({ isMobile }: SharedPageProps) {
 						<NetworkEventDetailsModal
 							event={selected}
 							onClose={() => setSelected(null)}
+						/>
+						<NetworkClientDetailsModal
+							client={selectedClient}
+							onClose={() => setSelectedClient(null)}
 						/>
 				</>
 			</main>

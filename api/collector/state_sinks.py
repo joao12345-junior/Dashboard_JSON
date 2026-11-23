@@ -11,7 +11,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Protocol, Sequence
 
-from .unifi_mapper import NetworkClient, NetworkDevice
+from .client_sessions import OpenSession, plan_sessions
+from .unifi_mapper import NetworkClient, NetworkDevice, WanLink
 
 #: Clientes sem atividade ha mais que isso saem da tabela.
 CLIENT_RETENTION_DAYS = 30
@@ -26,6 +27,8 @@ class StateSink(Protocol):
         clients: Sequence[NetworkClient],
         polled_at: datetime,
     ) -> None: ...
+
+    def replace_wans(self, wans: Sequence[WanLink], polled_at: datetime) -> None: ...
 
     def close(self) -> None: ...
 
@@ -132,6 +135,78 @@ class PostgresStateSink:
                     "DELETE FROM optsislog.network_clients WHERE last_seen_at < %s",
                     (polled_at - timedelta(days=CLIENT_RETENTION_DAYS),),
                 )
+                self._write_sessions(cur, clients_by_mac.values(), polled_at)
+            self._conn.commit()
+        except Exception:
+            self.close()
+            raise
+
+    @staticmethod
+    def _write_sessions(cur, clients, polled_at: datetime) -> None:
+        """Historico de conexoes: a regra esta em `plan_sessions` (pura, testada)."""
+        from psycopg2.extras import execute_values
+
+        cur.execute(
+            "SELECT id, mac, connected_at FROM optsislog.network_client_sessions"
+            " WHERE disconnected_at IS NULL"
+        )
+        open_sessions = {mac: OpenSession(id_, mac, at) for id_, mac, at in cur.fetchall()}
+        plan = plan_sessions(open_sessions, clients, polled_at)
+        if plan.to_close:
+            execute_values(
+                cur,
+                """
+                UPDATE optsislog.network_client_sessions s
+                   SET disconnected_at = GREATEST(v.at, s.connected_at)
+                  FROM (VALUES %s) AS v(id, at)
+                 WHERE s.id = v.id
+                """,
+                [(c.id, c.disconnected_at) for c in plan.to_close],
+                template="(%s::bigint, %s::timestamptz)",
+            )
+        if plan.to_open:
+            execute_values(
+                cur,
+                "INSERT INTO optsislog.network_client_sessions"
+                " (mac, connected_at, uplink_mac, ip_address) VALUES %s",
+                [(s.mac, s.connected_at, s.uplink_mac, s.ip_address) for s in plan.to_open],
+            )
+        cur.execute(
+            "DELETE FROM optsislog.network_client_sessions"
+            " WHERE disconnected_at IS NOT NULL AND disconnected_at < %s",
+            (polled_at - timedelta(days=CLIENT_RETENTION_DAYS),),
+        )
+
+    def replace_wans(self, wans: Sequence[WanLink], polled_at: datetime) -> None:
+        """Substitui a tabela de WAN inteira (transacao propria, separada do retrato)."""
+        import psycopg2
+        from psycopg2.extras import execute_values
+
+        rows = [
+            (
+                w.wan_group, w.name, w.isp_name, w.ip_address, w.is_up, w.is_enabled,
+                w.failover_only, w.availability_pct, w.latency_ms, w.rx_bps, w.tx_bps,
+                w.gateway_mac, polled_at,
+            )
+            for w in {w.wan_group: w for w in wans}.values()
+        ]
+        try:
+            if self._conn is None or self._conn.closed:
+                self._conn = psycopg2.connect(**self._kwargs)
+            with self._conn.cursor() as cur:
+                cur.execute("DELETE FROM optsislog.network_wan")
+                if rows:
+                    execute_values(
+                        cur,
+                        """
+                        INSERT INTO optsislog.network_wan
+                            (wan_group, name, isp_name, ip_address, is_up, is_enabled,
+                             failover_only, availability_pct, latency_ms, rx_bps, tx_bps,
+                             gateway_mac, last_polled_at)
+                        VALUES %s
+                        """,
+                        rows,
+                    )
             self._conn.commit()
         except Exception:
             self.close()
