@@ -1,0 +1,146 @@
+# api/collector/state_sinks.py
+"""
+Porta de SAIDA do poller (Ports and Adapters, Alistair Cockburn).
+
+`StateSink` e a PORTA: "grave este retrato da rede". `PostgresStateSink` e o
+ADAPTADOR que grava em optsislog.network_devices / network_clients, tudo numa
+transacao (ou grava o ciclo inteiro ou nada).
+"""
+from __future__ import annotations
+
+from datetime import datetime, timedelta
+from typing import Protocol, Sequence
+
+from .unifi_mapper import NetworkClient, NetworkDevice
+
+#: Clientes sem atividade ha mais que isso saem da tabela.
+CLIENT_RETENTION_DAYS = 30
+
+
+class StateSink(Protocol):
+    """Deve levantar excecao se o retrato nao foi gravado."""
+
+    def replace_snapshot(
+        self,
+        devices: Sequence[NetworkDevice],
+        clients: Sequence[NetworkClient],
+        polled_at: datetime,
+    ) -> None: ...
+
+    def close(self) -> None: ...
+
+
+class PostgresStateSink:
+    """Conexao PROPRIA (nao usa o pool do Flask), aberta sob demanda e descartada em erro."""
+
+    _UPSERT_DEVICES = """
+        INSERT INTO optsislog.network_devices
+            (mac, unifi_id, name, model, ip_address, state, firmware_version,
+             firmware_updatable, features, uptime_sec, cpu_pct, memory_pct,
+             uplink_tx_bps, uplink_rx_bps, last_heartbeat_at, last_polled_at)
+        VALUES %s
+        ON CONFLICT (mac) DO UPDATE SET
+            unifi_id = EXCLUDED.unifi_id, name = EXCLUDED.name, model = EXCLUDED.model,
+            ip_address = EXCLUDED.ip_address, state = EXCLUDED.state,
+            firmware_version = EXCLUDED.firmware_version,
+            firmware_updatable = EXCLUDED.firmware_updatable, features = EXCLUDED.features,
+            uptime_sec = EXCLUDED.uptime_sec, cpu_pct = EXCLUDED.cpu_pct,
+            memory_pct = EXCLUDED.memory_pct, uplink_tx_bps = EXCLUDED.uplink_tx_bps,
+            uplink_rx_bps = EXCLUDED.uplink_rx_bps,
+            last_heartbeat_at = EXCLUDED.last_heartbeat_at,
+            last_polled_at = EXCLUDED.last_polled_at
+    """
+
+    _UPSERT_CLIENTS = """
+        INSERT INTO optsislog.network_clients
+            (mac, name, hostname, note, ip_address, vendor, is_wired, is_guest,
+             network_name, uplink_mac, ssid, signal_dbm, tx_bytes, rx_bytes,
+             connected_since, first_seen_at, connected, disconnected_at, last_seen_at)
+        VALUES %s
+        ON CONFLICT (mac) DO UPDATE SET
+            name = EXCLUDED.name, hostname = EXCLUDED.hostname, note = EXCLUDED.note,
+            ip_address = EXCLUDED.ip_address, vendor = EXCLUDED.vendor,
+            is_wired = EXCLUDED.is_wired, is_guest = EXCLUDED.is_guest,
+            network_name = EXCLUDED.network_name, uplink_mac = EXCLUDED.uplink_mac,
+            ssid = EXCLUDED.ssid, signal_dbm = EXCLUDED.signal_dbm,
+            tx_bytes = EXCLUDED.tx_bytes, rx_bytes = EXCLUDED.rx_bytes,
+            connected_since = EXCLUDED.connected_since,
+            first_seen_at = COALESCE(EXCLUDED.first_seen_at, optsislog.network_clients.first_seen_at),
+            connected = true, disconnected_at = NULL, last_seen_at = EXCLUDED.last_seen_at
+    """
+
+    def __init__(self) -> None:
+        from .db_config import connection_kwargs
+
+        self._kwargs = connection_kwargs()
+        self._conn = None
+
+    def replace_snapshot(
+        self,
+        devices: Sequence[NetworkDevice],
+        clients: Sequence[NetworkClient],
+        polled_at: datetime,
+    ) -> None:
+        import psycopg2
+        from psycopg2.extras import Json, execute_values
+
+        # Um MAC repetido no mesmo INSERT ... ON CONFLICT daria erro: fica o ultimo.
+        devices_by_mac = {d.mac: d for d in devices}
+        clients_by_mac = {c.mac: c for c in clients}
+
+        device_rows = [
+            (
+                d.mac, d.unifi_id, d.name, d.model, d.ip_address, d.state,
+                d.firmware_version, d.firmware_updatable, Json(list(d.features)),
+                d.uptime_sec, d.cpu_pct, d.memory_pct, d.uplink_tx_bps,
+                d.uplink_rx_bps, d.last_heartbeat_at, polled_at,
+            )
+            for d in devices_by_mac.values()
+        ]
+        client_rows = [
+            (
+                c.mac, c.name, c.hostname, c.note, c.ip_address, c.vendor,
+                c.is_wired, c.is_guest, c.network_name, c.uplink_mac, c.ssid,
+                c.signal_dbm, c.tx_bytes, c.rx_bytes, c.connected_since,
+                c.first_seen_at, True, None, polled_at,
+            )
+            for c in clients_by_mac.values()
+        ]
+        try:
+            if self._conn is None or self._conn.closed:
+                self._conn = psycopg2.connect(**self._kwargs)
+            with self._conn.cursor() as cur:
+                if device_rows:
+                    execute_values(cur, self._UPSERT_DEVICES, device_rows)
+                # Dispositivo que sumiu da API foi removido do site.
+                cur.execute(
+                    "DELETE FROM optsislog.network_devices WHERE mac <> ALL(%s::text[])",
+                    (list(devices_by_mac),),
+                )
+                if client_rows:
+                    execute_values(cur, self._UPSERT_CLIENTS, client_rows)
+                # Quem nao veio neste ciclo desconectou (a hora e a em que notamos).
+                cur.execute(
+                    """
+                    UPDATE optsislog.network_clients
+                       SET connected = false, disconnected_at = %s
+                     WHERE connected AND mac <> ALL(%s::text[])
+                    """,
+                    (polled_at, list(clients_by_mac)),
+                )
+                cur.execute(
+                    "DELETE FROM optsislog.network_clients WHERE last_seen_at < %s",
+                    (polled_at - timedelta(days=CLIENT_RETENTION_DAYS),),
+                )
+            self._conn.commit()
+        except Exception:
+            self.close()
+            raise
+
+    def close(self) -> None:
+        if self._conn is not None:
+            try:
+                self._conn.close()
+            except Exception:
+                pass
+            self._conn = None

@@ -34,6 +34,8 @@ app.register_blueprint(test_connection_bp)
 
 from routes.network_events import network_events_bp
 app.register_blueprint(network_events_bp)
+from routes.network_state import network_state_bp
+app.register_blueprint(network_state_bp)
 
 if __name__ == "__main__":
     if IS_DEV:

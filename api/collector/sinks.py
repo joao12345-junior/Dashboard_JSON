@@ -9,8 +9,6 @@ destino nao exige mexer no receptor.
 """
 from __future__ import annotations
 
-import os
-from pathlib import Path
 from typing import Protocol, Sequence
 
 from .cef_parser import NetworkEvent
@@ -40,20 +38,9 @@ class PostgresEventSink:
     """
 
     def __init__(self) -> None:
-        from dotenv import load_dotenv
+        from .db_config import connection_kwargs
 
-        # api/.env, mesmo arquivo da API Flask (o coletor roda com cwd em api/,
-        # mas ancorar no arquivo evita depender disso).
-        load_dotenv(Path(__file__).resolve().parent.parent / ".env")
-        self._kwargs = {
-            "host": os.getenv("DB_HOST"),
-            "port": os.getenv("DB_PORT"),
-            "dbname": os.getenv("DB_NAME"),
-            "user": os.getenv("DB_USER"),
-            "password": os.getenv("DB_PASSWORD"),
-            "sslmode": os.getenv("DB_SSLMODE", "require"),
-            "connect_timeout": 10,
-        }
+        self._kwargs = connection_kwargs()
         self._conn = None
 
     def write_batch(self, events: Sequence[NetworkEvent]) -> None:

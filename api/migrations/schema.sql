@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict y5YHuLuxyNEjIABcBeAKj2uNohc5bH2cONiMezU3MwWTh35fORzsp01LbIFfYjf
+\restrict Apy5bYM63V9Bjs4vZ0y3PMDRHWlJwre3bWKWwTUzXN1KRyJkEGuBStrNuTQ21Ej
 
 -- Dumped from database version 13.23
 -- Dumped by pg_dump version 18.6
@@ -188,6 +188,98 @@ ALTER SEQUENCE optsislog.monitored_urls_id_seq OWNER TO optare3;
 
 ALTER SEQUENCE optsislog.monitored_urls_id_seq OWNED BY optsislog.monitored_urls.id;
 
+
+--
+-- Name: network_clients; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.network_clients (
+    mac text NOT NULL,
+    name text,
+    hostname text,
+    note text,
+    ip_address text,
+    vendor text,
+    is_wired boolean DEFAULT false NOT NULL,
+    is_guest boolean DEFAULT false NOT NULL,
+    network_name text,
+    uplink_mac text,
+    ssid text,
+    signal_dbm smallint,
+    tx_bytes bigint,
+    rx_bytes bigint,
+    connected boolean DEFAULT true NOT NULL,
+    connected_since timestamp with time zone,
+    disconnected_at timestamp with time zone,
+    first_seen_at timestamp with time zone,
+    last_seen_at timestamp with time zone DEFAULT now() NOT NULL
+);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN mac SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN name SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN hostname SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN note SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN ip_address SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN vendor SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN is_wired SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN is_guest SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN network_name SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN uplink_mac SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN ssid SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN signal_dbm SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN tx_bytes SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN rx_bytes SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN connected SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN connected_since SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN disconnected_at SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN first_seen_at SET (pg_attver=36864333261448);
+ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN last_seen_at SET (pg_attver=36864333261448);
+
+
+ALTER TABLE optsislog.network_clients OWNER TO optare3;
+
+--
+-- Name: network_devices; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.network_devices (
+    mac text NOT NULL,
+    unifi_id text,
+    name text,
+    model text,
+    ip_address text,
+    state text,
+    firmware_version text,
+    firmware_updatable boolean,
+    features jsonb DEFAULT '[]'::jsonb NOT NULL,
+    uptime_sec bigint,
+    cpu_pct real,
+    memory_pct real,
+    uplink_tx_bps bigint,
+    uplink_rx_bps bigint,
+    last_heartbeat_at timestamp with time zone,
+    first_seen_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_polled_at timestamp with time zone DEFAULT now() NOT NULL
+);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN mac SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN unifi_id SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN name SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN model SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN ip_address SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN state SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN firmware_version SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN firmware_updatable SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN features SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN uptime_sec SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN cpu_pct SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN memory_pct SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN uplink_tx_bps SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN uplink_rx_bps SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN last_heartbeat_at SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN first_seen_at SET (pg_attver=36864333151840);
+ALTER TABLE ONLY optsislog.network_devices ALTER COLUMN last_polled_at SET (pg_attver=36864333151840);
+
+
+ALTER TABLE optsislog.network_devices OWNER TO optare3;
 
 --
 -- Name: network_events; Type: TABLE; Schema: optsislog; Owner: optare3
@@ -654,6 +746,22 @@ ALTER TABLE ONLY optsislog.monitored_urls
 
 
 --
+-- Name: network_clients network_clients_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_clients
+    ADD CONSTRAINT network_clients_pkey PRIMARY KEY (mac);
+
+
+--
+-- Name: network_devices network_devices_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_devices
+    ADD CONSTRAINT network_devices_pkey PRIMARY KEY (mac);
+
+
+--
 -- Name: network_events network_events_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
 --
 
@@ -779,6 +887,13 @@ ALTER TABLE ONLY optsislog.usuarios_app
 
 ALTER TABLE ONLY optsislog.windows_event_logs
     ADD CONSTRAINT windows_event_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_network_clients_connected; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX idx_network_clients_connected ON optsislog.network_clients USING btree (connected, last_seen_at DESC);
 
 
 --
@@ -921,5 +1036,5 @@ ALTER TABLE ONLY optsislog.tokens_renovacao
 -- PostgreSQL database dump complete
 --
 
-\unrestrict y5YHuLuxyNEjIABcBeAKj2uNohc5bH2cONiMezU3MwWTh35fORzsp01LbIFfYjf
+\unrestrict Apy5bYM63V9Bjs4vZ0y3PMDRHWlJwre3bWKWwTUzXN1KRyJkEGuBStrNuTQ21Ej
 
