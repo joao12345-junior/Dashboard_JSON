@@ -12,7 +12,7 @@ Tabela própria em vez de enfiar na `network_clients` (chave = MAC, usada por to
 - `collector/state_sinks.py`: `replace_vpn_clients` (transação própria): presentes = conectados, ausentes = desconectados agora, apaga sem atividade há 30 dias.
 - `collector/unifi_poller.py`: `poll_once` ficou com `_poll_wans` e `_poll_vpn`, ambos extras (falha só loga; VPN é lida mesmo se a WAN falhar).
 - Rota `GET /api/network/vpn-clients?status=connected|disconnected|all`.
-- Front: filtro **VPN** em Rede > Clientes (troca a lista por `VpnClientsTable`: usuário, tipo, IP na VPN, conectou de, tráfego, estado; busca e CSV); no Painel, contador VPN e cartão "VPN" com quem está conectado. Regras puras em `src/features/network/vpnClients.ts` (testadas).
+- Front: filtro **"Cabo, Wi-Fi e VPN"** (primeiro e padrão) em Rede > Clientes: a lista normal e, abaixo, a seção "VPN (n)"; o CSV junta os dois (VPN sem MAC, "conexao" = tipo de VPN). Filtro **VPN** sozinho (troca a lista por `VpnClientsTable`: usuário, tipo, IP na VPN, conectou de, tráfego, estado; busca e CSV); no Painel, contador VPN e cartão "VPN" com quem está conectado. Regras puras em `src/features/network/vpnClients.ts` (testadas).
 
 ## Testes
 Python: 4 do mapeador (com o item real do probe), 3 do poller (mesmo horário do ciclo; falha de leitura não grava; VPN lida mesmo com WAN falhando). Front: `vpnClients.test.ts`.
@@ -25,3 +25,6 @@ Python: 4 do mapeador (com o item real do probe), 3 do poller (mesmo horário do
 
 ## Aplicativos (pendente)
 `traffic-flow-latest-statistics` só traz `application_id`/`category_id`. Os nomes estão em `GET /integration/v1/dpi/applications` e `/dpi/categories` (documentação oficial). Falta confirmar se o id bate direto ou combinado com a categoria: `python -m collector.unifi_probe --dpi`.
+
+## Perda de pacotes e conexões (em investigação)
+`python -m collector.unifi_probe --wan-extra` (só GET): mostra o bloco `uptime_stats`/`last_wan_status` do gateway e procura, em todo o JSON do gateway e de 5 endpoints v2/legado candidatos (`aggregated-dashboard`, `wan/enriched-configuration`, `wan-slas`, `isp-health`, `stat/health`), chaves com loss/packet/drop/connection/session/jitter. Só implementa depois de ver a saída real.

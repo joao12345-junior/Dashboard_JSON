@@ -296,6 +296,74 @@ def _probe_dpi_names(session, host) -> None:
         )
 
 
+#: Pedacos de nome de chave que indicam perda de pacotes ou contagem de conexoes.
+_WAN_EXTRA_HINTS = ("loss", "packet", "drop", "connection", "conn_", "session", "jitter")
+
+
+def _find_keys(value, hints, path="", found=None, limit=60):
+    """Caminhos (a.b[0].c) de chaves cujo nome contem algum `hint`, com o valor (curto)."""
+    if found is None:
+        found = []
+    if len(found) >= limit:
+        return found
+    if isinstance(value, dict):
+        for key, child in value.items():
+            here = f"{path}.{key}" if path else str(key)
+            if any(h in str(key).lower() for h in hints):
+                shown = child if not isinstance(child, (dict, list)) else f"<{type(child).__name__} {len(child)}>"
+                found.append((here, shown))
+            _find_keys(child, hints, here, found, limit)
+    elif isinstance(value, list):
+        for i, child in enumerate(value[:3]):  # 3 primeiros bastam para ver o formato
+            _find_keys(child, hints, f"{path}[{i}]", found, limit)
+    return found
+
+
+#: Candidatos (todos GET) com historico/saude da WAN.
+WAN_EXTRA_CANDIDATES = (
+    "/proxy/network/v2/api/site/default/aggregated-dashboard?historySeconds=3600",
+    "/proxy/network/v2/api/site/default/wan/enriched-configuration",
+    "/proxy/network/v2/api/site/default/wan-slas",
+    "/proxy/network/v2/api/site/default/isp-health",
+    "/proxy/network/api/s/default/stat/health",
+)
+
+
+def _probe_wan_extra(session, host) -> None:
+    """Procura perda de pacotes e numero de conexoes (grafico Internet do UniFi)."""
+    legacy = "/proxy/network/api/s/default"
+    status, body = _get(session, host, f"{legacy}/stat/device")
+    gateway = None
+    for d in (_items(body) or []):
+        if isinstance(d, dict) and (d.get("type") in ("udm", "ugw", "uxg") or isinstance(d.get("wan1"), dict)):
+            gateway = d
+            break
+    print(f"\n=== WAN extra: gateway em stat/device (status {status}) ===")
+    if gateway is None:
+        print("gateway nao encontrado")
+    else:
+        for key in ("uptime_stats", "last_wan_status", "wan1"):
+            block = gateway.get(key)
+            if key != "wan1":
+                _print_sample(key, block)
+        print("chaves com loss/packet/drop/connection/session/jitter no gateway inteiro:")
+        for where, val in _find_keys(gateway, _WAN_EXTRA_HINTS):
+            print(f"  {where} = {val}")
+
+    for path in WAN_EXTRA_CANDIDATES:
+        status, body = _get(session, host, path)
+        print(f"\n=== WAN extra: {path} ===\nstatus: {status}")
+        if not isinstance(body, (dict, list)):
+            print(f"corpo: {str(body)[:150]}")
+            continue
+        if isinstance(body, dict):
+            print(f"chaves do topo: {sorted(body.keys())[:25]}")
+        hits = _find_keys(body, _WAN_EXTRA_HINTS)
+        print(f"chaves com loss/packet/drop/connection/session/jitter: {len(hits)}")
+        for where, val in hits:
+            print(f"  {where} = {val}")
+
+
 def main() -> int:
     host = os.environ.get("UNIFI_HOST", "").rstrip("/")
     api_key = os.environ.get("UNIFI_API_KEY", "")
@@ -310,6 +378,9 @@ def main() -> int:
     if "--vpn-apps" in sys.argv:
         _probe_vpn_candidates(session, host)
         _probe_top_apps_detail(session, host)
+        return 0
+    if "--wan-extra" in sys.argv:
+        _probe_wan_extra(session, host)
         return 0
     if "--dpi" in sys.argv:
         _probe_dpi_names(session, host)

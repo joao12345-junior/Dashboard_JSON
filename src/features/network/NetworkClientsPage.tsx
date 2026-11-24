@@ -21,8 +21,11 @@ import { eventDayKey, formatEventTime } from "./formatEventTime";
 /** Espera o usuário parar de digitar antes de buscar na API. */
 const SEARCH_DEBOUNCE_MS = 350;
 
-/** "vpn" troca a lista: usuários de VPN não têm MAC e vêm de outra rota. */
-type ConnectionFilter = "all" | "wifi" | "wired" | "vpn";
+/**
+ * "everything" = cabo + Wi-Fi + VPN (padrão). "all" = só cabo e Wi-Fi.
+ * "vpn" troca a lista: usuários de VPN não têm MAC e vêm de outra rota.
+ */
+type ConnectionFilter = "everything" | "all" | "wifi" | "wired" | "vpn";
 
 const STATUS_OPTIONS: Array<{ value: ClientStatus; label: string }> = [
 	{ value: "connected", label: "Conectados" },
@@ -31,6 +34,7 @@ const STATUS_OPTIONS: Array<{ value: ClientStatus; label: string }> = [
 ];
 
 const CONNECTION_OPTIONS: Array<{ value: ConnectionFilter; label: string }> = [
+	{ value: "everything", label: "Cabo, Wi-Fi e VPN" },
 	{ value: "all", label: "Wi-Fi e cabo" },
 	{ value: "wifi", label: "Wi-Fi" },
 	{ value: "wired", label: "Cabo" },
@@ -136,7 +140,7 @@ function connectionDetail(c: NetworkClient): string {
 /// </summary>
 export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 	const [status, setStatus] = useState<ClientStatus>("connected");
-	const [connection, setConnection] = useState<ConnectionFilter>("all");
+	const [connection, setConnection] = useState<ConnectionFilter>("everything");
 	const [search, setSearch] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [sortKey, setSortKey] = useState<ClientSortKey>("name");
@@ -176,24 +180,34 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 
 	const connectionCounts = useMemo(() => {
 		const wired = allClients.filter((c) => c.is_wired).length;
-		return { all: allClients.length, wired, wifi: allClients.length - wired, vpn: vpnClients.length };
+		return {
+			everything: allClients.length + vpnClients.length,
+			all: allClients.length,
+			wired,
+			wifi: allClients.length - wired,
+			vpn: vpnClients.length,
+		};
 	}, [allClients, vpnClients]);
 
 	const clients = useMemo(() => {
 		const base =
-			connection === "all"
+			connection === "all" || connection === "everything"
 				? allClients
 				: allClients.filter((c) => (connection === "wired" ? c.is_wired : !c.is_wired));
 		return sortClients(base, sortKey, sortDir);
 	}, [allClients, connection, sortKey, sortDir]);
 
-	const filtered = status !== "connected" || connection !== "all" || debouncedSearch !== "";
-	const exportCount = connection === "vpn" ? vpnClients.length : clients.length;
+	const filtered = status !== "connected" || connection !== "everything" || debouncedSearch !== "";
+	const showVpnBelow = connection === "everything" && vpnClients.length > 0;
+	const exportCount =
+		connection === "vpn"
+			? vpnClients.length
+			: clients.length + (connection === "everything" ? vpnClients.length : 0);
 	const now = new Date();
 
 	function clearFilters() {
 		setStatus("connected");
-		setConnection("all");
+		setConnection("everything");
 		setSearch("");
 		setDebouncedSearch("");
 	}
@@ -230,6 +244,23 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 			c.connected_since ?? "",
 			c.disconnected_at ?? "",
 		]);
+		// "Todos": os de VPN entram no mesmo CSV (sem MAC; "conexao" = tipo de VPN).
+		if (connection === "everything") {
+			for (const v of vpnClients) {
+				rows.push([
+					v.username,
+					"",
+					"",
+					v.tunnel_ip ?? "",
+					`VPN · ${vpnTypeLabel(v.vpn_type)}`,
+					v.remote_ip ? `de ${v.remote_ip}` : "",
+					"VPN",
+					v.connected ? "conectado" : "desconectado",
+					v.connected_since ?? "",
+					v.disconnected_at ?? "",
+				]);
+			}
+		}
 		const csv = toCsv(
 			["cliente", "nota", "mac", "ip", "conexao", "ligado_em", "rede", "estado", "conectado_desde", "desconectado_em"],
 			rows,
@@ -416,7 +447,7 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 					<div role="status" style={emptyBoxStyle}>
 						Carregando clientes de rede…
 					</div>
-				) : clients.length === 0 ? (
+				) : clients.length === 0 && !showVpnBelow ? (
 					<div role="status" style={emptyBoxStyle}>
 						<strong style={{ color: "var(--foreground)", fontSize: 14 }}>
 							{filtered ? "Nenhum cliente com esses filtros" : "Nenhum cliente conectado agora"}
@@ -459,6 +490,21 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 							{clients.map((c) => (
 								<ClientRow key={c.mac} client={c} isMobile={isMobile} highlight={debouncedSearch} now={now} onOpen={setSelected} />
 							))}
+							{showVpnBelow && (
+								<>
+									<div
+										style={{
+											padding: "14px 16px 6px",
+											fontSize: 12,
+											fontWeight: 700,
+											borderTop: clients.length > 0 ? "1px solid var(--border)" : undefined,
+										}}
+									>
+										VPN ({vpnClients.length.toLocaleString("pt-BR")})
+									</div>
+									<VpnClientsTable clients={vpnClients} isMobile={isMobile} highlight={debouncedSearch} now={now} />
+								</>
+							)}
 						</div>
 						{error && (
 							<div
