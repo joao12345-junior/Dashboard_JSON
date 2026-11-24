@@ -239,6 +239,8 @@ class MemorySink:
         self.samples = []
         self.vpn = []
         self.apps = []
+        self.device_samples = []
+        self.device_sample_error = None
         self.sample_error = None
 
     def replace_snapshot(self, devices, clients, polled_at):
@@ -246,6 +248,11 @@ class MemorySink:
 
     def replace_wans(self, wans, polled_at):
         self.wans.append((list(wans), polled_at))
+
+    def append_device_samples(self, devices, polled_at):
+        if self.device_sample_error:
+            raise self.device_sample_error
+        self.device_samples.append((list(devices), polled_at))
 
     def replace_top_apps(self, period, apps, fetched_at):
         self.apps.append((period, list(apps), fetched_at))
@@ -322,6 +329,18 @@ class PollerTests(unittest.TestCase):
         sink = MemorySink()
         UnifiPoller(FakeSource(wan_error=RuntimeError("x"), vpn=["v"]), sink).poll_once()
         self.assertEqual(len(sink.vpn), 1)
+
+    def test_device_samples_use_the_devices_of_the_cycle(self):
+        device = map_device(DEVICE, STATS)
+        sink = MemorySink()
+        UnifiPoller(FakeSource([device]), sink).poll_once()
+        self.assertEqual(sink.device_samples, [([device], sink.snapshots[0][2])])
+
+    def test_device_sample_failure_does_not_fail_the_cycle(self):
+        sink = MemorySink()
+        sink.device_sample_error = RuntimeError("tabela nao existe (migracao 020)")
+        self.assertEqual(UnifiPoller(FakeSource(), sink).poll_once(), (0, 0))
+        self.assertEqual(len(sink.snapshots), 1)
 
     def test_top_apps_both_periods_then_waits_the_interval(self):
         sink, source = MemorySink(), FakeSource()

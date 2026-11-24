@@ -364,6 +364,35 @@ def _probe_wan_extra(session, host) -> None:
             print(f"  {where} = {val}")
 
 
+def _probe_wan_activity(session, host) -> None:
+    """
+    Formato do historico de perda de pacotes do aggregated-dashboard (o endpoint da tela
+    do UniFi): campos de um item, quantos pontos vem por hora e o intervalo entre eles.
+    Uma chamada so': e' o endpoint pesado que a tela usa.
+    """
+    path = "/proxy/network/v2/api/site/default/aggregated-dashboard?historySeconds=3600"
+    status, body = _get(session, host, path)
+    print(f"\n=== WAN activity: {path} ===\nstatus: {status}")
+    activity = body.get("wan_activity") if isinstance(body, dict) else None
+    if not isinstance(activity, dict):
+        print("sem wan_activity")
+        return
+    print(f"chaves de wan_activity: {sorted(activity.keys())}")
+    groups = activity.get("activity_by_network_group") or {}
+    for group, data in groups.items():
+        history = data.get("history") if isinstance(data, dict) else None
+        if not isinstance(history, list):
+            continue
+        print(f"\n{group}: {len(history)} pontos; chaves do grupo: {sorted(data.keys())}")
+        for item in history[:2] + history[-1:]:
+            _print_sample("item", item)
+        if isinstance(data.get("summary"), dict):
+            _print_sample("summary", data["summary"])
+    for key in ("connectivity_status", "wan"):
+        if key in body:
+            _print_sample(key, body[key])
+
+
 def main() -> int:
     host = os.environ.get("UNIFI_HOST", "").rstrip("/")
     api_key = os.environ.get("UNIFI_API_KEY", "")
@@ -378,6 +407,9 @@ def main() -> int:
     if "--vpn-apps" in sys.argv:
         _probe_vpn_candidates(session, host)
         _probe_top_apps_detail(session, host)
+        return 0
+    if "--wan-activity" in sys.argv:
+        _probe_wan_activity(session, host)
         return 0
     if "--wan-extra" in sys.argv:
         _probe_wan_extra(session, host)

@@ -269,6 +269,25 @@ def get_network_vpn_clients():
         release_connection(conn, is_healthy=connection_ok)
 
 
+@network_state_bp.route("/api/network/devices/<mac>/history", methods=["GET"])
+@require_auth
+def get_network_device_history(mac: str):
+    """CPU e memoria de um dispositivo: ?period=1h|1d|1w|1m (padrao 1d). SQL em wan_history.py."""
+    period = wan_history.resolve_period(request.args.get("period"))
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            result = wan_history.fetch_device_history(cur, period, mac.strip().lower()[:32])
+        return jsonify(result), 200
+    except Exception as e:
+        connection_ok = False
+        logger.error(f"[network_device_history] Erro: {e}")
+        return jsonify({"error": "Não foi possível buscar o histórico do dispositivo."}), 500
+    finally:
+        release_connection(conn, is_healthy=connection_ok)
+
+
 @network_state_bp.route("/api/network/wan/history", methods=["GET"])
 @require_auth
 def get_network_wan_history():

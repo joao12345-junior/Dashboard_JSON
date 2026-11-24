@@ -55,6 +55,12 @@ class UnifiPoller:
         # ou removeria dispositivos por engano.
         polled_at = datetime.now(timezone.utc)
         self._sink.replace_snapshot(devices, clients, polled_at)
+        # Historico de CPU/memoria: EXTRA (sem a migracao 020 so' loga). Nenhuma chamada
+        # nova ao UCG: os numeros ja vieram em fetch_devices.
+        try:
+            self._sink.append_device_samples(devices, polled_at)
+        except Exception as e:
+            logger.warning("Historico de CPU/memoria nao gravado: %s: %s", type(e).__name__, e)
         self._poll_wans(polled_at)
         self._poll_vpn(polled_at)
         self._poll_top_apps(polled_at)

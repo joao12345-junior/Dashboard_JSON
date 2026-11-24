@@ -3,6 +3,7 @@
 Regra de trabalho (definida em 2026-11-19): **toda mudança no LogDash gera um registro nesta pasta**, um arquivo por mudança, no padrão `AAAA-MM-DD-assunto.md` (contexto/motivo, o que mudou, arquivos alterados, como testar, pendências). Mudanças em arquivos ignorados pelo git (`*.ps1`, `.env`, `certs/`) devem dizer que precisam ser copiadas manualmente para o servidor 201.
 
 ## Índice (mais recente primeiro)
+- [2026-11-24 — CPU e memória dos dispositivos](2026-11-24-cpu-memoria-dispositivos.md) — migração 020, histórico por minuto sem chamada nova ao UCG, gráfico no Painel; investigação do aumento das 14:55 (tela do UniFi aberta sobe a CPU); perda de pacotes achada no `aggregated-dashboard`.
 - [2026-11-24 — Principais aplicativos](2026-11-24-principais-aplicativos.md) — ranking DPI do UniFi (1 h / 24 h) com nomes do catálogo (`(categoria << 16) | app`); migração 019, poller a cada 5 min, cartão no Painel.
 - [2026-11-24 — Clientes de VPN](2026-11-24-clientes-vpn.md) — usuários OpenVPN vêm de `stat/remoteuservpn` (sem MAC); migração 018, poller, rota `/api/network/vpn-clients`, filtro VPN em Clientes e cartão no Painel.
 - [2026-11-24 — Rede > Painel](2026-11-24-rede-painel.md) — home da rede no estilo UniFi: gateway, links de internet, gráfico Internet (saiu da Infraestrutura), principais clientes, dispositivos e alertas; só front.

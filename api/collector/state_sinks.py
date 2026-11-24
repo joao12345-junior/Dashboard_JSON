@@ -44,6 +44,10 @@ class StateSink(Protocol):
         """Substitui o ranking de aplicativos de um periodo."""
         ...
 
+    def append_device_samples(self, devices: Sequence[NetworkDevice], polled_at: datetime) -> None:
+        """Acrescenta CPU/memoria de cada dispositivo ao historico."""
+        ...
+
     def close(self) -> None: ...
 
 
@@ -319,6 +323,44 @@ class PostgresStateSink:
                 cur.execute(
                     "DELETE FROM optsislog.network_vpn_clients WHERE last_seen_at < %s",
                     (polled_at - timedelta(days=CLIENT_RETENTION_DAYS),),
+                )
+            self._conn.commit()
+        except Exception:
+            self.close()
+            raise
+
+    def append_device_samples(self, devices: Sequence[NetworkDevice], polled_at: datetime) -> None:
+        """
+        network_device_samples (migracao 020), transacao propria, mesma politica do
+        historico da WAN: guarda 31 dias; sem a tabela, so' o grafico fica sem o ponto.
+        Dispositivo sem CPU e sem memoria (estatistica falhou) nao gera linha.
+        """
+        import psycopg2
+        from psycopg2.extras import execute_values
+
+        rows = [
+            (d.mac, polled_at, d.cpu_pct, d.memory_pct)
+            for d in {d.mac: d for d in devices}.values()
+            if d.cpu_pct is not None or d.memory_pct is not None
+        ]
+        if not rows:
+            return
+        try:
+            if self._conn is None or self._conn.closed:
+                self._conn = psycopg2.connect(**self._kwargs)
+            with self._conn.cursor() as cur:
+                execute_values(
+                    cur,
+                    """
+                    INSERT INTO optsislog.network_device_samples (mac, sampled_at, cpu_pct, memory_pct)
+                    VALUES %s
+                    ON CONFLICT (mac, sampled_at) DO NOTHING
+                    """,
+                    rows,
+                )
+                cur.execute(
+                    "DELETE FROM optsislog.network_device_samples WHERE sampled_at < %s",
+                    (polled_at - timedelta(days=WAN_SAMPLE_RETENTION_DAYS),),
                 )
             self._conn.commit()
         except Exception:

@@ -13,6 +13,7 @@ import type { NetworkEvent } from "./hooks/useNetworkEvents";
 import { StaleDataBanner } from "./components/StaleDataBanner";
 import { WanHistoryPanel } from "./components/WanHistoryPanel";
 import { TopAppsCard } from "./components/TopAppsCard";
+import { DeviceHistoryPanel } from "./components/DeviceHistoryPanel";
 import { formatBitrate, formatBytes, formatSince, formatUptime } from "./format";
 import { sortVpnClients, vpnTypeLabel } from "./vpnClients";
 import { formatEventTime } from "./formatEventTime";
@@ -194,6 +195,8 @@ export function NetworkDashboardPage({ isMobile, onNavigate }: SharedPageProps) 
 	const alerts = alertsState.data?.events ?? [];
 
 	const { gateway, others } = useMemo(() => splitGateway(devices), [devices]);
+	// Gráfico de CPU/memória: gateway primeiro (é o que mais interessa acompanhar).
+	const historyDevices = useMemo(() => (gateway ? [gateway, ...others] : others), [gateway, others]);
 	const counts = useMemo(() => countNetwork(devices, clients), [devices, clients]);
 	const perDevice = useMemo(() => clientsPerDevice(clients), [clients]);
 	const topClients = useMemo(() => topClientsByTraffic(clients, TOP_CLIENTS), [clients]);
@@ -321,7 +324,12 @@ export function NetworkDashboardPage({ isMobile, onNavigate }: SharedPageProps) 
 								</div>
 							</section>
 
-							<WanHistoryPanel wans={wans} />
+							<div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
+								<WanHistoryPanel wans={wans} />
+								{historyDevices.length > 0 && (
+									<DeviceHistoryPanel devices={historyDevices as [NetworkDevice, ...NetworkDevice[]]} />
+								)}
+							</div>
 						</div>
 
 						{/* Clientes, dispositivos, alertas */}

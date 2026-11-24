@@ -54,7 +54,7 @@ export interface WanChartPoint {
  * grava a cada ~60 s, então o minuto em andamento (e às vezes o anterior) ainda não
  * tem amostra. Buracos mais antigos que isso são reais (poller parado) e ficam.
  */
-const PENDING_TAIL_MS = 2 * 60_000;
+export const PENDING_TAIL_MS = 2 * 60_000;
 
 /// <summary>
 /// Monta a série contínua de [since, until): um ponto por balde de `stepSeconds`,

@@ -2,7 +2,7 @@
 import unittest
 from datetime import datetime, timezone
 
-from wan_history import PERIODS, fetch_history, resolve_period
+from wan_history import PERIODS, fetch_device_history, fetch_history, resolve_period
 
 
 class FakeCursor:
@@ -80,6 +80,26 @@ class FetchHistoryTests(unittest.TestCase):
 
     def test_empty_history(self):
         self.assertEqual(fetch_history(FakeCursor([]), PERIODS["1h"])["series"], {})
+
+
+class FetchDeviceHistoryTests(unittest.TestCase):
+    def test_points_and_parameters(self):
+        rows = [
+            {
+                "bucket": datetime(2026, 11, 24, 17, 55, tzinfo=timezone.utc),
+                "cpu_pct": 33.33,
+                "cpu_pct_max": 40,
+                "memory_pct": 68.96,
+                "memory_pct_max": 69,
+                "samples": 5,
+            }
+        ]
+        cur = FakeCursor(rows)
+        result = fetch_device_history(cur, PERIODS["1d"], "0c:ea:14:55:bb:37")
+        self.assertEqual(result["mac"], "0c:ea:14:55:bb:37")
+        self.assertEqual(result["points"][0]["memory_pct"], 69.0)
+        self.assertEqual(result["points"][0]["cpu_pct"], 33.3)
+        self.assertEqual(cur.executed[1][1], {"step": 300, "span": 86400, "mac": "0c:ea:14:55:bb:37"})
 
 
 if __name__ == "__main__":

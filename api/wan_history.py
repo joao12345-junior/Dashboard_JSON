@@ -1,6 +1,7 @@
 # api/wan_history.py
 """
-Historico dos links de internet (grafico "Internet" da aba Infraestrutura).
+Historico dos links de internet (grafico "Internet") e de CPU/memoria dos
+dispositivos UniFi, ambos do Rede > Painel.
 
 Repository (Repository Pattern): todo o SQL de leitura de optsislog.network_wan_samples
 fica aqui. Recebe o cursor e nao abre conexao, entao a rota fica fina e isto e'
@@ -98,3 +99,50 @@ def _int(value: Any) -> int | None:
 
 def _round(value: Any) -> float | None:
     return None if value is None else round(float(value), 1)
+
+
+_DEVICE_HISTORY_SQL = """
+    SELECT to_timestamp(floor(extract(epoch FROM sampled_at) / %(step)s) * %(step)s) AS bucket,
+           avg(cpu_pct)    AS cpu_pct,
+           max(cpu_pct)    AS cpu_pct_max,
+           avg(memory_pct) AS memory_pct,
+           max(memory_pct) AS memory_pct_max,
+           count(*)        AS samples
+    FROM optsislog.network_device_samples
+    WHERE mac = %(mac)s AND sampled_at >= now() - make_interval(secs => %(span)s)
+    GROUP BY bucket
+    ORDER BY bucket
+"""
+
+
+def fetch_device_history(cur, period: WanPeriod, mac: str) -> dict[str, Any]:
+    """
+    CPU e memoria de UM dispositivo, agregados como o historico da WAN (mesmos
+    periodos e baldes). Devolve {"period", "step_seconds", "span_seconds",
+    "server_time", "mac", "points": [...]}.
+    """
+    cur.execute("SELECT now() AS server_time")
+    server_time = cur.fetchone()["server_time"]
+    cur.execute(
+        _DEVICE_HISTORY_SQL,
+        {"step": period.step_seconds, "span": period.span_seconds, "mac": mac},
+    )
+    points = [
+        {
+            "t": row["bucket"].isoformat(),
+            "cpu_pct": _round(row["cpu_pct"]),
+            "cpu_pct_max": _round(row["cpu_pct_max"]),
+            "memory_pct": _round(row["memory_pct"]),
+            "memory_pct_max": _round(row["memory_pct_max"]),
+            "samples": int(row["samples"]),
+        }
+        for row in cur.fetchall()
+    ]
+    return {
+        "period": period.key,
+        "step_seconds": period.step_seconds,
+        "span_seconds": period.span_seconds,
+        "server_time": server_time.isoformat(),
+        "mac": mac,
+        "points": points,
+    }
