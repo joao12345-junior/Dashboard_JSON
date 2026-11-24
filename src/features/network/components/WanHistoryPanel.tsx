@@ -68,7 +68,7 @@ interface WanHistoryPanelProps {
 }
 
 /// <summary>
-/// Gráfico "Internet" da aba Infraestrutura, no estilo do UniFi: tráfego (download e
+/// Gráfico "Internet" do Rede > Painel, no estilo do UniFi: tráfego (download e
 /// upload) e latência de um link por vez, em 1 h / 1 dia / 1 semana / 1 mês. Cada ponto
 /// é a média das amostras do poller (uma por minuto) dentro do intervalo; o tooltip
 /// mostra também o pico. Buracos na linha = poller sem amostra (não é tráfego zero).
@@ -123,11 +123,11 @@ export function WanHistoryPanel({ wans }: WanHistoryPanelProps) {
 		<section
 			aria-label="Internet: histórico dos links"
 			style={{
-				margin: "0 16px 16px",
+				minWidth: 0,
 				padding: 16,
 				borderRadius: 8,
 				border: "1px solid var(--border)",
-				backgroundColor: "var(--background)",
+				backgroundColor: "var(--card)",
 				display: "flex",
 				flexDirection: "column",
 				gap: 14,

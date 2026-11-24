@@ -1,7 +1,7 @@
 # Gráfico "Internet" na aba Infraestrutura (24/11/2026)
 
 ## O que é
-Embaixo do diagrama de Rede > Topologia > **Infraestrutura**, um painel no estilo do UniFi com o histórico de cada link (Internet 1 / Internet 2):
+No **Rede > Painel** (antes ficava embaixo da aba Infraestrutura; ver `2026-11-24-rede-painel.md`), um painel no estilo do UniFi com o histórico de cada link (Internet 1 / Internet 2):
 - **Tráfego**: download e upload (média por ponto; o tooltip e o resumo mostram o pico).
 - **Latência**: média e máxima.
 - Resumo: download/upload médio e pico, latência média e máxima, % do tempo no ar (pelas amostras).

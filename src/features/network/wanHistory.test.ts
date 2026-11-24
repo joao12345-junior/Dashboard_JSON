@@ -40,10 +40,32 @@ describe("buildWanChartData", () => {
 			[point(0, { down_samples: 1 }), { ...point(5), t: "lixo" }],
 			300,
 			T0,
-			T0 + 10 * MIN,
+			T0 + 20 * MIN,
 		);
 		expect(data[0].down).toBe(true);
 		expect(data[1].rx).toBeNull();
+	});
+});
+
+describe("buildWanChartData — fim da série", () => {
+	it("descarta os minutos finais ainda sem amostra (poller grava depois)", () => {
+		// Agora = 17:09:30, passo de 1 min; amostras até 17:07.
+		const points = Array.from({ length: 8 }, (_, i) => point(i));
+		const data = buildWanChartData(points, 60, T0, T0 + 9.5 * MIN);
+		expect(data[data.length - 1].t).toBe(T0 + 7 * MIN);
+	});
+
+	it("mantém o buraco quando a falta é antiga (poller parado)", () => {
+		// Última amostra às 17:00, agora 17:20: só os 3 últimos min (passo + 2) são
+		// "ainda não chegou"; os vazios de 17:01 até 17:16 ficam como buraco.
+		const data = buildWanChartData([point(0)], 60, T0, T0 + 20 * MIN);
+		expect(data[data.length - 1].t).toBe(T0 + 16 * MIN);
+		expect(data[data.length - 1].rx).toBeNull();
+	});
+
+	it("balde final com dado não é cortado", () => {
+		const data = buildWanChartData([point(0), point(5)], 300, T0, T0 + 6 * MIN);
+		expect(data[data.length - 1].rx).toBe(6_000_000);
 	});
 });
 

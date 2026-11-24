@@ -129,8 +129,8 @@ export function NetworkSummaryCard({ onNavigate, isMobile }: { onNavigate: (page
 			</div>
 
 			<div style={{ display: "flex", gap: 8, justifyContent: isMobile ? "flex-start" : "flex-end", gridColumn: isMobile ? "1 / -1" : undefined }}>
-				<button type="button" className="ld-link-btn" onClick={() => onNavigate("network-topology")} style={linkStyle}>
-					Topologia →
+				<button type="button" className="ld-link-btn" onClick={() => onNavigate("network-dashboard")} style={linkStyle}>
+					Painel →
 				</button>
 				<button type="button" className="ld-link-btn" onClick={() => onNavigate("network-events")} style={linkStyle}>
 					Eventos →

@@ -174,6 +174,84 @@ def _probe_top_apps(session, host) -> None:
     _report("v2 traffic-flow-latest-statistics?period=DAY&top=5", status, body)
 
 
+def _looks_vpn(item) -> bool:
+    """Item que parece cliente de VPN: IP da rede ServOvpn (10.10.10.x) ou 'vpn' em algum campo de tipo/rede."""
+    if not isinstance(item, dict):
+        return False
+    for key in ("ip", "ipAddress", "last_ip", "fixed_ip", "remote_ip", "local_ip", "tunnel_ip"):
+        if str(item.get(key, "")).startswith("10.10.10."):
+            return True
+    for key in ("type", "network", "network_name", "purpose", "vpn_type", "tags"):
+        if "vpn" in str(item.get(key, "")).lower():
+            return True
+    return False
+
+
+def _flatten_lists(body):
+    """Todas as listas de dicts dentro da resposta (alguns endpoints aninham: data.clients etc.)."""
+    if isinstance(body, list):
+        yield body
+        for item in body:
+            if isinstance(item, dict):
+                yield from _flatten_lists(item)
+    elif isinstance(body, dict):
+        for value in body.values():
+            if isinstance(value, (list, dict)):
+                yield from _flatten_lists(value)
+
+
+#: Candidatos (todos GET) para os clientes de VPN. Os 3 ja testados (Integration /clients,
+#: stat/sta e v2 clients/active) devolveram so cabo/Wi-Fi.
+VPN_CANDIDATES = (
+    "/proxy/network/v2/api/site/default/clients/active?includeTrafficUsage=true&includeUnifiDevices=true",
+    "/proxy/network/v2/api/site/default/clients/history?onlyNonBlocked=true&includeUnifiDevices=true&withinHours=24",
+    "/proxy/network/v2/api/site/default/vpn/connections",
+    "/proxy/network/v2/api/site/default/vpn/servers",
+    "/proxy/network/v2/api/site/default/remote-user-vpn/clients",
+    "/proxy/network/api/s/default/stat/remoteuservpn",
+    "/proxy/network/api/s/default/stat/vpn",
+    "/proxy/network/api/s/default/rest/user",
+)
+
+
+def _probe_vpn_candidates(session, host) -> None:
+    print("\n=== VPN 4: outros endpoints candidatos (somente GET) ===")
+    for path in VPN_CANDIDATES:
+        status, body = _get(session, host, path)
+        lists = list(_flatten_lists(body)) if isinstance(body, (dict, list)) else []
+        total = sum(len(l) for l in lists)
+        vpn = [item for l in lists for item in l if _looks_vpn(item)]
+        print(f"\n{path}\n  status: {status} -- itens: {total} -- parecem VPN: {len(vpn)}")
+        if not isinstance(body, (dict, list)):
+            print(f"  corpo: {str(body)[:150]}")
+        elif vpn:
+            _print_sample("  exemplo de VPN", vpn[0])
+        elif isinstance(body, dict):
+            print(f"  chaves do topo: {sorted(body.keys())[:15]}")
+
+
+def _probe_top_apps_detail(session, host) -> None:
+    """Formato de top_all_traffic_by_application, que a 1a rodada cortou."""
+    for period in ("DAY", "HOUR"):
+        print(f"\n=== APLICATIVOS: top_all_traffic_by_application (period={period}) ===")
+        status, body = _get(
+            session,
+            host,
+            f"/proxy/network/v2/api/site/default/traffic-flow-latest-statistics?period={period}&top=10",
+        )
+        print(f"status: {status}")
+        apps = body.get("top_all_traffic_by_application") if isinstance(body, dict) else None
+        if not isinstance(apps, list):
+            print(f"sem a chave (tipo: {type(apps).__name__})")
+            continue
+        print(f"itens: {len(apps)}")
+        for app in apps[:3]:
+            _print_sample("item", app)
+        if len(apps) > 3:
+            names = [a.get("name") or a.get("application_name") or a.get("app_name") for a in apps if isinstance(a, dict)]
+            print(f"nomes dos demais: {names[3:]}")
+
+
 def main() -> int:
     host = os.environ.get("UNIFI_HOST", "").rstrip("/")
     api_key = os.environ.get("UNIFI_API_KEY", "")
@@ -183,6 +261,13 @@ def main() -> int:
 
     session = requests.Session()
     session.headers.update({"X-API-KEY": api_key, "Accept": "application/json"})
+
+    # Rodada curta: so' o que falta descobrir (clientes de VPN e aplicativos).
+    if "--vpn-apps" in sys.argv:
+        _probe_vpn_candidates(session, host)
+        _probe_top_apps_detail(session, host)
+        return 0
+
     site_id = None
     integration = "/proxy/network/integration/v1"
     legacy = "/proxy/network/api/s/default"

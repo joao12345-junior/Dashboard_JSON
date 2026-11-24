@@ -49,11 +49,21 @@ export interface WanChartPoint {
 	down: boolean;
 }
 
+/**
+ * Quanto do fim da série pode estar vazio só porque o poller ainda não gravou: ele
+ * grava a cada ~60 s, então o minuto em andamento (e às vezes o anterior) ainda não
+ * tem amostra. Buracos mais antigos que isso são reais (poller parado) e ficam.
+ */
+const PENDING_TAIL_MS = 2 * 60_000;
+
 /// <summary>
 /// Monta a série contínua de [since, until): um ponto por balde de `stepSeconds`,
 /// mesmo onde não há amostra (com valores null). Sem isso o recharts ligaria dois
 /// pontos distantes com uma reta e "esconderia" o período em que o poller ficou
 /// parado. A falta de amostra aparece como buraco, nunca como tráfego zero.
+/// Exceção: os baldes vazios do FIM que começam nos últimos `step + 2 min` são
+/// descartados, porque são "ainda não chegou", não "faltou" (o minuto 15:51 só
+/// recebe dado logo depois das 15:52).
 /// </summary>
 export function buildWanChartData(
 	points: readonly WanHistoryPoint[],
@@ -81,6 +91,13 @@ export function buildWanChartData(
 			latencyMax: p?.latency_ms_max ?? null,
 			down: (p?.down_samples ?? 0) > 0,
 		});
+	}
+	const pendingFrom = until - step - PENDING_TAIL_MS;
+	while (data.length > 0) {
+		const last = data[data.length - 1];
+		const empty = last.rx === null && last.tx === null && last.latency === null;
+		if (!empty || last.t < pendingFrom) break;
+		data.pop();
 	}
 	return data;
 }

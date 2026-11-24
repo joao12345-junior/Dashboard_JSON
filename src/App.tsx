@@ -24,6 +24,7 @@ import { NetworkEventsPage } from "./features/network/NetworkEventsPage";
 import { NetworkClientsPage } from "./features/network/NetworkClientsPage";
 import { NetworkDevicesPage } from "./features/network/NetworkDevicesPage";
 import { NetworkTopologyPage } from "./features/network/NetworkTopologyPage";
+import { NetworkDashboardPage } from "./features/network/NetworkDashboardPage";
 import { AppDashboard } from "./features/app-logs/AppDashboard";
 import { AppList } from "./features/app-logs/AppList";
 import { useAppPrograms, type AppProgramsState } from "./features/app-logs/useAppPrograms";
@@ -52,6 +53,7 @@ export type Page =
 	| "site-list"
 	| "app-dashboard"
 	| "app-list"
+	| "network-dashboard"
 	| "network-events"
 	| "network-clients"
 	| "network-devices"
@@ -78,6 +80,7 @@ const VALID_PAGES: readonly Page[] = [
 	"site-list",
 	"app-dashboard",
 	"app-list",
+	"network-dashboard",
 	"network-events",
 	"network-clients",
 	"network-devices",
@@ -358,6 +361,8 @@ function AppContent() {
 				return <AppDashboard {...sharedProps} />;
 			case "app-list":
 				return <AppList {...sharedProps} />;
+			case "network-dashboard":
+				return <NetworkDashboardPage {...sharedProps} />;
 			case "network-events":
 				return <NetworkEventsPage {...sharedProps} />;
 			case "network-clients":

@@ -6,7 +6,6 @@ import type { WanLink } from "../hooks/useNetworkExtras";
 import { isGateway } from "../topologyLayout";
 import { formatBitrate, formatUptime } from "../format";
 import { plural } from "../../../lib/plural";
-import { WanHistoryPanel } from "./WanHistoryPanel";
 
 const CARD_W = 300;
 const CARD_H = 76;
@@ -29,8 +28,7 @@ const columnX = (i: number, n: number, width: number) =>
 
 /// <summary>
 /// Visão "Infraestrutura" (como no UniFi): links de internet no topo, curvas até o
-/// gateway, e abaixo os APs/switches. Só infraestrutura, sem clientes. Embaixo, o
-/// gráfico "Internet" (histórico de tráfego e latência de cada link).
+/// gateway, e abaixo os APs/switches. Só infraestrutura, sem clientes.
 /// </summary>
 export function InfrastructureView({ wans, wanError, devices, clientsByDevice }: InfrastructureViewProps) {
 	const gateway = devices.find(isGateway) ?? null;
@@ -116,7 +114,6 @@ export function InfrastructureView({ wans, wanError, devices, clientsByDevice }:
 					</Positioned>
 				))}
 			</div>
-			<WanHistoryPanel wans={wans} />
 		</div>
 	);
 }

@@ -99,6 +99,7 @@ const NAV_SECTIONS = [
 		label: "Rede",
 		icon: Network,
 		items: [
+			{ page: "network-dashboard" as Page, label: "Painel", icon: LayoutDashboard },
 			{ page: "network-clients" as Page, label: "Clientes", icon: Users },
 			{ page: "network-devices" as Page, label: "Dispositivos", icon: Router },
 			{ page: "network-topology" as Page, label: "Topologia", icon: Share2 },

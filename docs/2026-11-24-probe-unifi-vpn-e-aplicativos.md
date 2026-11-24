@@ -18,6 +18,15 @@ Testado contra um UCG falso: só GET, nenhuma escrita.
 ## Primeira saída (probe ANTIGO, rodado no 201 às 15:14)
 O 201 ainda tinha a versão anterior do probe, sem as seções novas. Mesmo assim: Integration `/clients` = 16 e `stat/sta` = 16, enquanto o UniFi mostra mais 8 em VPN. Ou seja, os clientes OpenVPN **não estão em nenhum dos dois** (não é só "sem MAC"). Falta o v2 `clients/active`: levar o probe novo e rodar de novo.
 
+## Segunda saída (probe novo, 15:51)
+- **VPN**: Integration `/clients`, `stat/sta` e v2 `clients/active` devolvem os mesmos 16 (14 com fio, 2 Wi-Fi). Nenhum cliente OpenVPN em nenhum dos três.
+- **Aplicativos**: `GET v2 traffic-flow-latest-statistics?period=DAY` responde 200 e tem `top_all_traffic_by_application` (além de contagem por cliente, destino e região). O formato dos itens ficou cortado na saída.
+
+## Terceira rodada: `--vpn-apps`
+`python -m collector.unifi_probe --vpn-apps` roda só o que falta: 8 endpoints candidatos para VPN (todos GET; mostra status, total de itens e quantos parecem VPN, com exemplo) e o formato completo de `top_all_traffic_by_application` (DAY e HOUR). Testado contra um UCG falso: só GET.
+
+Atalho que dispensa adivinhar: na interface do UCG, abrir Clientes > filtro VPN com o DevTools (F12 > Network > Fetch/XHR) e copiar a URL da requisição que traz os 8 clientes.
+
 ## Próximos passos (dependem da saída real)
 - VPN: definir a chave dos clientes sem MAC (provavelmente o id do cliente no UniFi) antes de mexer no mapper.
 - Aplicativos: o endpoint legado de DPI (`stat/sitedpi`) é **POST**, o que conflita com a regra "o código nunca escreve no UniFi". Só usar com aprovação explícita; a v2 por GET é a alternativa.
