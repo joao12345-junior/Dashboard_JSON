@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict Apy5bYM63V9Bjs4vZ0y3PMDRHWlJwre3bWKWwTUzXN1KRyJkEGuBStrNuTQ21Ej
+\restrict He6HRSGV1Wb8Z6GmpS9NTyzXNdP4jEJ8FgxgxwpqXqYQmw9DDGPyPX0IP9F064i
 
 -- Dumped from database version 13.23
 -- Dumped by pg_dump version 18.6
@@ -190,6 +190,49 @@ ALTER SEQUENCE optsislog.monitored_urls_id_seq OWNED BY optsislog.monitored_urls
 
 
 --
+-- Name: network_client_sessions; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.network_client_sessions (
+    id bigint NOT NULL,
+    mac text NOT NULL,
+    connected_at timestamp with time zone NOT NULL,
+    disconnected_at timestamp with time zone,
+    uplink_mac text,
+    ip_address text
+);
+ALTER TABLE ONLY optsislog.network_client_sessions ALTER COLUMN id SET (pg_attver=36872251154880);
+ALTER TABLE ONLY optsislog.network_client_sessions ALTER COLUMN mac SET (pg_attver=36872251154880);
+ALTER TABLE ONLY optsislog.network_client_sessions ALTER COLUMN connected_at SET (pg_attver=36872251154880);
+ALTER TABLE ONLY optsislog.network_client_sessions ALTER COLUMN disconnected_at SET (pg_attver=36872251154880);
+ALTER TABLE ONLY optsislog.network_client_sessions ALTER COLUMN uplink_mac SET (pg_attver=36872251154880);
+ALTER TABLE ONLY optsislog.network_client_sessions ALTER COLUMN ip_address SET (pg_attver=36872251154880);
+
+
+ALTER TABLE optsislog.network_client_sessions OWNER TO optare3;
+
+--
+-- Name: network_client_sessions_id_seq; Type: SEQUENCE; Schema: optsislog; Owner: optare3
+--
+
+CREATE SEQUENCE optsislog.network_client_sessions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE optsislog.network_client_sessions_id_seq OWNER TO optare3;
+
+--
+-- Name: network_client_sessions_id_seq; Type: SEQUENCE OWNED BY; Schema: optsislog; Owner: optare3
+--
+
+ALTER SEQUENCE optsislog.network_client_sessions_id_seq OWNED BY optsislog.network_client_sessions.id;
+
+
+--
 -- Name: network_clients; Type: TABLE; Schema: optsislog; Owner: optare3
 --
 
@@ -337,6 +380,42 @@ ALTER SEQUENCE optsislog.network_events_id_seq OWNER TO optare3;
 
 ALTER SEQUENCE optsislog.network_events_id_seq OWNED BY optsislog.network_events.id;
 
+
+--
+-- Name: network_wan; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.network_wan (
+    wan_group text NOT NULL,
+    name text,
+    isp_name text,
+    ip_address text,
+    is_up boolean,
+    is_enabled boolean,
+    failover_only boolean,
+    availability_pct real,
+    latency_ms real,
+    rx_bps bigint,
+    tx_bps bigint,
+    gateway_mac text,
+    last_polled_at timestamp with time zone DEFAULT now() NOT NULL
+);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN wan_group SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN name SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN isp_name SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN ip_address SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN is_up SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN is_enabled SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN failover_only SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN availability_pct SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN latency_ms SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN rx_bps SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN tx_bps SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN gateway_mac SET (pg_attver=36872251002664);
+ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN last_polled_at SET (pg_attver=36872251002664);
+
+
+ALTER TABLE optsislog.network_wan OWNER TO optare3;
 
 --
 -- Name: problemas_servidor; Type: TABLE; Schema: optsislog; Owner: optare3
@@ -680,6 +759,13 @@ ALTER TABLE ONLY optsislog.monitored_urls ALTER COLUMN id SET DEFAULT nextval('o
 
 
 --
+-- Name: network_client_sessions id; Type: DEFAULT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_client_sessions ALTER COLUMN id SET DEFAULT nextval('optsislog.network_client_sessions_id_seq'::regclass);
+
+
+--
 -- Name: network_events id; Type: DEFAULT; Schema: optsislog; Owner: optare3
 --
 
@@ -746,6 +832,14 @@ ALTER TABLE ONLY optsislog.monitored_urls
 
 
 --
+-- Name: network_client_sessions network_client_sessions_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_client_sessions
+    ADD CONSTRAINT network_client_sessions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: network_clients network_clients_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
 --
 
@@ -767,6 +861,14 @@ ALTER TABLE ONLY optsislog.network_devices
 
 ALTER TABLE ONLY optsislog.network_events
     ADD CONSTRAINT network_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: network_wan network_wan_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_wan
+    ADD CONSTRAINT network_wan_pkey PRIMARY KEY (wan_group);
 
 
 --
@@ -890,6 +992,13 @@ ALTER TABLE ONLY optsislog.windows_event_logs
 
 
 --
+-- Name: idx_network_client_sessions_mac; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX idx_network_client_sessions_mac ON optsislog.network_client_sessions USING btree (mac, connected_at DESC);
+
+
+--
 -- Name: idx_network_clients_connected; Type: INDEX; Schema: optsislog; Owner: optare3
 --
 
@@ -981,6 +1090,13 @@ CREATE INDEX ix_windows_event_logs_assinatura ON optsislog.windows_event_logs US
 
 
 --
+-- Name: uq_network_client_sessions_open; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE UNIQUE INDEX uq_network_client_sessions_open ON optsislog.network_client_sessions USING btree (mac) WHERE (disconnected_at IS NULL);
+
+
+--
 -- Name: ux_windows_event_logs_registro; Type: INDEX; Schema: optsislog; Owner: optare3
 --
 
@@ -1036,5 +1152,5 @@ ALTER TABLE ONLY optsislog.tokens_renovacao
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Apy5bYM63V9Bjs4vZ0y3PMDRHWlJwre3bWKWwTUzXN1KRyJkEGuBStrNuTQ21Ej
+\unrestrict He6HRSGV1Wb8Z6GmpS9NTyzXNdP4jEJ8FgxgxwpqXqYQmw9DDGPyPX0IP9F064i
 

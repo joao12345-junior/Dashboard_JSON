@@ -3,6 +3,7 @@
 Regra de trabalho (definida em 2026-11-19): **toda mudança no LogDash gera um registro nesta pasta**, um arquivo por mudança, no padrão `AAAA-MM-DD-assunto.md` (contexto/motivo, o que mudou, arquivos alterados, como testar, pendências). Mudanças em arquivos ignorados pelo git (`*.ps1`, `.env`, `certs/`) devem dizer que precisam ser copiadas manualmente para o servidor 201.
 
 ## Índice (mais recente primeiro)
+- [2026-11-24 — Sync de sites no serviço LogDashSyslog](2026-11-24-sync-sites-no-servico-syslog.md) — `sync_site.ps1` parou (provável http×https); o sync agora roda a cada 30 min numa thread do LogDashSyslog (`collector/site_sync.py`); syslog segue contínuo; sidebar "Sites".
 - [2026-11-23 — UniFi fase 4: WAN, histórico, eventos ↔ clientes](2026-11-23-unifi-fase-4-wan-historico.md) — migração 015 (`network_wan`, `network_client_sessions`); aba Infraestrutura; histórico de 7 dias e eventos no modal do cliente; link evento → cliente; card Rede na Home; deploy exige migração + reiniciar o poller.
 - [2026-11-23 — UniFi fase 3: topologia](2026-11-23-unifi-fase-3-topologia.md) — página Rede > Topologia (gateway → dispositivos → clientes por `uplink_mac`); só front; ligações entre dispositivos inferidas.
 - [2026-11-23 — UniFi fase 2: poller da API local](2026-11-23-unifi-fase-2-poller-api.md) — dispositivos (Integration API) e clientes (`stat/sta`) do UCG a cada 60 s em `network_devices`/`network_clients`; rotas `/api/network/devices` e `/clients`; alertas seguem pelo syslog (`stat/alarm` dá 404); 25 testes; páginas Clientes/Dispositivos prontas.

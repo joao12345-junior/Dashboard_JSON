@@ -14,6 +14,10 @@ Configuracao por variaveis de ambiente:
     SYSLOG_HOST         onde escutar (padrao 0.0.0.0)
     SYSLOG_PORT         porta UDP (padrao 5514; acima de 1024 nao exige privilegio)
 
+O mesmo servico tambem roda o sync do monitor de sites a cada 30 min
+(`site_sync.py`; antes era o sync_site.ps1 no Agendador de Tarefas). O sync roda
+numa thread propria: se ele travar ou falhar, o syslog continua recebendo.
+
 Desenho: uma thread recebe datagramas e enfileira; outra grava em lotes.
 Assim, um banco lento nao faz o socket perder pacote (a fila absorve) e,
 se o banco cair, o coletor segue recebendo e tenta de novo com backoff. A
@@ -212,6 +216,12 @@ def main() -> int:
             signal.signal(sig, _request_stop)
 
     receiver.start()
+    from .site_sync import start_from_env
+
+    try:
+        start_from_env(stop)
+    except Exception:  # o sync e extra: nunca impede o coletor de subir
+        logger.exception("Nao foi possivel iniciar o sync de sites")
     logger.info("Escutando UDP %s:%d (origens permitidas: %s)", host, port, ", ".join(allowed))
     last_stats = time.monotonic()
     try:

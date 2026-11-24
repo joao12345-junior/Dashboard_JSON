@@ -3,10 +3,10 @@ import { useState } from "react";
 import {
 	Home,
 	Archive,
-	AppWindow,
 	ScrollText,
-	Globe,
+	AppWindow,
 	Network,
+	MonitorCheck,
 	Router,
 	Share2,
 	Users,
@@ -84,8 +84,8 @@ const NAV_SECTIONS = [
 		],
 	},
 	{
-		label: "Site Optare",
-		icon: Globe,
+		label: "Sites",
+		icon: MonitorCheck,
 		items: [
 			{
 				page: "site-dashboard" as Page,
