@@ -16,6 +16,8 @@ from .unifi_mapper import NetworkClient, NetworkDevice, WanLink
 
 #: Clientes sem atividade ha mais que isso saem da tabela.
 CLIENT_RETENTION_DAYS = 30
+#: Amostras de WAN (grafico de internet) mais antigas que isso sao apagadas.
+WAN_SAMPLE_RETENTION_DAYS = 31
 
 
 class StateSink(Protocol):
@@ -29,6 +31,10 @@ class StateSink(Protocol):
     ) -> None: ...
 
     def replace_wans(self, wans: Sequence[WanLink], polled_at: datetime) -> None: ...
+
+    def append_wan_samples(self, wans: Sequence[WanLink], polled_at: datetime) -> None:
+        """Acrescenta uma amostra por WAN ao historico (grafico de internet)."""
+        ...
 
     def close(self) -> None: ...
 
@@ -207,6 +213,45 @@ class PostgresStateSink:
                         """,
                         rows,
                     )
+            self._conn.commit()
+        except Exception:
+            self.close()
+            raise
+
+    def append_wan_samples(self, wans: Sequence[WanLink], polled_at: datetime) -> None:
+        """
+        Uma linha por WAN em network_wan_samples (migracao 017) e limpeza do que passou
+        de WAN_SAMPLE_RETENTION_DAYS, numa transacao propria: se a tabela nao existir
+        (migracao nao aplicada), so' o historico falha, o estado atual da WAN continua.
+        `ON CONFLICT DO NOTHING`: um ciclo repetido no mesmo instante nao quebra a gravacao.
+        """
+        import psycopg2
+        from psycopg2.extras import execute_values
+
+        rows = [
+            (w.wan_group, polled_at, w.is_up, w.latency_ms, w.rx_bps, w.tx_bps)
+            for w in {w.wan_group: w for w in wans}.values()
+        ]
+        if not rows:
+            return
+        try:
+            if self._conn is None or self._conn.closed:
+                self._conn = psycopg2.connect(**self._kwargs)
+            with self._conn.cursor() as cur:
+                execute_values(
+                    cur,
+                    """
+                    INSERT INTO optsislog.network_wan_samples
+                        (wan_group, sampled_at, is_up, latency_ms, rx_bps, tx_bps)
+                    VALUES %s
+                    ON CONFLICT (wan_group, sampled_at) DO NOTHING
+                    """,
+                    rows,
+                )
+                cur.execute(
+                    "DELETE FROM optsislog.network_wan_samples WHERE sampled_at < %s",
+                    (polled_at - timedelta(days=WAN_SAMPLE_RETENTION_DAYS),),
+                )
             self._conn.commit()
         except Exception:
             self.close()

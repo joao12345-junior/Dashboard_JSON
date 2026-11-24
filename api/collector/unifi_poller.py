@@ -54,9 +54,17 @@ class UnifiPoller:
         # WAN e EXTRA: se falhar, o ciclo de dispositivos/clientes continua valendo e
         # a tabela de WAN fica com o ultimo estado bom (a pagina mostra a idade).
         try:
-            self._sink.replace_wans(self._source.fetch_wans(), polled_at)
+            wans = self._source.fetch_wans()
+            self._sink.replace_wans(wans, polled_at)
         except Exception as e:
             logger.warning("WAN nao atualizada neste ciclo: %s: %s", type(e).__name__, e)
+            return len(devices), len(clients)
+        # Historico (grafico de internet) e' mais um EXTRA: sem a migracao 017, ou com o
+        # banco recusando, so' o grafico fica sem este ponto.
+        try:
+            self._sink.append_wan_samples(wans, polled_at)
+        except Exception as e:
+            logger.warning("Historico da WAN nao gravado neste ciclo: %s: %s", type(e).__name__, e)
         return len(devices), len(clients)
 
     def next_delay(self) -> float:

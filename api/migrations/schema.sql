@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict He6HRSGV1Wb8Z6GmpS9NTyzXNdP4jEJ8FgxgxwpqXqYQmw9DDGPyPX0IP9F064i
+\restrict altbiuVAMasHZBhtQ6OmGScxVxpQfXnSzrNhx75iO9PPWfCuO8hV0Pe1PThCAij
 
 -- Dumped from database version 13.23
 -- Dumped by pg_dump version 18.6
@@ -132,6 +132,27 @@ ALTER SEQUENCE optsislog.app_logs_id_seq OWNER TO optare3;
 
 ALTER SEQUENCE optsislog.app_logs_id_seq OWNED BY optsislog.app_logs.id;
 
+
+--
+-- Name: app_programs; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.app_programs (
+    programa text NOT NULL,
+    visibility text,
+    visibility_changed_at timestamp with time zone,
+    last_log_at timestamp with time zone,
+    first_seen_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT app_programs_visibility_check CHECK ((visibility = ANY (ARRAY['shown'::text, 'hidden'::text])))
+);
+ALTER TABLE ONLY optsislog.app_programs ALTER COLUMN programa SET (pg_attver=36872836695424);
+ALTER TABLE ONLY optsislog.app_programs ALTER COLUMN visibility SET (pg_attver=36872836695424);
+ALTER TABLE ONLY optsislog.app_programs ALTER COLUMN visibility_changed_at SET (pg_attver=36872836695424);
+ALTER TABLE ONLY optsislog.app_programs ALTER COLUMN last_log_at SET (pg_attver=36872836695424);
+ALTER TABLE ONLY optsislog.app_programs ALTER COLUMN first_seen_at SET (pg_attver=36872836695424);
+
+
+ALTER TABLE optsislog.app_programs OWNER TO optare3;
 
 --
 -- Name: marcadores_leitura; Type: TABLE; Schema: optsislog; Owner: optare3
@@ -416,6 +437,28 @@ ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN last_polled_at SET (pg_attve
 
 
 ALTER TABLE optsislog.network_wan OWNER TO optare3;
+
+--
+-- Name: network_wan_samples; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.network_wan_samples (
+    wan_group text NOT NULL,
+    sampled_at timestamp with time zone NOT NULL,
+    is_up boolean,
+    latency_ms real,
+    rx_bps bigint,
+    tx_bps bigint
+);
+ALTER TABLE ONLY optsislog.network_wan_samples ALTER COLUMN wan_group SET (pg_attver=36873315125824);
+ALTER TABLE ONLY optsislog.network_wan_samples ALTER COLUMN sampled_at SET (pg_attver=36873315125824);
+ALTER TABLE ONLY optsislog.network_wan_samples ALTER COLUMN is_up SET (pg_attver=36873315125824);
+ALTER TABLE ONLY optsislog.network_wan_samples ALTER COLUMN latency_ms SET (pg_attver=36873315125824);
+ALTER TABLE ONLY optsislog.network_wan_samples ALTER COLUMN rx_bps SET (pg_attver=36873315125824);
+ALTER TABLE ONLY optsislog.network_wan_samples ALTER COLUMN tx_bps SET (pg_attver=36873315125824);
+
+
+ALTER TABLE optsislog.network_wan_samples OWNER TO optare3;
 
 --
 -- Name: problemas_servidor; Type: TABLE; Schema: optsislog; Owner: optare3
@@ -816,6 +859,14 @@ ALTER TABLE ONLY optsislog.app_logs
 
 
 --
+-- Name: app_programs app_programs_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.app_programs
+    ADD CONSTRAINT app_programs_pkey PRIMARY KEY (programa);
+
+
+--
 -- Name: marcadores_leitura marcadores_leitura_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
 --
 
@@ -869,6 +920,14 @@ ALTER TABLE ONLY optsislog.network_events
 
 ALTER TABLE ONLY optsislog.network_wan
     ADD CONSTRAINT network_wan_pkey PRIMARY KEY (wan_group);
+
+
+--
+-- Name: network_wan_samples network_wan_samples_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_wan_samples
+    ADD CONSTRAINT network_wan_samples_pkey PRIMARY KEY (wan_group, sampled_at);
 
 
 --
@@ -1020,6 +1079,13 @@ CREATE INDEX idx_network_events_signature_id ON optsislog.network_events USING b
 
 
 --
+-- Name: idx_network_wan_samples_sampled_at; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX idx_network_wan_samples_sampled_at ON optsislog.network_wan_samples USING btree (sampled_at);
+
+
+--
 -- Name: idx_process_logs_date_time; Type: INDEX; Schema: optsislog; Owner: optare3
 --
 
@@ -1152,5 +1218,5 @@ ALTER TABLE ONLY optsislog.tokens_renovacao
 -- PostgreSQL database dump complete
 --
 
-\unrestrict He6HRSGV1Wb8Z6GmpS9NTyzXNdP4jEJ8FgxgxwpqXqYQmw9DDGPyPX0IP9F064i
+\unrestrict altbiuVAMasHZBhtQ6OmGScxVxpQfXnSzrNhx75iO9PPWfCuO8hV0Pe1PThCAij
 

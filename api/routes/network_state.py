@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request
 from psycopg2.extras import RealDictCursor
 from db import get_connection, release_connection
 from routes.auth import require_auth
+import wan_history
 
 network_state_bp = Blueprint("network_state", __name__)
 logger = logging.getLogger(__name__)
@@ -162,6 +163,28 @@ def get_network_wan():
         connection_ok = False
         logger.error(f"[network_wan] Erro: {e}")
         return jsonify({"error": "Não foi possível buscar os links de internet."}), 500
+    finally:
+        release_connection(conn, is_healthy=connection_ok)
+
+
+@network_state_bp.route("/api/network/wan/history", methods=["GET"])
+@require_auth
+def get_network_wan_history():
+    """
+    Historico dos links de internet para o grafico: ?period=1h|1d|1w|1m (padrao 1d).
+    Pontos agregados (media e maximo) por WAN; o SQL esta em wan_history.py.
+    """
+    period = wan_history.resolve_period(request.args.get("period"))
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            result = wan_history.fetch_history(cur, period)
+        return jsonify(result), 200
+    except Exception as e:
+        connection_ok = False
+        logger.error(f"[network_wan_history] Erro: {e}")
+        return jsonify({"error": "Não foi possível buscar o histórico de internet."}), 500
     finally:
         release_connection(conn, is_healthy=connection_ok)
 

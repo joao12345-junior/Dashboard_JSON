@@ -36,6 +36,10 @@ from routes.network_events import network_events_bp
 app.register_blueprint(network_events_bp)
 from routes.network_state import network_state_bp
 app.register_blueprint(network_state_bp)
+from routes.app_programs import app_programs_bp
+app.register_blueprint(app_programs_bp)
+from routes.system_health import system_health_bp
+app.register_blueprint(system_health_bp)
 
 if __name__ == "__main__":
     if IS_DEV:

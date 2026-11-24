@@ -3,6 +3,11 @@
 Regra de trabalho (definida em 2026-11-19): **toda mudança no LogDash gera um registro nesta pasta**, um arquivo por mudança, no padrão `AAAA-MM-DD-assunto.md` (contexto/motivo, o que mudou, arquivos alterados, como testar, pendências). Mudanças em arquivos ignorados pelo git (`*.ps1`, `.env`, `certs/`) devem dizer que precisam ser copiadas manualmente para o servidor 201.
 
 ## Índice (mais recente primeiro)
+- [2026-11-24 — Gráfico Internet (histórico das WANs)](2026-11-24-grafico-internet-wan.md) — migração 017 (`network_wan_samples`, 1 amostra/min, 31 dias); rota `/api/network/wan/history`; painel de tráfego e latência na aba Infraestrutura; perda de pacotes ainda sem fonte.
+- [2026-11-24 — Probe do UniFi: VPN e aplicativos](2026-11-24-probe-unifi-vpn-e-aplicativos.md) — clientes OpenVPN não aparecem no LogDash (hipótese: sem MAC); probe estendido (só GET) para rodar no 201 e colar a saída antes de mexer no mapper.
+- [2026-11-24 — Saúde do LogDash](2026-11-24-saude-do-logdash.md) — `GET /api/system/health`, seção em Ajustes e aviso na Home quando o poller ou a checagem de sites atrasam; fontes só em Ajustes.
+- [2026-11-24 — Testes de front (vitest) e auditoria](2026-11-24-testes-vitest-e-auditoria-programas.md) — `npm test` com 76 testes de funções puras; rotas de programas registram quem apagou/mudou.
+- [2026-11-24 — Programas dos Logs Gerais](2026-11-24-programas-logs-gerais.md) — visibilidade por programa (automático 5 dias / sempre visível / oculto), apagar logs e aviso na Home
 - [2026-11-24 — Sync de sites no serviço LogDashSyslog](2026-11-24-sync-sites-no-servico-syslog.md) — `sync_site.ps1` parou (provável http×https); o sync agora roda a cada 30 min numa thread do LogDashSyslog (`collector/site_sync.py`); syslog segue contínuo; sidebar "Sites".
 - [2026-11-23 — UniFi fase 4: WAN, histórico, eventos ↔ clientes](2026-11-23-unifi-fase-4-wan-historico.md) — migração 015 (`network_wan`, `network_client_sessions`); aba Infraestrutura; histórico de 7 dias e eventos no modal do cliente; link evento → cliente; card Rede na Home; deploy exige migração + reiniciar o poller.
 - [2026-11-23 — UniFi fase 3: topologia](2026-11-23-unifi-fase-3-topologia.md) — página Rede > Topologia (gateway → dispositivos → clientes por `uplink_mac`); só front; ligações entre dispositivos inferidas.

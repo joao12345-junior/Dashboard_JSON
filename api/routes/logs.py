@@ -2,6 +2,7 @@
 from flask import Blueprint, request, jsonify
 from db import get_connection, release_connection
 from routes.auth import require_auth, require_sync_key
+import program_registry
 
 logs_bp = Blueprint("logs", __name__)
 
@@ -80,6 +81,10 @@ def cleanup_logs():
                 """, (WINDOWS_EVENT_LOGS_RETENTION_DAYS,),
             )
             deleted_windows_event = cur.rowcount
+
+            # Antes de apagar: o registro de programas guarda o ultimo log de cada um,
+            # senao o programa sumiria da lista dos Ajustes junto com seus logs.
+            program_registry.sync_last_log_at(cur)
 
             cur.execute(
                 """

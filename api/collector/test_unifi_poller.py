@@ -223,12 +223,19 @@ class MemorySink:
     def __init__(self):
         self.snapshots = []
         self.wans = []
+        self.samples = []
+        self.sample_error = None
 
     def replace_snapshot(self, devices, clients, polled_at):
         self.snapshots.append((list(devices), list(clients), polled_at))
 
     def replace_wans(self, wans, polled_at):
         self.wans.append((list(wans), polled_at))
+
+    def append_wan_samples(self, wans, polled_at):
+        if self.sample_error:
+            raise self.sample_error
+        self.samples.append((list(wans), polled_at))
 
     def close(self):
         pass
@@ -262,6 +269,22 @@ class PollerTests(unittest.TestCase):
         UnifiPoller(FakeSource(wans=["w"]), sink).poll_once()
         self.assertEqual(sink.wans[0][0], ["w"])
         self.assertEqual(sink.wans[0][1], sink.snapshots[0][2])
+
+    def test_wan_samples_are_appended_with_the_same_time(self):
+        sink = MemorySink()
+        UnifiPoller(FakeSource(wans=["w"]), sink).poll_once()
+        self.assertEqual(sink.samples, [(["w"], sink.snapshots[0][2])])
+
+    def test_wan_failure_writes_no_sample(self):
+        sink = MemorySink()
+        UnifiPoller(FakeSource(wan_error=RuntimeError("x")), sink).poll_once()
+        self.assertEqual(sink.samples, [])
+
+    def test_sample_failure_does_not_fail_the_cycle(self):
+        sink = MemorySink()
+        sink.sample_error = RuntimeError("tabela nao existe (migracao 017)")
+        self.assertEqual(UnifiPoller(FakeSource(wans=["w"]), sink).poll_once(), (0, 0))
+        self.assertEqual(len(sink.wans), 1)  # o estado atual da WAN foi gravado mesmo assim
 
     def test_run_backs_off_and_recovers(self):
         stop = threading.Event()

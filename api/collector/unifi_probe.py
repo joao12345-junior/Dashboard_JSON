@@ -25,6 +25,7 @@ import json
 import os
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 import requests
@@ -105,6 +106,74 @@ def _report(title: str, status, body) -> None:
         print(text)
 
 
+def _print_sample(title: str, sample) -> None:
+    text = json.dumps(_mask(sample), ensure_ascii=False, indent=2)
+    if len(text) > MAX_SAMPLE_CHARS:
+        text = text[:MAX_SAMPLE_CHARS] + "\n... (cortado)"
+    print(f"{title}:")
+    print(text)
+
+
+def _types_of(rows) -> dict:
+    return dict(Counter(str(r.get("type")) for r in rows if isinstance(r, dict)))
+
+
+def _probe_vpn_clients(session, host, integration, legacy, site_id) -> None:
+    """
+    Clientes de VPN (OpenVPN/Teleport) nao aparecem no LogDash: o poller le o
+    stat/sta (so' cabo e Wi-Fi). Descobre em qual endpoint eles estao e com que campos
+    (VPN costuma vir sem MAC, e o cadastro do LogDash usa o MAC como chave).
+    """
+    print("\n=== VPN 1/3: Integration API /clients, contagem por tipo ===")
+    items: list = []
+    offset, total, status = 0, None, None
+    for _ in range(10):
+        status, body = _get(session, host, f"{integration}/sites/{site_id}/clients?limit=200&offset={offset}")
+        page = _items(body) or []
+        items.extend(page)
+        total = body.get("totalCount") if isinstance(body, dict) else None
+        offset += len(page)
+        if not page or (total is not None and offset >= total):
+            break
+    print(f"status: {status} -- {len(items)} clientes (totalCount={total})")
+    by_type = _types_of(items)
+    print(f"por tipo: {by_type}")
+    for client_type in by_type:
+        sample = next(c for c in items if isinstance(c, dict) and str(c.get("type")) == client_type)
+        _print_sample(f"exemplo do tipo {client_type}", sample)
+
+    print("\n=== VPN 2/3: Legado stat/sta, algum cliente parece VPN? ===")
+    status, body = _get(session, host, f"{legacy}/stat/sta")
+    rows = [r for r in (_items(body) or []) if isinstance(r, dict)]
+    vpn_like = [
+        r for r in rows
+        if str(r.get("ip", "")).startswith("10.10.10.") or "vpn" in str(r.get("network", "")).lower()
+    ]
+    print(f"status: {status} -- {len(rows)} clientes; parecem VPN (ip 10.10.10.x ou rede com 'vpn'): {len(vpn_like)}")
+    if vpn_like:
+        _print_sample("exemplo", vpn_like[0])
+
+    print("\n=== VPN 3/3: v2 clients/active, contagem por tipo ===")
+    status, body = _get(session, host, "/proxy/network/v2/api/site/default/clients/active")
+    rows = body if isinstance(body, list) else (_items(body) or [])
+    print(f"status: {status} -- {len(rows) if isinstance(rows, list) else '?'} itens")
+    if isinstance(rows, list) and rows:
+        print(f"por tipo: {_types_of(rows)}")
+        vpn = next((r for r in rows if isinstance(r, dict) and str(r.get('type')).upper() == 'VPN'), None)
+        _print_sample("exemplo de VPN" if vpn else "exemplo (1o item, nao ha VPN)", vpn or rows[0])
+    elif not isinstance(body, (dict, list)):
+        print(f"corpo: {body}")
+
+
+def _probe_top_apps(session, host) -> None:
+    """Aplicativos mais usados (DPI): endpoint v2 por GET; so' confirma se responde com a chave."""
+    print("\n=== APLICATIVOS: v2 traffic-flow-latest-statistics (GET) ===")
+    status, body = _get(
+        session, host, "/proxy/network/v2/api/site/default/traffic-flow-latest-statistics?period=DAY&top=5"
+    )
+    _report("v2 traffic-flow-latest-statistics?period=DAY&top=5", status, body)
+
+
 def main() -> int:
     host = os.environ.get("UNIFI_HOST", "").rstrip("/")
     api_key = os.environ.get("UNIFI_API_KEY", "")
@@ -114,6 +183,7 @@ def main() -> int:
 
     session = requests.Session()
     session.headers.update({"X-API-KEY": api_key, "Accept": "application/json"})
+    site_id = None
     integration = "/proxy/network/integration/v1"
     legacy = "/proxy/network/api/s/default"
 
@@ -172,6 +242,11 @@ def main() -> int:
         print("\n=== WAN: resultado do mapeador (o que vai para o banco) ===")
         for link in map_wans(gateway, wan_confs):
             print(link)
+
+    # Pedido de 24/11: clientes de VPN e aplicativos mais usados.
+    if site_id:
+        _probe_vpn_clients(session, host, integration, legacy, site_id)
+    _probe_top_apps(session, host)
 
     return 0
 

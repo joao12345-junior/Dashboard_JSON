@@ -7,6 +7,10 @@ import { useWindowSize } from "../../hooks/useWindowSize";
 import { CriticalEventsFeed } from "./components/CriticalEventsFeed";
 import { GlobalKpiRow } from "./components/GlobalKpiRow";
 import { DailyErrorsPanel } from "./components/DailyErrorsPanel";
+import { HiddenProgramsNotice } from "./components/HiddenProgramsNotice";
+import { SystemHealthNotice } from "./components/SystemHealthNotice";
+import { serviceAlerts } from "../system/healthStatus";
+import { hiddenButLogging } from "../app-logs/programRegistry";
 import { NetworkSummaryCard } from "../network/components/NetworkSummaryCard";
 import { useDailyErrors } from "./useDailyErrors";
 import { describeLastSeen } from "../../lib/dayOverview";
@@ -18,6 +22,8 @@ import type { SharedPageProps, TypeLog } from "../../App";
 
 export function HomePage({
 	logs,
+	appPrograms,
+	systemHealth,
 	manualLogs,
 	progress,
 	apiProgress,
@@ -200,6 +206,16 @@ export function HomePage({
 							nowTime={dailyErrors.nowTime}
 							loading={dataState === "loading"}
 							onNavigate={onNavigate}
+						/>
+
+						<SystemHealthNotice
+							alerts={serviceAlerts(systemHealth.items)}
+							onOpenSettings={() => onNavigate("settings")}
+						/>
+
+						<HiddenProgramsNotice
+							programs={hiddenButLogging(appPrograms.programs)}
+							onOpenSettings={() => onNavigate("settings")}
 						/>
 
 						{/* Rede UniFi: internet, clientes, dispositivos e último alerta */}

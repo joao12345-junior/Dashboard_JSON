@@ -26,6 +26,8 @@ import { NetworkDevicesPage } from "./features/network/NetworkDevicesPage";
 import { NetworkTopologyPage } from "./features/network/NetworkTopologyPage";
 import { AppDashboard } from "./features/app-logs/AppDashboard";
 import { AppList } from "./features/app-logs/AppList";
+import { useAppPrograms, type AppProgramsState } from "./features/app-logs/useAppPrograms";
+import { useSystemHealth, type SystemHealthState } from "./features/system/useSystemHealth";
 
 import type {
 	LoadProgress,
@@ -125,6 +127,10 @@ export interface SharedPageProps {
 	staticLogs: Log[];
 	manualLogs: Log[];
 	siteData: SiteData;
+	/** Programas dos Logs Gerais (visibilidade). `logs` já vem sem os ocultos/inativos. */
+	appPrograms: AppProgramsState;
+	/** Saúde do próprio LogDash (poller, checagem de sites, origens de logs). */
+	systemHealth: SystemHealthState;
 	progress: LoadProgress;
 	apiProgress: ApiLoadProgress;
 	debug: DebugInfo;
@@ -201,6 +207,10 @@ function AppContent() {
 		fetchNewData,
 		fetchError,
 	} = useProgressiveLogs(logFiles, isAuthenticated, page);
+
+	// Registro de programas: `logs` abaixo é o bruto; as telas recebem `visibleLogs`.
+	const appPrograms = useAppPrograms(isAuthenticated, logs, reload);
+	const systemHealth = useSystemHealth(isAuthenticated);
 
 	const siteData = useSiteData();
 	const { hasNewData, acknowledge, counts } = useNewDataDetector();
@@ -284,7 +294,9 @@ function AppContent() {
 	if (!isAuthenticated) return <LoginPage />;
 
 	const sharedProps: SharedPageProps = {
-		logs,
+		logs: appPrograms.visibleLogs,
+		appPrograms,
+		systemHealth,
 		staticLogs,
 		manualLogs,
 		siteData,

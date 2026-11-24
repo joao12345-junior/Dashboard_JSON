@@ -9,6 +9,8 @@ import type { ApiConfig } from "../../lib/storage/logPaths";
 import { Toast } from "../../components/Toast";
 import type { ToastType } from "../../components/Toast";
 import { authorizedFetch } from "../../hooks/useAuth";
+import { ProgramsList } from "./ProgramsList";
+import { SystemHealthList } from "../system/SystemHealthList";
 import {
 	MonitoredUrlFormModal,
 	type MonitoredUrlFormValues,
@@ -25,6 +27,8 @@ export function Settings({
 	handleChange,
 	openPicker,
 	siteData,
+	appPrograms,
+	systemHealth,
 }: SharedPageProps) {
 	const windowWidth = useWindowSize();
 	const isMobile = windowWidth < 768;
@@ -103,6 +107,11 @@ export function Settings({
 	return (
 		<div
 			style={{
+				// flex: 1 + minWidth: 0: a raiz precisa ocupar todo o espaço ao lado da Sidebar.
+				// Sem isso a largura vira a do conteúdo (flex: 0 1 auto) e sobra uma faixa vazia à direita
+				// quando a página é mais estreita que a tela (ex.: lista curta de programas).
+				flex: 1,
+				minWidth: 0,
 				display: "flex",
 				height: "100vh",
 				overflow: "hidden",
@@ -152,6 +161,30 @@ export function Settings({
 						config={apiConfig}
 						onSave={handleSaveApiConfig}
 						isMobile={isMobile}
+					/>
+				</SettingsSection>
+
+				{/* ── Seção: Saúde do LogDash ── */}
+				<SettingsSection
+					title="Saúde do LogDash"
+					description="Quando chegou o último dado de cada serviço e de cada origem de logs. Serviço atrasado ou parado também gera um aviso na Home. Os limites de cada item estão em healthStatus.ts."
+				>
+					<SystemHealthList {...systemHealth} />
+				</SettingsSection>
+
+				{/* ── Seção: Programas dos Logs Gerais ── */}
+				<SettingsSection
+					title="Programas (Logs Gerais)"
+					description="Programas que enviam logs gerais. No modo automático, quem passa 5 dias sem enviar nada some do dashboard e dos registros e volta sozinho ao enviar de novo. Oculto só volta por aqui. Apagar remove os logs do programa do banco."
+				>
+					<ProgramsList
+						programs={appPrograms.programs}
+						loading={appPrograms.loading}
+						error={appPrograms.error}
+						isMobile={isMobile}
+						onChangeVisibility={appPrograms.setVisibility}
+						onDeleteLogs={appPrograms.deleteLogs}
+						onToast={(message, type) => setToast({ message, type })}
 					/>
 				</SettingsSection>
 

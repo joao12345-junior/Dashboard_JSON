@@ -153,6 +153,19 @@ def require_auth(f):
     return decorated
 
 
+def current_username() -> str | None:
+    """
+    Usuario (claim `sub`) do token Bearer da requisicao atual, ou None.
+    Serve para trilha de auditoria: so deve ser chamado em rotas ja protegidas
+    por @require_auth (a validacao do token acontece la; aqui so se le o nome).
+    """
+    header = request.headers.get("Authorization", "")
+    if not header.startswith("Bearer "):
+        return None
+    payload = verify_token(header.removeprefix("Bearer "))
+    return payload.get("sub") if payload else None
+
+
 def require_sync_key(f):
     @wraps(f)
     def decorated(*args, **kwargs):
