@@ -43,6 +43,34 @@ export interface ClientSession {
 	uplink_name: string | null;
 }
 
+/** Aplicativo no ranking de tráfego — ver `GET /api/network/top-apps`. */
+export interface TopApp {
+	rank: number;
+	application_id: number;
+	category_id: number;
+	/** null = o catálogo do UniFi não conhece o id. */
+	name: string | null;
+	category: string | null;
+	bytes: number;
+}
+
+export type TopAppsPeriod = "hour" | "day";
+
+export interface TopAppsResponse {
+	period: TopAppsPeriod;
+	apps: TopApp[];
+	/** Quando o poller buscou no UniFi (ISO); null = ainda sem dados. */
+	fetched_at: string | null;
+}
+
+/** Ranking de aplicativos (última hora ou últimas 24 h), atualizado pelo poller a cada ~5 min. */
+export function useNetworkTopApps(period: TopAppsPeriod): NetworkPollingState<TopAppsResponse> {
+	return useNetworkPolling<TopAppsResponse>(
+		`/api/network/top-apps?period=${period}`,
+		"Erro ao buscar os aplicativos",
+	);
+}
+
 /** Usuários de VPN (OpenVPN/Teleport) — ver `GET /api/network/vpn-clients`. */
 export function useNetworkVpnClients(status: ClientStatus): NetworkPollingState<VpnClientsResponse> {
 	return useNetworkPolling<VpnClientsResponse>(

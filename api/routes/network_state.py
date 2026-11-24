@@ -167,6 +167,54 @@ def get_network_wan():
         release_connection(conn, is_healthy=connection_ok)
 
 
+APP_PERIODS = ("hour", "day")
+
+
+@network_state_bp.route("/api/network/top-apps", methods=["GET"])
+@require_auth
+def get_network_top_apps():
+    """
+    Aplicativos com mais trafego (ranking do UniFi), gravado pelo poller a cada ~5 min.
+    `period`: hour | day (padrao). Devolve {"period", "apps": [...], "fetched_at": iso|null}.
+    """
+    period = request.args.get("period", "day")
+    if period not in APP_PERIODS:
+        return jsonify({"error": "Parametro period invalido."}), 400
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT rank, application_id, category_id, name, category, bytes, fetched_at
+                FROM optsislog.network_top_apps
+                WHERE period = %s
+                ORDER BY rank
+                """,
+                (period,),
+            )
+            rows = cur.fetchall()
+        fetched_at = rows[0]["fetched_at"] if rows else None
+        for row in rows:
+            row.pop("fetched_at", None)
+        return (
+            jsonify(
+                {
+                    "period": period,
+                    "apps": rows,
+                    "fetched_at": fetched_at.isoformat() if fetched_at else None,
+                }
+            ),
+            200,
+        )
+    except Exception as e:
+        connection_ok = False
+        logger.error(f"[network_top_apps] Erro: {e}")
+        return jsonify({"error": "Não foi possível buscar os aplicativos."}), 500
+    finally:
+        release_connection(conn, is_healthy=connection_ok)
+
+
 @network_state_bp.route("/api/network/vpn-clients", methods=["GET"])
 @require_auth
 def get_network_vpn_clients():

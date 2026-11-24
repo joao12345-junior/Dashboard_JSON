@@ -12,18 +12,22 @@ escrita, entao a garantia de que nada e alterado esta aqui, no codigo.
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any, Optional, Protocol
 
 from .unifi_mapper import (
     NetworkClient,
+    AppUsage,
     NetworkDevice,
     VpnClient,
     WanLink,
     find_gateway,
     map_client,
     map_device,
+    map_top_apps,
     map_vpn_client,
     map_wans,
+    APP_PERIODS,
 )
 
 logger = logging.getLogger("unifi_source")
@@ -32,6 +36,10 @@ INTEGRATION_PREFIX = "/proxy/network/integration/v1"
 LEGACY_PREFIX = "/proxy/network/api/s"
 PAGE_SIZE = 200
 MAX_PAGES = 50  # trava de seguranca contra paginacao que nunca termina
+V2_PREFIX = "/proxy/network/v2/api/site"
+#: Quantos aplicativos o ranking traz.
+TOP_APPS = 10
+DPI_CATALOG_TTL_SECONDS = 24 * 3600
 
 
 class UnifiSource(Protocol):
@@ -44,6 +52,8 @@ class UnifiSource(Protocol):
     def fetch_wans(self) -> list[WanLink]: ...
 
     def fetch_vpn_clients(self) -> list[VpnClient]: ...
+
+    def fetch_top_apps(self, period: str) -> list[AppUsage]: ...
 
 
 class UnifiHttpSource:
@@ -71,6 +81,10 @@ class UnifiHttpSource:
         self._base = host.rstrip("/")
         self._verify = verify_tls
         self._timeout = timeout
+        # Catalogo de nomes do DPI (~2 mil aplicativos): muda pouco, recarrega 1x/dia.
+        self._dpi_apps: dict[int, str] = {}
+        self._dpi_categories: dict[int, str] = {}
+        self._dpi_loaded_at = 0.0
         self._site_id: Optional[str] = None
         self._site_ref: Optional[str] = None
 
@@ -156,6 +170,38 @@ class UnifiHttpSource:
         except Exception as e:
             logger.warning("Sem nomes das WANs (rest/networkconf): %s: %s", type(e).__name__, e)
         return map_wans(gateway, confs)
+
+    def _dpi_catalog(self) -> tuple[dict[int, str], dict[int, str]]:
+        """Nomes de aplicativos e categorias (Integration API, GET). Em cache por 24 h."""
+        if not self._dpi_apps or time.monotonic() - self._dpi_loaded_at > DPI_CATALOG_TTL_SECONDS:
+            apps = self._get_paged(f"{INTEGRATION_PREFIX}/dpi/applications")
+            cats = self._get_paged(f"{INTEGRATION_PREFIX}/dpi/categories")
+            self._dpi_apps = {
+                int(a["id"]): str(a["name"]) for a in apps if a.get("id") is not None and a.get("name")
+            }
+            self._dpi_categories = {
+                int(c["id"]): str(c["name"]) for c in cats if c.get("id") is not None and c.get("name")
+            }
+            self._dpi_loaded_at = time.monotonic()
+        return self._dpi_apps, self._dpi_categories
+
+    def fetch_top_apps(self, period: str) -> list[AppUsage]:
+        """
+        Ranking de aplicativos por trafego (`period`: "hour" | "day"), com nomes.
+        Sem catalogo (falhou) segue com os ids: o front mostra "App 140" no lugar do nome.
+        """
+        unifi_period = APP_PERIODS[period]
+        try:
+            apps, cats = self._dpi_catalog()
+        except Exception as e:
+            logger.warning("Sem catalogo de aplicativos (DPI): %s: %s", type(e).__name__, e)
+            apps, cats = self._dpi_apps, self._dpi_categories
+        _, site_ref = self._resolve_site()
+        body = self._get(
+            f"{V2_PREFIX}/{site_ref}/traffic-flow-latest-statistics",
+            {"period": unifi_period, "top": TOP_APPS},
+        )
+        return map_top_apps(body, period, apps, cats)
 
     def fetch_vpn_clients(self) -> list[VpnClient]:
         """

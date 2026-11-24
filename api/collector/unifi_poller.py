@@ -24,6 +24,7 @@ import signal
 import sys
 import threading
 from datetime import datetime, timezone
+from typing import Optional
 
 from .state_sinks import StateSink
 from .unifi_source import UnifiSource
@@ -32,6 +33,8 @@ logger = logging.getLogger("unifi_poller")
 
 MIN_INTERVAL_SECONDS = 15
 MAX_BACKOFF_SECONDS = 300
+#: Ranking de aplicativos: o UniFi ja agrega a janela, entao 5 min basta (e poupa o UCG).
+TOP_APPS_INTERVAL_SECONDS = 300
 
 
 class UnifiPoller:
@@ -42,6 +45,7 @@ class UnifiPoller:
         self._sink = sink
         self._interval = max(float(interval_seconds), MIN_INTERVAL_SECONDS)
         self._failures = 0
+        self._apps_polled_at: Optional[datetime] = None
 
     def poll_once(self) -> tuple[int, int]:
         """Um ciclo. Devolve (dispositivos, clientes). Levanta excecao se falhar."""
@@ -53,7 +57,27 @@ class UnifiPoller:
         self._sink.replace_snapshot(devices, clients, polled_at)
         self._poll_wans(polled_at)
         self._poll_vpn(polled_at)
+        self._poll_top_apps(polled_at)
         return len(devices), len(clients)
+
+    def _poll_top_apps(self, polled_at: datetime) -> None:
+        """
+        Aplicativos mais usados (ultima hora e ultimas 24 h): EXTRA, a cada
+        TOP_APPS_INTERVAL_SECONDS. Cada periodo e independente; falha so loga e o
+        ranking anterior continua valendo (a pagina mostra a hora da coleta).
+        """
+        if (
+            self._apps_polled_at is not None
+            and (polled_at - self._apps_polled_at).total_seconds() < TOP_APPS_INTERVAL_SECONDS
+        ):
+            return
+        self._apps_polled_at = polled_at
+        for period in ("hour", "day"):
+            try:
+                apps = self._source.fetch_top_apps(period)
+                self._sink.replace_top_apps(period, apps, polled_at)
+            except Exception as e:
+                logger.warning("Aplicativos (%s) nao atualizados: %s: %s", period, type(e).__name__, e)
 
     def _poll_wans(self, polled_at: datetime) -> None:
         """

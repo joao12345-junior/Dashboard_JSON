@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Protocol, Sequence
 
 from .client_sessions import OpenSession, plan_sessions
-from .unifi_mapper import NetworkClient, NetworkDevice, VpnClient, WanLink
+from .unifi_mapper import AppUsage, NetworkClient, NetworkDevice, VpnClient, WanLink
 
 #: Clientes sem atividade ha mais que isso saem da tabela.
 CLIENT_RETENTION_DAYS = 30
@@ -38,6 +38,10 @@ class StateSink(Protocol):
 
     def replace_vpn_clients(self, clients: Sequence[VpnClient], polled_at: datetime) -> None:
         """Grava os usuarios de VPN conectados agora; os ausentes viram desconectados."""
+        ...
+
+    def replace_top_apps(self, period: str, apps: Sequence[AppUsage], fetched_at: datetime) -> None:
+        """Substitui o ranking de aplicativos de um periodo."""
         ...
 
     def close(self) -> None: ...
@@ -316,6 +320,35 @@ class PostgresStateSink:
                     "DELETE FROM optsislog.network_vpn_clients WHERE last_seen_at < %s",
                     (polled_at - timedelta(days=CLIENT_RETENTION_DAYS),),
                 )
+            self._conn.commit()
+        except Exception:
+            self.close()
+            raise
+
+    def replace_top_apps(self, period: str, apps: Sequence[AppUsage], fetched_at: datetime) -> None:
+        """network_top_apps (migracao 019): apaga o ranking do periodo e grava o novo, numa transacao."""
+        import psycopg2
+        from psycopg2.extras import execute_values
+
+        rows = [
+            (period, a.rank, a.application_id, a.category_id, a.name, a.category, a.bytes, fetched_at)
+            for a in apps
+        ]
+        try:
+            if self._conn is None or self._conn.closed:
+                self._conn = psycopg2.connect(**self._kwargs)
+            with self._conn.cursor() as cur:
+                cur.execute("DELETE FROM optsislog.network_top_apps WHERE period = %s", (period,))
+                if rows:
+                    execute_values(
+                        cur,
+                        """
+                        INSERT INTO optsislog.network_top_apps
+                            (period, rank, application_id, category_id, name, category, bytes, fetched_at)
+                        VALUES %s
+                        """,
+                        rows,
+                    )
             self._conn.commit()
         except Exception:
             self.close()

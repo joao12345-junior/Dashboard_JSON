@@ -203,8 +203,15 @@ class HttpSourceTests(unittest.TestCase):
 class FakeSource:
     def __init__(self, devices=(), clients=(), error=None, wans=(), wan_error=None, vpn=(), vpn_error=None):
         self.vpn, self.vpn_error = list(vpn), vpn_error
+        self.app_calls, self.apps_error = [], None
         self.devices, self.clients, self.error = list(devices), list(clients), error
         self.wans, self.wan_error = list(wans), wan_error
+
+    def fetch_top_apps(self, period):
+        self.app_calls.append(period)
+        if self.apps_error:
+            raise self.apps_error
+        return [period]
 
     def fetch_vpn_clients(self):
         if self.vpn_error:
@@ -231,6 +238,7 @@ class MemorySink:
         self.wans = []
         self.samples = []
         self.vpn = []
+        self.apps = []
         self.sample_error = None
 
     def replace_snapshot(self, devices, clients, polled_at):
@@ -238,6 +246,9 @@ class MemorySink:
 
     def replace_wans(self, wans, polled_at):
         self.wans.append((list(wans), polled_at))
+
+    def replace_top_apps(self, period, apps, fetched_at):
+        self.apps.append((period, list(apps), fetched_at))
 
     def replace_vpn_clients(self, clients, polled_at):
         self.vpn.append((list(clients), polled_at))
@@ -311,6 +322,21 @@ class PollerTests(unittest.TestCase):
         sink = MemorySink()
         UnifiPoller(FakeSource(wan_error=RuntimeError("x"), vpn=["v"]), sink).poll_once()
         self.assertEqual(len(sink.vpn), 1)
+
+    def test_top_apps_both_periods_then_waits_the_interval(self):
+        sink, source = MemorySink(), FakeSource()
+        poller = UnifiPoller(source, sink)
+        poller.poll_once()
+        self.assertEqual([p for p, _, _ in sink.apps], ["hour", "day"])
+        poller.poll_once()  # logo em seguida: nao busca de novo
+        self.assertEqual(source.app_calls, ["hour", "day"])
+
+    def test_top_apps_failure_does_not_fail_the_cycle(self):
+        sink, source = MemorySink(), FakeSource()
+        source.apps_error = RuntimeError("sem DPI")
+        self.assertEqual(UnifiPoller(source, sink).poll_once(), (0, 0))
+        self.assertEqual(sink.apps, [])
+        self.assertEqual(len(sink.snapshots), 1)
 
     def test_run_backs_off_and_recovers(self):
         stop = threading.Event()

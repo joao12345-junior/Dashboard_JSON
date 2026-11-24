@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict flWxLrE2Y99DGorvK8QvgTFCtZRh11tBk9qwJBL0dZ1dvJ3f7DQ2813GTp0ymdD
+\restrict 6jvYgGIIOAPgdHWYn2MvZR7T8koSoVuOoBCPhPM0eW2owS5vCzC8DctTTy20jTD
 
 -- Dumped from database version 13.23
 -- Dumped by pg_dump version 18.6
@@ -401,6 +401,33 @@ ALTER SEQUENCE optsislog.network_events_id_seq OWNER TO optare3;
 
 ALTER SEQUENCE optsislog.network_events_id_seq OWNED BY optsislog.network_events.id;
 
+
+--
+-- Name: network_top_apps; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.network_top_apps (
+    period text NOT NULL,
+    rank smallint NOT NULL,
+    application_id integer NOT NULL,
+    category_id integer NOT NULL,
+    name text,
+    category text,
+    bytes bigint NOT NULL,
+    fetched_at timestamp with time zone NOT NULL,
+    CONSTRAINT network_top_apps_period_check CHECK ((period = ANY (ARRAY['hour'::text, 'day'::text])))
+);
+ALTER TABLE ONLY optsislog.network_top_apps ALTER COLUMN period SET (pg_attver=36873506264560);
+ALTER TABLE ONLY optsislog.network_top_apps ALTER COLUMN rank SET (pg_attver=36873506264560);
+ALTER TABLE ONLY optsislog.network_top_apps ALTER COLUMN application_id SET (pg_attver=36873506264560);
+ALTER TABLE ONLY optsislog.network_top_apps ALTER COLUMN category_id SET (pg_attver=36873506264560);
+ALTER TABLE ONLY optsislog.network_top_apps ALTER COLUMN name SET (pg_attver=36873506264560);
+ALTER TABLE ONLY optsislog.network_top_apps ALTER COLUMN category SET (pg_attver=36873506264560);
+ALTER TABLE ONLY optsislog.network_top_apps ALTER COLUMN bytes SET (pg_attver=36873506264560);
+ALTER TABLE ONLY optsislog.network_top_apps ALTER COLUMN fetched_at SET (pg_attver=36873506264560);
+
+
+ALTER TABLE optsislog.network_top_apps OWNER TO optare3;
 
 --
 -- Name: network_vpn_clients; Type: TABLE; Schema: optsislog; Owner: optare3
@@ -951,6 +978,14 @@ ALTER TABLE ONLY optsislog.network_events
 
 
 --
+-- Name: network_top_apps network_top_apps_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_top_apps
+    ADD CONSTRAINT network_top_apps_pkey PRIMARY KEY (period, rank);
+
+
+--
 -- Name: network_vpn_clients network_vpn_clients_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
 --
 
@@ -1262,5 +1297,5 @@ ALTER TABLE ONLY optsislog.tokens_renovacao
 -- PostgreSQL database dump complete
 --
 
-\unrestrict flWxLrE2Y99DGorvK8QvgTFCtZRh11tBk9qwJBL0dZ1dvJ3f7DQ2813GTp0ymdD
+\unrestrict 6jvYgGIIOAPgdHWYn2MvZR7T8koSoVuOoBCPhPM0eW2owS5vCzC8DctTTy20jTD
 

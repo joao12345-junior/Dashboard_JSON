@@ -12,6 +12,7 @@ import { useNetworkPolling } from "./hooks/useNetworkPolling";
 import type { NetworkEvent } from "./hooks/useNetworkEvents";
 import { StaleDataBanner } from "./components/StaleDataBanner";
 import { WanHistoryPanel } from "./components/WanHistoryPanel";
+import { TopAppsCard } from "./components/TopAppsCard";
 import { formatBitrate, formatBytes, formatSince, formatUptime } from "./format";
 import { sortVpnClients, vpnTypeLabel } from "./vpnClients";
 import { formatEventTime } from "./formatEventTime";
@@ -171,9 +172,10 @@ function DeviceRow({ device, clients }: { device: NetworkDevice; clients: number
 ///  - à esquerda, o gateway (modelo, IP, tempo ligado, CPU/memória), os totais e cada
 ///    link de internet com estado, IP, latência e taxa atual;
 ///  - à direita, o gráfico "Internet" (histórico de tráfego e latência);
-///  - embaixo, os clientes que mais usaram a rede, os APs/switches e os últimos alertas.
+///  - embaixo, os clientes e os aplicativos que mais usaram a rede, a VPN, os
+///    APs/switches e os últimos alertas.
 /// Só lê das rotas que já existem; a lógica de resumo está em `networkDashboard.ts`.
-/// "Principais aplicativos" (DPI) ainda não tem fonte: depende da saída do probe.
+/// "Principais aplicativos" vem do ranking DPI do próprio UniFi (TopAppsCard).
 /// </summary>
 export function NetworkDashboardPage({ isMobile, onNavigate }: SharedPageProps) {
 	const devicesState = useNetworkDevices();
@@ -377,6 +379,8 @@ export function NetworkDashboardPage({ isMobile, onNavigate }: SharedPageProps) 
 									</ol>
 								)}
 							</section>
+
+							<TopAppsCard cardStyle={cardStyle} />
 
 							<section aria-label="Dispositivos" style={cardStyle}>
 								<CardHeader title="Dispositivos" action={{ label: "Todos", onClick: go("network-devices") }} />

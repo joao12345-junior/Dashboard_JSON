@@ -316,3 +316,66 @@ def map_vpn_client(item: Mapping[str, Any]) -> Optional[VpnClient]:
         tx_bytes=_int(item.get("tx_bytes")),
         connected_since=_epoch(item.get("assoc_time")),
     )
+
+
+# ---- Aplicativos mais usados (DPI) ------------------------------------------
+
+#: Periodo do LogDash -> valor do parametro `period` do UniFi.
+APP_PERIODS = {"hour": "HOUR", "day": "DAY"}
+
+
+@dataclass(frozen=True, slots=True)
+class AppUsage:
+    """Um aplicativo no ranking de trafego de um periodo."""
+
+    period: str
+    rank: int
+    application_id: int
+    category_id: int
+    name: Optional[str]
+    category: Optional[str]
+    bytes: int
+
+
+def dpi_catalog_key(category_id: int, application_id: int) -> int:
+    """
+    Id do catalogo da Integration API (`/dpi/applications`) a partir do par que a
+    estatistica traz. Conferido no UCG em 24/11: app 140 / cat 17 -> 1114252 = Sharepoint.
+    """
+    return (category_id << 16) | application_id
+
+
+def map_top_apps(
+    body: Any,
+    period: str,
+    app_names: Mapping[int, str],
+    category_names: Mapping[int, str],
+) -> list[AppUsage]:
+    """
+    `top_all_traffic_by_application` -> ranking com nomes. Itens sem id ou sem bytes
+    sao ignorados; o rank segue a ordem de bytes (maior primeiro), nao a da resposta.
+    """
+    rows = body.get("top_all_traffic_by_application") if isinstance(body, Mapping) else None
+    if not isinstance(rows, list):
+        raise ValueError("Resposta sem 'top_all_traffic_by_application'.")
+    parsed = []
+    for row in rows:
+        if not isinstance(row, Mapping):
+            continue
+        app_id, cat_id, size = _int(row.get("application_id")), _int(row.get("category_id")), _int(row.get("bytes"))
+        if app_id is None or cat_id is None or size is None:
+            continue
+        parsed.append((size, app_id, cat_id))
+    parsed.sort(key=lambda r: (-r[0], r[2], r[1]))
+    return [
+        AppUsage(
+            period=period,
+            rank=i + 1,
+            application_id=app_id,
+            category_id=cat_id,
+            name=app_names.get(dpi_catalog_key(cat_id, app_id)),
+            category=category_names.get(cat_id),
+            bytes=size,
+        )
+        for i, (size, app_id, cat_id) in enumerate(parsed)
+    ]

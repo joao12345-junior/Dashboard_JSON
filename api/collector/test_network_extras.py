@@ -7,7 +7,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 from .client_sessions import OpenSession, plan_sessions
-from .unifi_mapper import NetworkClient, find_gateway, map_vpn_client, map_wans
+from .unifi_mapper import NetworkClient, dpi_catalog_key, find_gateway, map_top_apps, map_vpn_client, map_wans
 
 NOW = datetime(2026, 11, 23, 20, 0, tzinfo=timezone.utc)
 
@@ -116,6 +116,45 @@ class SessionPlanTests(unittest.TestCase):
     def test_duplicate_mac_in_cycle_opens_once(self):
         plan = plan_sessions({}, [client("a", None), client("a", None)], NOW)
         self.assertEqual(len(plan.to_open), 1)
+
+
+class TopAppsMapperTests(unittest.TestCase):
+    # Catalogo e estatistica reais (probe de 24/11 no UCG da Optare).
+    NAMES = {1114252: "Sharepoint", 1310905: "SSL/TLS", 655397: "AnyDesk", 37: "Xfire"}
+    CATS = {17: "Business tools", 20: "Network protocols", 10: "Remote access terminals"}
+    BODY = {
+        "top_all_traffic_by_application": [
+            {"application_id": 185, "bytes": 5211106244, "category_id": 20},
+            {"application_id": 140, "bytes": 36085708630, "category_id": 17},
+            {"application_id": 37, "bytes": 2663431215, "category_id": 10},
+        ]
+    }
+
+    def test_catalog_key_combines_category_and_application(self):
+        self.assertEqual(dpi_catalog_key(17, 140), 1114252)
+        self.assertEqual(dpi_catalog_key(10, 37), 655397)
+
+    def test_names_ranked_by_bytes(self):
+        apps = map_top_apps(self.BODY, "day", self.NAMES, self.CATS)
+        self.assertEqual([a.name for a in apps], ["Sharepoint", "SSL/TLS", "AnyDesk"])
+        self.assertEqual([a.rank for a in apps], [1, 2, 3])
+        self.assertEqual(apps[0].category, "Business tools")
+        self.assertEqual(apps[0].period, "day")
+
+    def test_id_37_is_not_confused_with_the_raw_catalog_id(self):
+        # O catalogo tem o id 37 (Xfire); o certo e o combinado (AnyDesk).
+        apps = map_top_apps(self.BODY, "day", self.NAMES, self.CATS)
+        self.assertEqual(apps[2].name, "AnyDesk")
+
+    def test_unknown_id_keeps_the_row_without_name(self):
+        apps = map_top_apps({"top_all_traffic_by_application": [{"application_id": 1, "category_id": 99, "bytes": 5}]}, "hour", {}, {})
+        self.assertEqual((apps[0].name, apps[0].category, apps[0].bytes), (None, None, 5))
+
+    def test_bad_rows_are_skipped_and_missing_key_raises(self):
+        body = {"top_all_traffic_by_application": [{"application_id": 1}, "x", {"application_id": 2, "category_id": 0, "bytes": 1}]}
+        self.assertEqual(len(map_top_apps(body, "day", {}, {})), 1)
+        with self.assertRaises(ValueError):
+            map_top_apps({}, "day", {}, {})
 
 
 class VpnClientMapperTests(unittest.TestCase):
