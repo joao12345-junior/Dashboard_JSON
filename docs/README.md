@@ -3,6 +3,7 @@
 Regra de trabalho (definida em 2026-11-19): **toda mudança no LogDash gera um registro nesta pasta**, um arquivo por mudança, no padrão `AAAA-MM-DD-assunto.md` (contexto/motivo, o que mudou, arquivos alterados, como testar, pendências). Mudanças em arquivos ignorados pelo git (`*.ps1`, `.env`, `certs/`) devem dizer que precisam ser copiadas manualmente para o servidor 201.
 
 ## Índice (mais recente primeiro)
+- [2026-11-24 — Clientes de VPN](2026-11-24-clientes-vpn.md) — usuários OpenVPN vêm de `stat/remoteuservpn` (sem MAC); migração 018, poller, rota `/api/network/vpn-clients`, filtro VPN em Clientes e cartão no Painel.
 - [2026-11-24 — Rede > Painel](2026-11-24-rede-painel.md) — home da rede no estilo UniFi: gateway, links de internet, gráfico Internet (saiu da Infraestrutura), principais clientes, dispositivos e alertas; só front.
 - [2026-11-24 — update.ps1 reinicia os coletores](2026-11-24-update-reinicia-coletores.md) — para e religa `LogDashSyslog` e `LogDashUnifiPoller` junto com o `LogDash`; arquivo ignorado pelo git, copiar para o 201.
 - [2026-11-24 — Gráfico Internet (histórico das WANs)](2026-11-24-grafico-internet-wan.md) — migração 017 (`network_wan_samples`, 1 amostra/min, 31 dias); rota `/api/network/wan/history`; painel de tráfego e latência na aba Infraestrutura; perda de pacotes ainda sem fonte.

@@ -4,6 +4,8 @@ import { loadApiConfig } from "../../../lib/storage/logPaths";
 import { authorizedFetch } from "../../../hooks/useAuth";
 import { useNetworkPolling, type NetworkPollingState } from "./useNetworkPolling";
 import type { NetworkEvent } from "./useNetworkEvents";
+import type { ClientStatus } from "./useNetworkState";
+import type { VpnClientsResponse } from "../vpnClients";
 
 /** Link de internet do gateway — ver `GET /api/network/wan`. */
 export interface WanLink {
@@ -39,6 +41,14 @@ export interface ClientSession {
 	ip_address: string | null;
 	uplink_mac: string | null;
 	uplink_name: string | null;
+}
+
+/** Usuários de VPN (OpenVPN/Teleport) — ver `GET /api/network/vpn-clients`. */
+export function useNetworkVpnClients(status: ClientStatus): NetworkPollingState<VpnClientsResponse> {
+	return useNetworkPolling<VpnClientsResponse>(
+		`/api/network/vpn-clients?status=${status}`,
+		"Erro ao buscar os clientes de VPN",
+	);
 }
 
 export function useNetworkWan(): NetworkPollingState<WanResponse> {

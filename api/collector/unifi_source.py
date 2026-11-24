@@ -17,10 +17,12 @@ from typing import Any, Optional, Protocol
 from .unifi_mapper import (
     NetworkClient,
     NetworkDevice,
+    VpnClient,
     WanLink,
     find_gateway,
     map_client,
     map_device,
+    map_vpn_client,
     map_wans,
 )
 
@@ -40,6 +42,8 @@ class UnifiSource(Protocol):
     def fetch_clients(self) -> list[NetworkClient]: ...
 
     def fetch_wans(self) -> list[WanLink]: ...
+
+    def fetch_vpn_clients(self) -> list[VpnClient]: ...
 
 
 class UnifiHttpSource:
@@ -152,3 +156,16 @@ class UnifiHttpSource:
         except Exception as e:
             logger.warning("Sem nomes das WANs (rest/networkconf): %s: %s", type(e).__name__, e)
         return map_wans(gateway, confs)
+
+    def fetch_vpn_clients(self) -> list[VpnClient]:
+        """
+        Usuarios conectados na VPN (`stat/remoteuservpn`, GET). Levanta excecao se a
+        resposta nao tiver 'data': lista vazia aqui significaria "todos desconectaram".
+        """
+        _, site_ref = self._resolve_site()
+        body = self._get(f"{LEGACY_PREFIX}/{site_ref}/stat/remoteuservpn")
+        rows = body.get("data") if isinstance(body, dict) else None
+        if not isinstance(rows, list):
+            raise RuntimeError("Resposta inesperada de stat/remoteuservpn (sem 'data').")
+        clients = (map_vpn_client(r) for r in rows if isinstance(r, dict))
+        return [c for c in clients if c is not None]

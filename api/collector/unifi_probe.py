@@ -252,6 +252,50 @@ def _probe_top_apps_detail(session, host) -> None:
             print(f"nomes dos demais: {names[3:]}")
 
 
+def _integration_all(session, host, path: str) -> tuple:
+    """Todas as paginas de um endpoint paginado da Integration API (limit 200)."""
+    items: list = []
+    offset, status = 0, None
+    for _ in range(30):
+        status, body = _get(session, host, f"{path}?limit=200&offset={offset}")
+        page = _items(body) or []
+        items.extend(i for i in page if isinstance(i, dict))
+        offset += len(page)
+        total = body.get("totalCount") if isinstance(body, dict) else None
+        if not page or (total is not None and offset >= total):
+            break
+    return status, items
+
+
+def _probe_dpi_names(session, host) -> None:
+    """
+    As estatisticas trazem so' `application_id` e `category_id`. Os nomes estao em
+    GET /integration/v1/dpi/applications e /dpi/categories (documentacao oficial).
+    Confere se o id bate direto ou combinado com a categoria ((cat << 16) | app).
+    """
+    base = "/proxy/network/integration/v1/dpi"
+    status, apps = _integration_all(session, host, f"{base}/applications")
+    print(f"\n=== DPI: aplicativos (Integration) ===\nstatus: {status} -- {len(apps)} itens")
+    for app in apps[:3]:
+        _print_sample("item", app)
+    status, cats = _integration_all(session, host, f"{base}/categories")
+    print(f"\n=== DPI: categorias (Integration) ===\nstatus: {status} -- {len(cats)} itens")
+    for cat in cats[:3]:
+        _print_sample("item", cat)
+
+    by_id = {a.get("id"): a for a in apps}
+    cat_by_id = {c.get("id"): c for c in cats}
+    print("\n=== DPI: os 3 primeiros da estatistica ===")
+    for app_id, cat_id in ((140, 17), (185, 20), (37, 10)):
+        direct = by_id.get(app_id)
+        combined = by_id.get((cat_id << 16) | app_id)
+        print(
+            f"app {app_id} / cat {cat_id}: direto={direct and direct.get('name')!r}"
+            f" | combinado {(cat_id << 16) | app_id}={combined and combined.get('name')!r}"
+            f" | categoria={cat_by_id.get(cat_id) and cat_by_id[cat_id].get('name')!r}"
+        )
+
+
 def main() -> int:
     host = os.environ.get("UNIFI_HOST", "").rstrip("/")
     api_key = os.environ.get("UNIFI_API_KEY", "")
@@ -266,6 +310,9 @@ def main() -> int:
     if "--vpn-apps" in sys.argv:
         _probe_vpn_candidates(session, host)
         _probe_top_apps_detail(session, host)
+        return 0
+    if "--dpi" in sys.argv:
+        _probe_dpi_names(session, host)
         return 0
 
     site_id = None

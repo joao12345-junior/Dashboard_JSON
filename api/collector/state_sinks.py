@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Protocol, Sequence
 
 from .client_sessions import OpenSession, plan_sessions
-from .unifi_mapper import NetworkClient, NetworkDevice, WanLink
+from .unifi_mapper import NetworkClient, NetworkDevice, VpnClient, WanLink
 
 #: Clientes sem atividade ha mais que isso saem da tabela.
 CLIENT_RETENTION_DAYS = 30
@@ -34,6 +34,10 @@ class StateSink(Protocol):
 
     def append_wan_samples(self, wans: Sequence[WanLink], polled_at: datetime) -> None:
         """Acrescenta uma amostra por WAN ao historico (grafico de internet)."""
+        ...
+
+    def replace_vpn_clients(self, clients: Sequence[VpnClient], polled_at: datetime) -> None:
+        """Grava os usuarios de VPN conectados agora; os ausentes viram desconectados."""
         ...
 
     def close(self) -> None: ...
@@ -251,6 +255,66 @@ class PostgresStateSink:
                 cur.execute(
                     "DELETE FROM optsislog.network_wan_samples WHERE sampled_at < %s",
                     (polled_at - timedelta(days=WAN_SAMPLE_RETENTION_DAYS),),
+                )
+            self._conn.commit()
+        except Exception:
+            self.close()
+            raise
+
+    def replace_vpn_clients(self, clients: Sequence[VpnClient], polled_at: datetime) -> None:
+        """
+        network_vpn_clients (migracao 018), transacao propria: falhar aqui (ex.: tabela
+        ainda nao criada) nao afeta dispositivos, clientes nem WAN.
+        - presentes: upsert como conectados; `connected_since` so' muda numa nova conexao
+          (o UCG informa `assoc_time` da sessao atual);
+        - ausentes que estavam conectados: desconectados agora;
+        - sem atividade ha CLIENT_RETENTION_DAYS: apagados.
+        """
+        import psycopg2
+        from psycopg2.extras import execute_values
+
+        by_key = {c.key: c for c in clients}
+        rows = [
+            (
+                c.key, c.username, c.vpn_type, c.interface, c.tunnel_ip, c.remote_ip,
+                c.rx_bytes, c.tx_bytes, c.connected_since or polled_at, polled_at,
+            )
+            for c in by_key.values()
+        ]
+        try:
+            if self._conn is None or self._conn.closed:
+                self._conn = psycopg2.connect(**self._kwargs)
+            with self._conn.cursor() as cur:
+                if rows:
+                    execute_values(
+                        cur,
+                        """
+                        INSERT INTO optsislog.network_vpn_clients
+                            (client_key, username, vpn_type, interface, tunnel_ip, remote_ip,
+                             rx_bytes, tx_bytes, connected_since, last_seen_at)
+                        VALUES %s
+                        ON CONFLICT (client_key) DO UPDATE SET
+                            username = EXCLUDED.username, vpn_type = EXCLUDED.vpn_type,
+                            interface = EXCLUDED.interface, tunnel_ip = EXCLUDED.tunnel_ip,
+                            remote_ip = EXCLUDED.remote_ip, rx_bytes = EXCLUDED.rx_bytes,
+                            tx_bytes = EXCLUDED.tx_bytes,
+                            connected_since = EXCLUDED.connected_since,
+                            connected = true, disconnected_at = NULL,
+                            last_seen_at = EXCLUDED.last_seen_at
+                        """,
+                        rows,
+                    )
+                cur.execute(
+                    """
+                    UPDATE optsislog.network_vpn_clients
+                       SET connected = false, disconnected_at = %s
+                     WHERE connected AND client_key <> ALL(%s::text[])
+                    """,
+                    (polled_at, list(by_key)),
+                )
+                cur.execute(
+                    "DELETE FROM optsislog.network_vpn_clients WHERE last_seen_at < %s",
+                    (polled_at - timedelta(days=CLIENT_RETENTION_DAYS),),
                 )
             self._conn.commit()
         except Exception:

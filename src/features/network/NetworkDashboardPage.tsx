@@ -1,18 +1,19 @@
 // src/features/network/NetworkDashboardPage.tsx
 import React, { useMemo } from "react";
-import { Globe, Router, Wifi, Cable } from "lucide-react";
+import { Globe, Router, Wifi, Cable, ShieldCheck } from "lucide-react";
 import { PageHeader } from "../../components/PageHeader";
 import { ErrorState } from "../../components/Error";
 import type { Page, SharedPageProps } from "../../App";
 import { btnSecondary } from "../../lib/styles/buttonStyles";
 import { plural } from "../../lib/plural";
 import { useNetworkClients, useNetworkDevices, type NetworkDevice } from "./hooks/useNetworkState";
-import { useNetworkWan, type WanLink } from "./hooks/useNetworkExtras";
+import { useNetworkVpnClients, useNetworkWan, type WanLink } from "./hooks/useNetworkExtras";
 import { useNetworkPolling } from "./hooks/useNetworkPolling";
 import type { NetworkEvent } from "./hooks/useNetworkEvents";
 import { StaleDataBanner } from "./components/StaleDataBanner";
 import { WanHistoryPanel } from "./components/WanHistoryPanel";
-import { formatBitrate, formatBytes, formatUptime } from "./format";
+import { formatBitrate, formatBytes, formatSince, formatUptime } from "./format";
+import { sortVpnClients, vpnTypeLabel } from "./vpnClients";
 import { formatEventTime } from "./formatEventTime";
 import { clientTitle } from "./sortClients";
 import { severityBarColor, severityLabel } from "./severity";
@@ -186,6 +187,8 @@ export function NetworkDashboardPage({ isMobile, onNavigate }: SharedPageProps) 
 	const devices = useMemo(() => devicesState.data?.devices ?? [], [devicesState.data]);
 	const clients = useMemo(() => clientsState.data?.clients ?? [], [clientsState.data]);
 	const wans = wanState.data?.wans ?? [];
+	const vpnState = useNetworkVpnClients("connected");
+	const vpnClients = useMemo(() => sortVpnClients(vpnState.data?.clients ?? []), [vpnState.data]);
 	const alerts = alertsState.data?.events ?? [];
 
 	const { gateway, others } = useMemo(() => splitGateway(devices), [devices]);
@@ -199,6 +202,7 @@ export function NetworkDashboardPage({ isMobile, onNavigate }: SharedPageProps) 
 		clientsState.reload();
 		wanState.reload();
 		alertsState.reload();
+		vpnState.reload();
 	}
 
 	const go = (page: Page) => () => onNavigate(page);
@@ -259,10 +263,11 @@ export function NetworkDashboardPage({ isMobile, onNavigate }: SharedPageProps) 
 									</div>
 								</div>
 
-								<div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, textAlign: "center" }}>
+								<div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, textAlign: "center" }}>
 									{[
 										{ icon: Cable, value: counts.wired, label: "com fio" },
 										{ icon: Wifi, value: counts.wifi, label: "Wi-Fi" },
+										{ icon: ShieldCheck, value: vpnState.data ? vpnClients.length : "—", label: "VPN" },
 										{ icon: Router, value: `${counts.devicesOnline}/${counts.devicesTotal}`, label: "dispositivos" },
 									].map(({ icon: Icon, value, label }) => (
 										<div key={label} style={{ padding: "8px 4px", borderRadius: 6, backgroundColor: "var(--muted)" }}>
@@ -381,6 +386,35 @@ export function NetworkDashboardPage({ isMobile, onNavigate }: SharedPageProps) 
 									<ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
 										{others.map((d) => (
 											<DeviceRow key={d.mac} device={d} clients={perDevice.get(d.mac) ?? 0} />
+										))}
+									</ul>
+								)}
+							</section>
+
+							<section aria-label="VPN" style={cardStyle}>
+								<CardHeader title="VPN" action={{ label: "Todos", onClick: go("network-clients") }} />
+								<span style={{ fontSize: 11, ...muted, marginTop: -6 }}>usuários conectados agora</span>
+								{vpnState.error && !vpnState.data ? (
+									<span style={{ fontSize: 13, ...muted }}>
+										Indisponível. No servidor: migração 018 e reiniciar o <code>LogDashUnifiPoller</code>.
+									</span>
+								) : vpnClients.length === 0 ? (
+									<span style={{ fontSize: 13, ...muted }}>{vpnState.data ? "Ninguém conectado na VPN." : "Carregando…"}</span>
+								) : (
+									<ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+										{vpnClients.map((c) => (
+											<li key={c.client_key} style={{ ...rowStyle, fontSize: 12 }}>
+												<span style={{ display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+													<ShieldCheck size={12} aria-hidden="true" style={{ flexShrink: 0, ...muted }} />
+													<span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+														{c.username}
+													</span>
+													<span style={muted}>{vpnTypeLabel(c.vpn_type)}</span>
+												</span>
+												<span style={{ ...muted, flexShrink: 0, textAlign: "right" }}>
+													<span style={{ fontFamily: "monospace" }}>{c.tunnel_ip ?? "—"}</span> · {formatSince(c.connected_since)}
+												</span>
+											</li>
 										))}
 									</ul>
 								)}

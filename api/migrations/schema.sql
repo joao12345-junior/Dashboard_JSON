@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict altbiuVAMasHZBhtQ6OmGScxVxpQfXnSzrNhx75iO9PPWfCuO8hV0Pe1PThCAij
+\restrict flWxLrE2Y99DGorvK8QvgTFCtZRh11tBk9qwJBL0dZ1dvJ3f7DQ2813GTp0ymdD
 
 -- Dumped from database version 13.23
 -- Dumped by pg_dump version 18.6
@@ -401,6 +401,42 @@ ALTER SEQUENCE optsislog.network_events_id_seq OWNER TO optare3;
 
 ALTER SEQUENCE optsislog.network_events_id_seq OWNED BY optsislog.network_events.id;
 
+
+--
+-- Name: network_vpn_clients; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.network_vpn_clients (
+    client_key text NOT NULL,
+    username text NOT NULL,
+    vpn_type text,
+    interface text,
+    tunnel_ip text,
+    remote_ip text,
+    rx_bytes bigint,
+    tx_bytes bigint,
+    connected boolean DEFAULT true NOT NULL,
+    connected_since timestamp with time zone,
+    disconnected_at timestamp with time zone,
+    first_seen_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_seen_at timestamp with time zone NOT NULL
+);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN client_key SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN username SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN vpn_type SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN interface SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN tunnel_ip SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN remote_ip SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN rx_bytes SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN tx_bytes SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN connected SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN connected_since SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN disconnected_at SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN first_seen_at SET (pg_attver=36873475270312);
+ALTER TABLE ONLY optsislog.network_vpn_clients ALTER COLUMN last_seen_at SET (pg_attver=36873475270312);
+
+
+ALTER TABLE optsislog.network_vpn_clients OWNER TO optare3;
 
 --
 -- Name: network_wan; Type: TABLE; Schema: optsislog; Owner: optare3
@@ -915,6 +951,14 @@ ALTER TABLE ONLY optsislog.network_events
 
 
 --
+-- Name: network_vpn_clients network_vpn_clients_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_vpn_clients
+    ADD CONSTRAINT network_vpn_clients_pkey PRIMARY KEY (client_key);
+
+
+--
 -- Name: network_wan network_wan_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
 --
 
@@ -1218,5 +1262,5 @@ ALTER TABLE ONLY optsislog.tokens_renovacao
 -- PostgreSQL database dump complete
 --
 
-\unrestrict altbiuVAMasHZBhtQ6OmGScxVxpQfXnSzrNhx75iO9PPWfCuO8hV0Pe1PThCAij
+\unrestrict flWxLrE2Y99DGorvK8QvgTFCtZRh11tBk9qwJBL0dZ1dvJ3f7DQ2813GTp0ymdD
 

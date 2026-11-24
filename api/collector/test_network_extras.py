@@ -7,7 +7,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 from .client_sessions import OpenSession, plan_sessions
-from .unifi_mapper import NetworkClient, find_gateway, map_wans
+from .unifi_mapper import NetworkClient, find_gateway, map_vpn_client, map_wans
 
 NOW = datetime(2026, 11, 23, 20, 0, tzinfo=timezone.utc)
 
@@ -116,6 +116,40 @@ class SessionPlanTests(unittest.TestCase):
     def test_duplicate_mac_in_cycle_opens_once(self):
         plan = plan_sessions({}, [client("a", None), client("a", None)], NOW)
         self.assertEqual(len(plan.to_open), 1)
+
+
+class VpnClientMapperTests(unittest.TestCase):
+    ITEM = {
+        "id": "tun1:charles.farias:168430082",
+        "interface": "tun1",
+        "tunnel_ip": "10.10.10.2",
+        "user": "charles.farias",
+        "remote_ip": "170.244.220.173",
+        "rx_bytes": 649400256,
+        "tx_bytes": 1427651616,
+        "vpn_type": "openvpn-server",
+        "assoc_time": 1795514899,
+        "up": True,
+    }
+
+    def test_maps_the_real_item(self):
+        c = map_vpn_client(self.ITEM)
+        self.assertEqual(c.key, "openvpn-server:charles.farias")
+        self.assertEqual(c.tunnel_ip, "10.10.10.2")
+        self.assertEqual(c.remote_ip, "170.244.220.173")
+        self.assertEqual(c.rx_bytes, 649400256)
+        self.assertEqual(c.connected_since, datetime.fromtimestamp(1795514899, timezone.utc))
+
+    def test_without_user_or_down_is_ignored(self):
+        self.assertIsNone(map_vpn_client({**self.ITEM, "user": None}))
+        self.assertIsNone(map_vpn_client({**self.ITEM, "up": False}))
+
+    def test_key_is_stable_when_the_tunnel_ip_changes(self):
+        other = {**self.ITEM, "id": "tun1:charles.farias:999", "tunnel_ip": "10.10.10.9"}
+        self.assertEqual(map_vpn_client(other).key, map_vpn_client(self.ITEM).key)
+
+    def test_missing_type_gets_a_generic_prefix(self):
+        self.assertEqual(map_vpn_client({"user": "ana"}).key, "vpn:ana")
 
 
 if __name__ == "__main__":

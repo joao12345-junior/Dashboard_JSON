@@ -167,6 +167,60 @@ def get_network_wan():
         release_connection(conn, is_healthy=connection_ok)
 
 
+@network_state_bp.route("/api/network/vpn-clients", methods=["GET"])
+@require_auth
+def get_network_vpn_clients():
+    """
+    Usuarios da VPN do UCG (OpenVPN/Teleport), gravados pelo poller a partir de
+    stat/remoteuservpn. `status`: connected (padrao) | disconnected | all.
+    Devolve {"clients": [...], "connected_count": n, "polled_at": iso|null}.
+    """
+    status = request.args.get("status", "connected")
+    if status not in CLIENT_STATUSES:
+        return jsonify({"error": "Parametro status invalido."}), 400
+    where = {"connected": "WHERE connected", "disconnected": "WHERE NOT connected", "all": ""}[status]
+
+    conn = get_connection()
+    connection_ok = True
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                f"""
+                SELECT client_key, username, vpn_type, interface, tunnel_ip, remote_ip,
+                       rx_bytes, tx_bytes, connected, connected_since, disconnected_at,
+                       first_seen_at, last_seen_at
+                FROM optsislog.network_vpn_clients
+                {where}
+                ORDER BY connected DESC, username
+                """
+            )
+            rows = cur.fetchall()
+            cur.execute(
+                "SELECT count(*) FILTER (WHERE connected) AS n, max(last_seen_at) AS polled_at"
+                " FROM optsislog.network_vpn_clients"
+            )
+            summary = cur.fetchone()
+        for row in rows:
+            _iso(row, "connected_since", "disconnected_at", "first_seen_at", "last_seen_at")
+        polled_at = summary["polled_at"]
+        return (
+            jsonify(
+                {
+                    "clients": rows,
+                    "connected_count": int(summary["n"] or 0),
+                    "polled_at": polled_at.isoformat() if polled_at else None,
+                }
+            ),
+            200,
+        )
+    except Exception as e:
+        connection_ok = False
+        logger.error(f"[network_vpn_clients] Erro: {e}")
+        return jsonify({"error": "Não foi possível buscar os clientes de VPN."}), 500
+    finally:
+        release_connection(conn, is_healthy=connection_ok)
+
+
 @network_state_bp.route("/api/network/wan/history", methods=["GET"])
 @require_auth
 def get_network_wan_history():

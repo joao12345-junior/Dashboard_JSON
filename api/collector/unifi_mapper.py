@@ -275,3 +275,44 @@ def map_wans(
             )
         )
     return links
+
+
+# ---- VPN (clientes de VPN de acesso remoto) ---------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class VpnClient:
+    """Usuario conectado na VPN do UCG (`stat/remoteuservpn`). Nao tem MAC."""
+
+    #: Chave estavel: "<vpn_type>:<usuario>". O `id` do UniFi muda com o IP do tunel.
+    key: str
+    username: str
+    vpn_type: Optional[str]
+    interface: Optional[str]
+    tunnel_ip: Optional[str]
+    remote_ip: Optional[str]
+    rx_bytes: Optional[int]
+    tx_bytes: Optional[int]
+    connected_since: Optional[datetime]
+
+
+def map_vpn_client(item: Mapping[str, Any]) -> Optional[VpnClient]:
+    """
+    Item do `stat/remoteuservpn` -> VpnClient. None sem usuario, ou com `up` falso
+    (o UCG pode listar um tunel que ja caiu; tratamos como desconectado).
+    """
+    username = _str(item.get("user"))
+    if username is None or item.get("up") is False:
+        return None
+    vpn_type = _str(item.get("vpn_type"))
+    return VpnClient(
+        key=f"{vpn_type or 'vpn'}:{username}",
+        username=username,
+        vpn_type=vpn_type,
+        interface=_str(item.get("interface")),
+        tunnel_ip=_str(item.get("tunnel_ip")),
+        remote_ip=_str(item.get("remote_ip")),
+        rx_bytes=_int(item.get("rx_bytes")),
+        tx_bytes=_int(item.get("tx_bytes")),
+        connected_since=_epoch(item.get("assoc_time")),
+    )

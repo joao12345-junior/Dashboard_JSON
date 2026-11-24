@@ -201,9 +201,15 @@ class HttpSourceTests(unittest.TestCase):
 
 
 class FakeSource:
-    def __init__(self, devices=(), clients=(), error=None, wans=(), wan_error=None):
+    def __init__(self, devices=(), clients=(), error=None, wans=(), wan_error=None, vpn=(), vpn_error=None):
+        self.vpn, self.vpn_error = list(vpn), vpn_error
         self.devices, self.clients, self.error = list(devices), list(clients), error
         self.wans, self.wan_error = list(wans), wan_error
+
+    def fetch_vpn_clients(self):
+        if self.vpn_error:
+            raise self.vpn_error
+        return self.vpn
 
     def fetch_wans(self):
         if self.wan_error:
@@ -224,6 +230,7 @@ class MemorySink:
         self.snapshots = []
         self.wans = []
         self.samples = []
+        self.vpn = []
         self.sample_error = None
 
     def replace_snapshot(self, devices, clients, polled_at):
@@ -231,6 +238,9 @@ class MemorySink:
 
     def replace_wans(self, wans, polled_at):
         self.wans.append((list(wans), polled_at))
+
+    def replace_vpn_clients(self, clients, polled_at):
+        self.vpn.append((list(clients), polled_at))
 
     def append_wan_samples(self, wans, polled_at):
         if self.sample_error:
@@ -285,6 +295,22 @@ class PollerTests(unittest.TestCase):
         sink.sample_error = RuntimeError("tabela nao existe (migracao 017)")
         self.assertEqual(UnifiPoller(FakeSource(wans=["w"]), sink).poll_once(), (0, 0))
         self.assertEqual(len(sink.wans), 1)  # o estado atual da WAN foi gravado mesmo assim
+
+    def test_vpn_clients_are_written_with_the_same_time(self):
+        sink = MemorySink()
+        UnifiPoller(FakeSource(vpn=["v"]), sink).poll_once()
+        self.assertEqual(sink.vpn, [(["v"], sink.snapshots[0][2])])
+
+    def test_vpn_read_failure_writes_nothing_and_keeps_the_cycle(self):
+        sink = MemorySink()
+        poller = UnifiPoller(FakeSource(vpn_error=ConnectionError("x")), sink)
+        self.assertEqual(poller.poll_once(), (0, 0))
+        self.assertEqual(sink.vpn, [])  # nao "desconecta" a VPN por falha de leitura
+
+    def test_vpn_is_read_even_when_wan_fails(self):
+        sink = MemorySink()
+        UnifiPoller(FakeSource(wan_error=RuntimeError("x"), vpn=["v"]), sink).poll_once()
+        self.assertEqual(len(sink.vpn), 1)
 
     def test_run_backs_off_and_recovers(self):
         stop = threading.Event()

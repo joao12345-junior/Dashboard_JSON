@@ -12,13 +12,17 @@ import { StaleDataBanner } from "./components/StaleDataBanner";
 import { formatBytes, formatSince, isWeakSignal } from "./format";
 import { clientTitle, sortClients, type ClientSortKey, type SortDirection } from "./sortClients";
 import { NetworkClientDetailsModal } from "./components/NetworkClientDetailsModal";
+import { VpnClientsTable } from "./components/VpnClientsTable";
+import { filterVpnClients, sortVpnClients, vpnTypeLabel } from "./vpnClients";
+import { useNetworkVpnClients } from "./hooks/useNetworkExtras";
 import { clientIcon } from "./topologyIcons";
 import { eventDayKey, formatEventTime } from "./formatEventTime";
 
 /** Espera o usuário parar de digitar antes de buscar na API. */
 const SEARCH_DEBOUNCE_MS = 350;
 
-type ConnectionFilter = "all" | "wifi" | "wired";
+/** "vpn" troca a lista: usuários de VPN não têm MAC e vêm de outra rota. */
+type ConnectionFilter = "all" | "wifi" | "wired" | "vpn";
 
 const STATUS_OPTIONS: Array<{ value: ClientStatus; label: string }> = [
 	{ value: "connected", label: "Conectados" },
@@ -30,6 +34,7 @@ const CONNECTION_OPTIONS: Array<{ value: ConnectionFilter; label: string }> = [
 	{ value: "all", label: "Wi-Fi e cabo" },
 	{ value: "wifi", label: "Wi-Fi" },
 	{ value: "wired", label: "Cabo" },
+	{ value: "vpn", label: "VPN" },
 ];
 
 /** Colunas no desktop; o cabeçalho usa a mesma grade. */
@@ -162,10 +167,17 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 
 	const allClients = useMemo(() => data?.clients ?? [], [data]);
 
+	// Usuários de VPN: rota própria; a busca filtra aqui (são poucos).
+	const vpnState = useNetworkVpnClients(status);
+	const vpnClients = useMemo(
+		() => sortVpnClients(filterVpnClients(vpnState.data?.clients ?? [], debouncedSearch)),
+		[vpnState.data, debouncedSearch],
+	);
+
 	const connectionCounts = useMemo(() => {
 		const wired = allClients.filter((c) => c.is_wired).length;
-		return { all: allClients.length, wired, wifi: allClients.length - wired };
-	}, [allClients]);
+		return { all: allClients.length, wired, wifi: allClients.length - wired, vpn: vpnClients.length };
+	}, [allClients, vpnClients]);
 
 	const clients = useMemo(() => {
 		const base =
@@ -176,6 +188,7 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 	}, [allClients, connection, sortKey, sortDir]);
 
 	const filtered = status !== "connected" || connection !== "all" || debouncedSearch !== "";
+	const exportCount = connection === "vpn" ? vpnClients.length : clients.length;
 	const now = new Date();
 
 	function clearFilters() {
@@ -186,6 +199,25 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 	}
 
 	function handleExportCsv() {
+		if (connection === "vpn") {
+			const vpnRows = vpnClients.map((c) => [
+				c.username,
+				vpnTypeLabel(c.vpn_type),
+				c.tunnel_ip ?? "",
+				c.remote_ip ?? "",
+				String(c.rx_bytes ?? ""),
+				String(c.tx_bytes ?? ""),
+				c.connected ? "conectado" : "desconectado",
+				c.connected_since ?? "",
+				c.disconnected_at ?? "",
+			]);
+			const vpnCsv = toCsv(
+				["usuario", "tipo", "ip_vpn", "ip_origem", "recebido_bytes", "enviado_bytes", "estado", "conectado_desde", "desconectado_em"],
+				vpnRows,
+			);
+			downloadCsv(`clientes-vpn-${eventDayKey(new Date().toISOString())}.csv`, vpnCsv);
+			return;
+		}
 		const rows = clients.map((c) => [
 			clientTitle(c),
 			c.note ?? "",
@@ -295,8 +327,8 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 						className="ld-chip"
 						title="Baixa a lista que está na tela (CSV)"
 						onClick={handleExportCsv}
-						disabled={clients.length === 0}
-						style={{ ...chipStyle(false), opacity: clients.length === 0 ? 0.5 : 1 }}
+						disabled={exportCount === 0}
+						style={{ ...chipStyle(false), opacity: exportCount === 0 ? 0.5 : 1 }}
 					>
 						Exportar CSV
 					</button>
@@ -339,7 +371,46 @@ export function NetworkClientsPage({ isMobile }: SharedPageProps) {
 					)}
 				</div>
 
-				{error && !data ? (
+				{connection === "vpn" ? (
+					vpnState.error && !vpnState.data ? (
+						<ErrorState
+							title="Erro ao carregar os clientes de VPN"
+							message={`${vpnState.error}. No servidor: aplicar a migração 018 e reiniciar o LogDashUnifiPoller.`}
+							onRetry={vpnState.reload}
+						/>
+					) : !vpnState.data ? (
+						<div role="status" style={emptyBoxStyle}>
+							Carregando clientes de VPN…
+						</div>
+					) : vpnClients.length === 0 ? (
+						<div role="status" style={emptyBoxStyle}>
+							<strong style={{ color: "var(--foreground)", fontSize: 14 }}>
+								{debouncedSearch
+									? "Nenhum usuário de VPN com essa busca"
+									: status === "connected"
+										? "Ninguém conectado na VPN agora"
+										: "Nenhum usuário de VPN registrado"}
+							</strong>
+						</div>
+					) : (
+						<div
+							style={{
+								backgroundColor: "var(--card)",
+								border: "1px solid var(--border)",
+								borderRadius: 8,
+								overflow: "hidden",
+								flex: 1,
+								minHeight: isMobile ? 240 : 0,
+								display: "flex",
+								flexDirection: "column",
+							}}
+						>
+							<div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
+								<VpnClientsTable clients={vpnClients} isMobile={isMobile} highlight={debouncedSearch} now={now} />
+							</div>
+						</div>
+					)
+				) : error && !data ? (
 					<ErrorState title="Erro ao carregar clientes de rede" message={error} onRetry={reload} />
 				) : !data ? (
 					<div role="status" style={emptyBoxStyle}>

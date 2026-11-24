@@ -51,21 +51,41 @@ class UnifiPoller:
         # ou removeria dispositivos por engano.
         polled_at = datetime.now(timezone.utc)
         self._sink.replace_snapshot(devices, clients, polled_at)
-        # WAN e EXTRA: se falhar, o ciclo de dispositivos/clientes continua valendo e
-        # a tabela de WAN fica com o ultimo estado bom (a pagina mostra a idade).
+        self._poll_wans(polled_at)
+        self._poll_vpn(polled_at)
+        return len(devices), len(clients)
+
+    def _poll_wans(self, polled_at: datetime) -> None:
+        """
+        WAN e EXTRA: se falhar, o ciclo de dispositivos/clientes continua valendo e a
+        tabela de WAN fica com o ultimo estado bom (a pagina mostra a idade). O historico
+        (grafico de internet) e mais um extra: sem a migracao 017, so o grafico perde o ponto.
+        """
         try:
             wans = self._source.fetch_wans()
             self._sink.replace_wans(wans, polled_at)
         except Exception as e:
             logger.warning("WAN nao atualizada neste ciclo: %s: %s", type(e).__name__, e)
-            return len(devices), len(clients)
-        # Historico (grafico de internet) e' mais um EXTRA: sem a migracao 017, ou com o
-        # banco recusando, so' o grafico fica sem este ponto.
+            return
         try:
             self._sink.append_wan_samples(wans, polled_at)
         except Exception as e:
             logger.warning("Historico da WAN nao gravado neste ciclo: %s: %s", type(e).__name__, e)
-        return len(devices), len(clients)
+
+    def _poll_vpn(self, polled_at: datetime) -> None:
+        """
+        Clientes de VPN (`stat/remoteuservpn`): EXTRA, como a WAN. Leitura que falha nao
+        grava nada (senao todo mundo viraria "desconectado"); sem a migracao 018 so loga.
+        """
+        try:
+            vpn_clients = self._source.fetch_vpn_clients()
+        except Exception as e:
+            logger.warning("VPN nao lida neste ciclo: %s: %s", type(e).__name__, e)
+            return
+        try:
+            self._sink.replace_vpn_clients(vpn_clients, polled_at)
+        except Exception as e:
+            logger.warning("VPN nao gravada neste ciclo: %s: %s", type(e).__name__, e)
 
     def next_delay(self) -> float:
         """Intervalo ate o proximo ciclo: normal, ou com backoff apos falhas seguidas."""
