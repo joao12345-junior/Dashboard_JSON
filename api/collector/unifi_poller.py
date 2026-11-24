@@ -35,6 +35,9 @@ MIN_INTERVAL_SECONDS = 15
 MAX_BACKOFF_SECONDS = 300
 #: Ranking de aplicativos: o UniFi ja agrega a janela, entao 5 min basta (e poupa o UCG).
 TOP_APPS_INTERVAL_SECONDS = 300
+#: Perda de pacotes: aggregated-dashboard e o endpoint pesado da tela do UniFi (sobe a
+#: CPU do UCG). 15 min com janela de 1 h: 4 chamadas/hora e nenhum buraco se uma falhar.
+WAN_QUALITY_INTERVAL_SECONDS = 900
 
 
 class UnifiPoller:
@@ -46,6 +49,7 @@ class UnifiPoller:
         self._interval = max(float(interval_seconds), MIN_INTERVAL_SECONDS)
         self._failures = 0
         self._apps_polled_at: Optional[datetime] = None
+        self._quality_polled_at: Optional[datetime] = None
 
     def poll_once(self) -> tuple[int, int]:
         """Um ciclo. Devolve (dispositivos, clientes). Levanta excecao se falhar."""
@@ -64,7 +68,21 @@ class UnifiPoller:
         self._poll_wans(polled_at)
         self._poll_vpn(polled_at)
         self._poll_top_apps(polled_at)
+        self._poll_wan_quality(polled_at)
         return len(devices), len(clients)
+
+    def _poll_wan_quality(self, polled_at: datetime) -> None:
+        """Perda de pacotes/latencia (ultima hora, intervalos de 5 min): EXTRA, a cada 15 min."""
+        if (
+            self._quality_polled_at is not None
+            and (polled_at - self._quality_polled_at).total_seconds() < WAN_QUALITY_INTERVAL_SECONDS
+        ):
+            return
+        self._quality_polled_at = polled_at
+        try:
+            self._sink.upsert_wan_quality(self._source.fetch_wan_quality())
+        except Exception as e:
+            logger.warning("Perda de pacotes nao atualizada: %s: %s", type(e).__name__, e)
 
     def _poll_top_apps(self, polled_at: datetime) -> None:
         """

@@ -18,6 +18,7 @@ import { formatBitrate } from "../format";
 import {
 	buildWanChartData,
 	formatAxisTime,
+	summarizeLoss,
 	summarizeWan,
 	WAN_PERIODS,
 	type WanHistoryResponse,
@@ -55,6 +56,10 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 
 function formatMs(value: number | null): string {
 	return value === null ? "—" : `${Math.round(value)} ms`;
+}
+
+function formatPct(value: number | null): string {
+	return value === null ? "—" : `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
 }
 
 function wanLabel(group: string, wans: readonly WanLink[]): string {
@@ -95,11 +100,16 @@ export function WanHistoryPanel({ wans }: WanHistoryPanelProps) {
 		() => (data && wanGroup ? (data.series[wanGroup] ?? []) : []),
 		[data, wanGroup],
 	);
+	const quality = useMemo(
+		() => (data && wanGroup ? (data.quality?.[wanGroup] ?? []) : []),
+		[data, wanGroup],
+	);
+	const loss = useMemo(() => summarizeLoss(quality), [quality]);
 	const until = data ? Date.parse(data.server_time) : 0;
 	const since = data ? until - data.span_seconds * 1000 : 0;
 	const chartData = useMemo(
-		() => (data ? buildWanChartData(points, data.step_seconds, since, until) : []),
-		[data, points, since, until],
+		() => (data ? buildWanChartData(points, data.step_seconds, since, until, quality) : []),
+		[data, points, since, until, quality],
 	);
 	const summary = useMemo(() => summarizeWan(points), [points]);
 	const hasData = points.length > 0;
@@ -169,6 +179,11 @@ export function WanHistoryPanel({ wans }: WanHistoryPanelProps) {
 						<Stat label="Upload" value={formatBitrate(summary.txAvg)} hint={`pico ${formatBitrate(summary.txPeak)}`} />
 						<Stat label="Latência" value={formatMs(summary.latencyAvg)} hint={`máx. ${formatMs(summary.latencyMax)}`} />
 						<Stat
+							label="Perda de pacotes"
+							value={formatPct(loss.avg)}
+							hint={loss.max === null ? "sem medição ainda" : `pior intervalo ${formatPct(loss.max)}`}
+						/>
+						<Stat
 							label="No ar"
 							value={summary.uptimePct === null ? "—" : `${summary.uptimePct.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`}
 							hint={downBuckets > 0 ? `${downBuckets} intervalo(s) com queda` : "sem quedas vistas pelo poller"}
@@ -220,11 +235,21 @@ export function WanHistoryPanel({ wans }: WanHistoryPanelProps) {
 					</div>
 
 					<div>
-						<div style={{ ...sectionLabel, marginBottom: 6 }}>Latência</div>
+						<div style={{ ...sectionLabel, marginBottom: 6 }}>Latência (ms) e perda de pacotes (%)</div>
 						<ResponsiveContainer width="100%" height={120}>
 							<LineChart data={chartData} syncId="wan-history" margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
 								<CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
 								{xAxis}
+								<YAxis
+									yAxisId="loss"
+									orientation="right"
+									domain={[0, (max: number) => Math.max(5, Math.ceil(max))]}
+									tickFormatter={(v: number) => `${v}%`}
+									tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+									axisLine={false}
+									tickLine={false}
+									width={36}
+								/>
 								<YAxis
 									tickFormatter={(v: number) => `${v} ms`}
 									tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
@@ -235,7 +260,12 @@ export function WanHistoryPanel({ wans }: WanHistoryPanelProps) {
 								<Tooltip
 									contentStyle={tooltipStyle}
 									labelFormatter={(t) => formatAxisTime(Number(t), "1h") + " · " + formatAxisTime(Number(t), "1m")}
-									formatter={(value, name) => [formatMs(typeof value === "number" ? value : null), name]}
+									formatter={(value, name) => [
+										name === "Perda de pacotes"
+											? formatPct(typeof value === "number" ? value : null)
+											: formatMs(typeof value === "number" ? value : null),
+										name,
+									]}
 								/>
 								<Line
 									type="monotone"
@@ -245,6 +275,18 @@ export function WanHistoryPanel({ wans }: WanHistoryPanelProps) {
 									strokeWidth={1.5}
 									dot={false}
 									connectNulls={false}
+									isAnimationActive={false}
+								/>
+								<Line
+									yAxisId="loss"
+									type="stepAfter"
+									dataKey="loss"
+									name="Perda de pacotes"
+									stroke="var(--destructive)"
+									strokeWidth={1.5}
+									dot={false}
+									// Medição de 5 em 5 min: liga os pontos (null entre eles é "não medido", não falha).
+									connectNulls
 									isAnimationActive={false}
 								/>
 								<Line
@@ -265,8 +307,8 @@ export function WanHistoryPanel({ wans }: WanHistoryPanelProps) {
 			)}
 
 			<p style={{ margin: 0, fontSize: 11, color: "var(--muted-foreground)" }}>
-				Amostra a cada minuto pelo poller do LogDash; histórico de 31 dias, contado a partir do deploy. Perda de
-				pacotes e número de conexões ainda não aparecem: as APIs do UCG lidas hoje não informam.
+				Tráfego e latência: amostra a cada minuto pelo poller. Perda de pacotes: medida pelo UniFi em intervalos de 5
+				min, copiada a cada 15 min. Histórico de 31 dias a partir do deploy.
 			</p>
 		</section>
 	);

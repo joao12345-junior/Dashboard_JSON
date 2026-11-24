@@ -60,6 +60,37 @@ _HISTORY_SQL = """
 """
 
 
+# Perda de pacotes vem em intervalos de 5 min do UniFi: o balde e' no minimo 5 min,
+# senao 4 de cada 5 baldes de 1 min ficariam vazios.
+_QUALITY_SQL = """
+    SELECT wan_group,
+           to_timestamp(floor(extract(epoch FROM sampled_at) / %(step)s) * %(step)s) AS bucket,
+           avg(packet_loss_pct) AS packet_loss_pct,
+           max(packet_loss_pct) AS packet_loss_max
+    FROM optsislog.network_wan_quality
+    WHERE sampled_at >= now() - make_interval(secs => %(span)s)
+    GROUP BY wan_group, bucket
+    ORDER BY wan_group, bucket
+"""
+QUALITY_MIN_STEP_SECONDS = 300
+
+
+def fetch_quality(cur, period: WanPeriod) -> dict[str, list[dict[str, Any]]]:
+    """Perda de pacotes por WAN ({wan: [{t, packet_loss_pct, packet_loss_max}]})."""
+    step = max(period.step_seconds, QUALITY_MIN_STEP_SECONDS)
+    cur.execute(_QUALITY_SQL, {"step": step, "span": period.span_seconds})
+    quality: dict[str, list[dict[str, Any]]] = {}
+    for row in cur.fetchall():
+        quality.setdefault(row["wan_group"], []).append(
+            {
+                "t": row["bucket"].isoformat(),
+                "packet_loss_pct": _round(row["packet_loss_pct"]),
+                "packet_loss_max": _round(row["packet_loss_max"]),
+            }
+        )
+    return quality
+
+
 def fetch_history(cur, period: WanPeriod) -> dict[str, Any]:
     """
     Pontos agregados por WAN. `cur` deve devolver dicts (RealDictCursor).

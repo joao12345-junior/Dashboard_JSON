@@ -301,6 +301,14 @@ def get_network_wan_history():
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             result = wan_history.fetch_history(cur, period)
+        # Perda de pacotes (migracao 021) e extra: sem a tabela, o grafico segue sem ela.
+        result["quality"] = {}
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                result["quality"] = wan_history.fetch_quality(cur, period)
+        except Exception as e:
+            conn.rollback()
+            logger.warning(f"[network_wan_history] Sem perda de pacotes: {e}")
         return jsonify(result), 200
     except Exception as e:
         connection_ok = False

@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Protocol, Sequence
 
 from .client_sessions import OpenSession, plan_sessions
-from .unifi_mapper import AppUsage, NetworkClient, NetworkDevice, VpnClient, WanLink
+from .unifi_mapper import AppUsage, NetworkClient, NetworkDevice, VpnClient, WanLink, WanQualityPoint
 
 #: Clientes sem atividade ha mais que isso saem da tabela.
 CLIENT_RETENTION_DAYS = 30
@@ -46,6 +46,10 @@ class StateSink(Protocol):
 
     def append_device_samples(self, devices: Sequence[NetworkDevice], polled_at: datetime) -> None:
         """Acrescenta CPU/memoria de cada dispositivo ao historico."""
+        ...
+
+    def upsert_wan_quality(self, points: Sequence[WanQualityPoint]) -> None:
+        """Grava/atualiza os pontos de perda de pacotes (chave: WAN + horario)."""
         ...
 
     def close(self) -> None: ...
@@ -323,6 +327,50 @@ class PostgresStateSink:
                 cur.execute(
                     "DELETE FROM optsislog.network_vpn_clients WHERE last_seen_at < %s",
                     (polled_at - timedelta(days=CLIENT_RETENTION_DAYS),),
+                )
+            self._conn.commit()
+        except Exception:
+            self.close()
+            raise
+
+    def upsert_wan_quality(self, points: Sequence[WanQualityPoint]) -> None:
+        """
+        network_wan_quality (migracao 021), transacao propria. O mesmo intervalo chega
+        em ate 4 leituras seguidas (janela de 1 h, leitura a cada 15 min): fica o valor
+        mais recente, porque o ultimo intervalo de cada leitura ainda estava em andamento.
+        """
+        import psycopg2
+        from psycopg2.extras import execute_values
+
+        by_key = {(p.wan_group, p.sampled_at): p for p in points}
+        if not by_key:
+            return
+        rows = [
+            (p.wan_group, p.sampled_at, p.packet_loss_pct, p.latency_avg_ms, p.latency_min_ms, p.latency_max_ms)
+            for p in by_key.values()
+        ]
+        newest = max(p.sampled_at for p in by_key.values())
+        try:
+            if self._conn is None or self._conn.closed:
+                self._conn = psycopg2.connect(**self._kwargs)
+            with self._conn.cursor() as cur:
+                execute_values(
+                    cur,
+                    """
+                    INSERT INTO optsislog.network_wan_quality
+                        (wan_group, sampled_at, packet_loss_pct, latency_avg_ms, latency_min_ms, latency_max_ms)
+                    VALUES %s
+                    ON CONFLICT (wan_group, sampled_at) DO UPDATE SET
+                        packet_loss_pct = EXCLUDED.packet_loss_pct,
+                        latency_avg_ms = EXCLUDED.latency_avg_ms,
+                        latency_min_ms = EXCLUDED.latency_min_ms,
+                        latency_max_ms = EXCLUDED.latency_max_ms
+                    """,
+                    rows,
+                )
+                cur.execute(
+                    "DELETE FROM optsislog.network_wan_quality WHERE sampled_at < %s",
+                    (newest - timedelta(days=WAN_SAMPLE_RETENTION_DAYS),),
                 )
             self._conn.commit()
         except Exception:

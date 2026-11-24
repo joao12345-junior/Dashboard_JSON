@@ -204,8 +204,13 @@ class FakeSource:
     def __init__(self, devices=(), clients=(), error=None, wans=(), wan_error=None, vpn=(), vpn_error=None):
         self.vpn, self.vpn_error = list(vpn), vpn_error
         self.app_calls, self.apps_error = [], None
+        self.quality_calls = 0
         self.devices, self.clients, self.error = list(devices), list(clients), error
         self.wans, self.wan_error = list(wans), wan_error
+
+    def fetch_wan_quality(self):
+        self.quality_calls += 1
+        return ["q"]
 
     def fetch_top_apps(self, period):
         self.app_calls.append(period)
@@ -240,6 +245,7 @@ class MemorySink:
         self.vpn = []
         self.apps = []
         self.device_samples = []
+        self.quality = []
         self.device_sample_error = None
         self.sample_error = None
 
@@ -248,6 +254,9 @@ class MemorySink:
 
     def replace_wans(self, wans, polled_at):
         self.wans.append((list(wans), polled_at))
+
+    def upsert_wan_quality(self, points):
+        self.quality.append(list(points))
 
     def append_device_samples(self, devices, polled_at):
         if self.device_sample_error:
@@ -329,6 +338,14 @@ class PollerTests(unittest.TestCase):
         sink = MemorySink()
         UnifiPoller(FakeSource(wan_error=RuntimeError("x"), vpn=["v"]), sink).poll_once()
         self.assertEqual(len(sink.vpn), 1)
+
+    def test_wan_quality_first_cycle_then_every_15_minutes(self):
+        sink, source = MemorySink(), FakeSource()
+        poller = UnifiPoller(source, sink)
+        poller.poll_once()
+        poller.poll_once()
+        self.assertEqual(source.quality_calls, 1)  # o endpoint e pesado: nao a cada ciclo
+        self.assertEqual(sink.quality, [["q"]])
 
     def test_device_samples_use_the_devices_of_the_cycle(self):
         device = map_device(DEVICE, STATS)

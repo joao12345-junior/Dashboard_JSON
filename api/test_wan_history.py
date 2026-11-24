@@ -2,7 +2,7 @@
 import unittest
 from datetime import datetime, timezone
 
-from wan_history import PERIODS, fetch_device_history, fetch_history, resolve_period
+from wan_history import PERIODS, fetch_device_history, fetch_history, fetch_quality, resolve_period
 
 
 class FakeCursor:
@@ -80,6 +80,19 @@ class FetchHistoryTests(unittest.TestCase):
 
     def test_empty_history(self):
         self.assertEqual(fetch_history(FakeCursor([]), PERIODS["1h"])["series"], {})
+
+
+class FetchQualityTests(unittest.TestCase):
+    def test_bucket_is_at_least_five_minutes(self):
+        cur = FakeCursor([
+            {"wan_group": "WAN2", "bucket": datetime(2026, 11, 24, 17, 5, tzinfo=timezone.utc),
+             "packet_loss_pct": 1.1, "packet_loss_max": 1.1},
+        ])
+        result = fetch_quality(cur, PERIODS["1h"])  # passo do grafico = 60 s
+        self.assertEqual(cur.executed[0][1], {"step": 300, "span": 3600})
+        self.assertEqual(result["WAN2"][0]["packet_loss_pct"], 1.1)
+        fetch_quality(cur, PERIODS["1w"])
+        self.assertEqual(cur.executed[1][1]["step"], 1800)
 
 
 class FetchDeviceHistoryTests(unittest.TestCase):

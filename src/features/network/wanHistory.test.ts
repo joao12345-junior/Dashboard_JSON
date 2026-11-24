@@ -1,6 +1,6 @@
 // src/features/network/wanHistory.test.ts
 import { describe, expect, it } from "vitest";
-import { buildWanChartData, summarizeWan, type WanHistoryPoint } from "./wanHistory";
+import { buildWanChartData, summarizeLoss, summarizeWan, type WanHistoryPoint } from "./wanHistory";
 
 const T0 = Date.parse("2026-11-24T17:00:00Z");
 const MIN = 60_000;
@@ -66,6 +66,31 @@ describe("buildWanChartData — fim da série", () => {
 	it("balde final com dado não é cortado", () => {
 		const data = buildWanChartData([point(0), point(5)], 300, T0, T0 + 6 * MIN);
 		expect(data[data.length - 1].rx).toBe(6_000_000);
+	});
+});
+
+describe("perda de pacotes", () => {
+	it("cai no balde do mesmo instante; os outros minutos ficam null", () => {
+		const data = buildWanChartData(
+			Array.from({ length: 6 }, (_, i) => point(i)),
+			60,
+			T0,
+			T0 + 6 * MIN,
+			[{ t: new Date(T0 + 5 * MIN).toISOString(), packet_loss_pct: 1.1, packet_loss_max: 1.1 }],
+		);
+		expect(data[5].loss).toBe(1.1);
+		expect(data[4].loss).toBeNull();
+	});
+
+	it("resumo: média dos intervalos e o pior", () => {
+		expect(
+			summarizeLoss([
+				{ t: "a", packet_loss_pct: 0, packet_loss_max: 0 },
+				{ t: "b", packet_loss_pct: 1.2, packet_loss_max: 3 },
+				{ t: "c", packet_loss_pct: null, packet_loss_max: null },
+			]),
+		).toEqual({ avg: 0.6, max: 3 });
+		expect(summarizeLoss([])).toEqual({ avg: null, max: null });
 	});
 });
 

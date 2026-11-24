@@ -7,7 +7,15 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 from .client_sessions import OpenSession, plan_sessions
-from .unifi_mapper import NetworkClient, dpi_catalog_key, find_gateway, map_top_apps, map_vpn_client, map_wans
+from .unifi_mapper import (
+    NetworkClient,
+    dpi_catalog_key,
+    find_gateway,
+    map_top_apps,
+    map_vpn_client,
+    map_wan_activity,
+    map_wans,
+)
 
 NOW = datetime(2026, 11, 23, 20, 0, tzinfo=timezone.utc)
 
@@ -116,6 +124,42 @@ class SessionPlanTests(unittest.TestCase):
     def test_duplicate_mac_in_cycle_opens_once(self):
         plan = plan_sessions({}, [client("a", None), client("a", None)], NOW)
         self.assertEqual(len(plan.to_open), 1)
+
+
+class WanActivityMapperTests(unittest.TestCase):
+    # Itens reais do probe de 24/11 (--wan-activity).
+    BODY = {
+        "wan_activity": {
+            "activity_by_network_group": {
+                "WAN2": {
+                    "history": [
+                        {"avg_latency_ms": 1.8, "avg_packet_loss_pct": 1.1, "max_latency_ms": 5.0,
+                         "min_latency_ms": 1.0, "timestamp": 1795546200000},
+                    ],
+                    "summary": {},
+                },
+                "WAN": {
+                    "history": [
+                        {"avg_latency_ms": 9.6, "avg_packet_loss_pct": 0.0, "max_latency_ms": 11.0,
+                         "min_latency_ms": 9.0, "timestamp": 1795546200000},
+                        {"avg_packet_loss_pct": 2.0},
+                    ],
+                },
+            }
+        }
+    }
+
+    def test_points_per_wan_with_time_in_utc(self):
+        points = map_wan_activity(self.BODY)
+        self.assertEqual(len(points), 2)  # o item sem timestamp foi ignorado
+        wan2 = next(p for p in points if p.wan_group == "WAN2")
+        self.assertEqual(wan2.packet_loss_pct, 1.1)
+        self.assertEqual(wan2.latency_max_ms, 5.0)
+        self.assertEqual(wan2.sampled_at, datetime.fromtimestamp(1795546200, timezone.utc))
+
+    def test_missing_activity_raises(self):
+        with self.assertRaises(ValueError):
+            map_wan_activity({"wan": {}})
 
 
 class TopAppsMapperTests(unittest.TestCase):

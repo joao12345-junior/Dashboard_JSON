@@ -21,11 +21,13 @@ from .unifi_mapper import (
     NetworkDevice,
     VpnClient,
     WanLink,
+    WanQualityPoint,
     find_gateway,
     map_client,
     map_device,
     map_top_apps,
     map_vpn_client,
+    map_wan_activity,
     map_wans,
     APP_PERIODS,
 )
@@ -40,6 +42,8 @@ V2_PREFIX = "/proxy/network/v2/api/site"
 #: Quantos aplicativos o ranking traz.
 TOP_APPS = 10
 DPI_CATALOG_TTL_SECONDS = 24 * 3600
+#: Janela pedida ao aggregated-dashboard: 1 h cobre 4 leituras perdidas de 15 min.
+WAN_QUALITY_HISTORY_SECONDS = 3600
 
 
 class UnifiSource(Protocol):
@@ -54,6 +58,8 @@ class UnifiSource(Protocol):
     def fetch_vpn_clients(self) -> list[VpnClient]: ...
 
     def fetch_top_apps(self, period: str) -> list[AppUsage]: ...
+
+    def fetch_wan_quality(self) -> list[WanQualityPoint]: ...
 
 
 class UnifiHttpSource:
@@ -170,6 +176,17 @@ class UnifiHttpSource:
         except Exception as e:
             logger.warning("Sem nomes das WANs (rest/networkconf): %s: %s", type(e).__name__, e)
         return map_wans(gateway, confs)
+
+    def fetch_wan_quality(self) -> list[WanQualityPoint]:
+        """
+        Perda de pacotes/latencia por WAN, ultima hora em intervalos de 5 min (GET
+        aggregated-dashboard, o mesmo endpoint da tela do UniFi: chamar com parcimonia).
+        """
+        _, site_ref = self._resolve_site()
+        body = self._get(
+            f"{V2_PREFIX}/{site_ref}/aggregated-dashboard", {"historySeconds": WAN_QUALITY_HISTORY_SECONDS}
+        )
+        return map_wan_activity(body)
 
     def _dpi_catalog(self) -> tuple[dict[int, str], dict[int, str]]:
         """Nomes de aplicativos e categorias (Integration API, GET). Em cache por 24 h."""

@@ -379,3 +379,52 @@ def map_top_apps(
         )
         for i, (size, app_id, cat_id) in enumerate(parsed)
     ]
+
+
+# ---- Qualidade da WAN (perda de pacotes) -------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class WanQualityPoint:
+    """Um intervalo de 5 min do historico do UniFi para uma WAN."""
+
+    wan_group: str
+    sampled_at: datetime
+    packet_loss_pct: Optional[float]
+    latency_avg_ms: Optional[float]
+    latency_min_ms: Optional[float]
+    latency_max_ms: Optional[float]
+
+
+def map_wan_activity(body: Any) -> list[WanQualityPoint]:
+    """
+    `wan_activity.activity_by_network_group` do aggregated-dashboard -> pontos.
+    Ponto sem `timestamp` (ms) e ignorado; resposta sem `wan_activity` levanta ValueError
+    (lista vazia aqui nao deve ser confundida com "nada aconteceu").
+    """
+    activity = body.get("wan_activity") if isinstance(body, Mapping) else None
+    groups = activity.get("activity_by_network_group") if isinstance(activity, Mapping) else None
+    if not isinstance(groups, Mapping):
+        raise ValueError("Resposta sem 'wan_activity.activity_by_network_group'.")
+    points: list[WanQualityPoint] = []
+    for group, data in groups.items():
+        history = data.get("history") if isinstance(data, Mapping) else None
+        if not isinstance(history, list):
+            continue
+        for item in history:
+            if not isinstance(item, Mapping):
+                continue
+            ms = _int(item.get("timestamp"))
+            if ms is None:
+                continue
+            points.append(
+                WanQualityPoint(
+                    wan_group=str(group),
+                    sampled_at=datetime.fromtimestamp(ms / 1000, timezone.utc),
+                    packet_loss_pct=_float(item.get("avg_packet_loss_pct")),
+                    latency_avg_ms=_float(item.get("avg_latency_ms")),
+                    latency_min_ms=_float(item.get("min_latency_ms")),
+                    latency_max_ms=_float(item.get("max_latency_ms")),
+                )
+            )
+    return points

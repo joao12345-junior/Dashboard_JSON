@@ -10,8 +10,12 @@ A partir das 14:55 a CPU e a memória do gateway subiram (memória ~3–4 p.p., 
 - Front: `deviceHistory.ts` (puro, testado) e `components/DeviceHistoryPanel.tsx` no Painel, abaixo do gráfico Internet: escolha do dispositivo (gateway primeiro), CPU e memória (0–100%), resumo com média, máximo e **variação da memória no período** (p.p.).
 - Histórico só a partir do deploy: não mostra o salto das 14:55 (para isso, o gráfico do próprio UniFi).
 
-## Perda de pacotes (achada, ainda não ligada)
-Está em `GET v2 aggregated-dashboard?historySeconds=3600` → `wan_activity.activity_by_network_group.<WAN>.history[].avg_packet_loss_pct` (e `total_activity`). É o endpoint da tela do UniFi, que pesa no UCG: o plano é buscar a cada 15 min, não a cada minuto, e gravar os pontos pelo horário. Falta o formato do item (`python -m collector.unifi_probe --wan-activity`). "Conexões" não apareceu em nenhum endpoint lido.
+## Perda de pacotes (ligada)
+- Fonte: `GET v2 aggregated-dashboard?historySeconds=3600` → `wan_activity.activity_by_network_group.<WAN>.history[]`: um ponto a cada 5 min com `timestamp` (ms), `avg_packet_loss_pct`, latência média/mín/máx e taxas.
+- É o endpoint da tela do UniFi (pesa no UCG). O poller chama **a cada 15 min** (`WAN_QUALITY_INTERVAL_SECONDS`), pegando a última hora: 4 chamadas/hora, e uma leitura perdida não deixa buraco. Upsert por WAN + horário (o último intervalo de cada leitura ainda está em andamento).
+- Migração 021: `network_wan_quality`. `wan_history.fetch_quality` agrega em baldes de no mínimo 5 min; a rota `/api/network/wan/history` devolve `quality` (sem a 021 a rota segue sem ela).
+- Front: linha "Perda de pacotes" (eixo % à direita) no gráfico de latência, em degraus e ligando os pontos (null entre medições = não medido); resumo com média e pior intervalo.
+- "Conexões": nenhum endpoint lido traz (o `connectivity_status` só conta clientes). Fica de fora.
 
 ## Deploy (201)
-`update.ps1` → `run_migration.py` (018, 019, 020) → reiniciar `LogDashUnifiPoller`.
+`update.ps1` → `run_migration.py` (018 a 021) → reiniciar `LogDashUnifiPoller`. A perda de pacotes aparece no primeiro ciclo depois disso (e cobre a última hora).

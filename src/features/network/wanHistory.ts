@@ -27,6 +27,13 @@ export interface WanHistoryPoint {
 	down_samples: number;
 }
 
+/** Perda de pacotes agregada (intervalos de no mínimo 5 min, como o UniFi mede). */
+export interface WanQualityPoint {
+	t: string;
+	packet_loss_pct: number | null;
+	packet_loss_max: number | null;
+}
+
 export interface WanHistoryResponse {
 	period: WanPeriodKey;
 	step_seconds: number;
@@ -34,6 +41,8 @@ export interface WanHistoryResponse {
 	server_time: string;
 	/** Pontos por WAN ("WAN", "WAN2"...). */
 	series: Record<string, WanHistoryPoint[]>;
+	/** Perda de pacotes por WAN; ausente em API antiga ou sem a migração 021. */
+	quality?: Record<string, WanQualityPoint[]>;
 }
 
 /** Ponto do gráfico. `null` = sem amostra naquele balde (a linha quebra ali). */
@@ -47,6 +56,8 @@ export interface WanChartPoint {
 	latencyMax: number | null;
 	/** Alguma amostra do balde com a WAN fora do ar. */
 	down: boolean;
+	/** Perda de pacotes (%) no balde; null onde não há medição (é de 5 em 5 min). */
+	loss: number | null;
 }
 
 /**
@@ -70,12 +81,20 @@ export function buildWanChartData(
 	stepSeconds: number,
 	since: number,
 	until: number,
+	quality: readonly WanQualityPoint[] = [],
 ): WanChartPoint[] {
 	const step = stepSeconds * 1000;
 	const byStart = new Map<number, WanHistoryPoint>();
 	for (const p of points) {
 		const t = Date.parse(p.t);
 		if (!Number.isNaN(t)) byStart.set(t, p);
+	}
+	// Os baldes de perda são de >= 5 min, alinhados ao epoch: caem no balde do gráfico
+	// que começa no mesmo instante (5 min é múltiplo de 1 min).
+	const lossByStart = new Map<number, number | null>();
+	for (const q of quality) {
+		const t = Date.parse(q.t);
+		if (!Number.isNaN(t)) lossByStart.set(t, q.packet_loss_pct);
 	}
 
 	const data: WanChartPoint[] = [];
@@ -90,16 +109,27 @@ export function buildWanChartData(
 			latency: p?.latency_ms ?? null,
 			latencyMax: p?.latency_ms_max ?? null,
 			down: (p?.down_samples ?? 0) > 0,
+			loss: lossByStart.get(t) ?? null,
 		});
 	}
 	const pendingFrom = until - step - PENDING_TAIL_MS;
 	while (data.length > 0) {
 		const last = data[data.length - 1];
-		const empty = last.rx === null && last.tx === null && last.latency === null;
+		const empty = last.rx === null && last.tx === null && last.latency === null && last.loss === null;
 		if (!empty || last.t < pendingFrom) break;
 		data.pop();
 	}
 	return data;
+}
+
+/** Perda de pacotes do período: média dos intervalos e o pior intervalo. */
+export function summarizeLoss(quality: readonly WanQualityPoint[]): { avg: number | null; max: number | null } {
+	const avgs = quality.map((q) => q.packet_loss_pct).filter((v): v is number => v !== null);
+	const maxes = quality.map((q) => q.packet_loss_max).filter((v): v is number => v !== null);
+	return {
+		avg: avgs.length === 0 ? null : avgs.reduce((a, b) => a + b, 0) / avgs.length,
+		max: maxes.length === 0 ? null : Math.max(...maxes),
+	};
 }
 
 export interface WanSummary {

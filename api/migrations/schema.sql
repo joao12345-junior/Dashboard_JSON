@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 6jvYgGIIOAPgdHWYn2MvZR7T8koSoVuOoBCPhPM0eW2owS5vCzC8DctTTy20jTD
+\restrict rloT1Doh8YRV8vhLe4BniOkjoZ78InQVmoVwYxhf13Zo8LL63PxGUbTXT0Wdh1S
 
 -- Dumped from database version 13.23
 -- Dumped by pg_dump version 18.6
@@ -302,6 +302,24 @@ ALTER TABLE ONLY optsislog.network_clients ALTER COLUMN last_seen_at SET (pg_att
 ALTER TABLE optsislog.network_clients OWNER TO optare3;
 
 --
+-- Name: network_device_samples; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.network_device_samples (
+    mac text NOT NULL,
+    sampled_at timestamp with time zone NOT NULL,
+    cpu_pct real,
+    memory_pct real
+);
+ALTER TABLE ONLY optsislog.network_device_samples ALTER COLUMN mac SET (pg_attver=36873725560720);
+ALTER TABLE ONLY optsislog.network_device_samples ALTER COLUMN sampled_at SET (pg_attver=36873725560720);
+ALTER TABLE ONLY optsislog.network_device_samples ALTER COLUMN cpu_pct SET (pg_attver=36873725560720);
+ALTER TABLE ONLY optsislog.network_device_samples ALTER COLUMN memory_pct SET (pg_attver=36873725560720);
+
+
+ALTER TABLE optsislog.network_device_samples OWNER TO optare3;
+
+--
 -- Name: network_devices; Type: TABLE; Schema: optsislog; Owner: optare3
 --
 
@@ -500,6 +518,28 @@ ALTER TABLE ONLY optsislog.network_wan ALTER COLUMN last_polled_at SET (pg_attve
 
 
 ALTER TABLE optsislog.network_wan OWNER TO optare3;
+
+--
+-- Name: network_wan_quality; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.network_wan_quality (
+    wan_group text NOT NULL,
+    sampled_at timestamp with time zone NOT NULL,
+    packet_loss_pct real,
+    latency_avg_ms real,
+    latency_min_ms real,
+    latency_max_ms real
+);
+ALTER TABLE ONLY optsislog.network_wan_quality ALTER COLUMN wan_group SET (pg_attver=36873778569752);
+ALTER TABLE ONLY optsislog.network_wan_quality ALTER COLUMN sampled_at SET (pg_attver=36873778569752);
+ALTER TABLE ONLY optsislog.network_wan_quality ALTER COLUMN packet_loss_pct SET (pg_attver=36873778569752);
+ALTER TABLE ONLY optsislog.network_wan_quality ALTER COLUMN latency_avg_ms SET (pg_attver=36873778569752);
+ALTER TABLE ONLY optsislog.network_wan_quality ALTER COLUMN latency_min_ms SET (pg_attver=36873778569752);
+ALTER TABLE ONLY optsislog.network_wan_quality ALTER COLUMN latency_max_ms SET (pg_attver=36873778569752);
+
+
+ALTER TABLE optsislog.network_wan_quality OWNER TO optare3;
 
 --
 -- Name: network_wan_samples; Type: TABLE; Schema: optsislog; Owner: optare3
@@ -962,6 +1002,14 @@ ALTER TABLE ONLY optsislog.network_clients
 
 
 --
+-- Name: network_device_samples network_device_samples_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_device_samples
+    ADD CONSTRAINT network_device_samples_pkey PRIMARY KEY (mac, sampled_at);
+
+
+--
 -- Name: network_devices network_devices_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
 --
 
@@ -999,6 +1047,14 @@ ALTER TABLE ONLY optsislog.network_vpn_clients
 
 ALTER TABLE ONLY optsislog.network_wan
     ADD CONSTRAINT network_wan_pkey PRIMARY KEY (wan_group);
+
+
+--
+-- Name: network_wan_quality network_wan_quality_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.network_wan_quality
+    ADD CONSTRAINT network_wan_quality_pkey PRIMARY KEY (wan_group, sampled_at);
 
 
 --
@@ -1144,6 +1200,13 @@ CREATE INDEX idx_network_clients_connected ON optsislog.network_clients USING bt
 
 
 --
+-- Name: idx_network_device_samples_sampled_at; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX idx_network_device_samples_sampled_at ON optsislog.network_device_samples USING btree (sampled_at);
+
+
+--
 -- Name: idx_network_events_created_at; Type: INDEX; Schema: optsislog; Owner: optare3
 --
 
@@ -1155,6 +1218,13 @@ CREATE INDEX idx_network_events_created_at ON optsislog.network_events USING btr
 --
 
 CREATE INDEX idx_network_events_signature_id ON optsislog.network_events USING btree (signature_id);
+
+
+--
+-- Name: idx_network_wan_quality_sampled_at; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX idx_network_wan_quality_sampled_at ON optsislog.network_wan_quality USING btree (sampled_at);
 
 
 --
@@ -1297,5 +1367,5 @@ ALTER TABLE ONLY optsislog.tokens_renovacao
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 6jvYgGIIOAPgdHWYn2MvZR7T8koSoVuOoBCPhPM0eW2owS5vCzC8DctTTy20jTD
+\unrestrict rloT1Doh8YRV8vhLe4BniOkjoZ78InQVmoVwYxhf13Zo8LL63PxGUbTXT0Wdh1S
 
