@@ -15,7 +15,8 @@ Configuracao por variaveis de ambiente:
     SYSLOG_PORT         porta UDP (padrao 5514; acima de 1024 nao exige privilegio)
 
 O mesmo servico tambem roda o sync do monitor de sites a cada 30 min
-(`site_sync.py`; antes era o sync_site.ps1 no Agendador de Tarefas). O sync roda
+(`site_sync.py`; antes era o sync_site.ps1 no Agendador de Tarefas) e a auditoria do
+RustDesk (`rustdesk_sync.py`, SFTP do VPS a cada 5 min). Cada um roda
 numa thread propria: se ele travar ou falhar, o syslog continua recebendo.
 
 Desenho: uma thread recebe datagramas e enfileira; outra grava em lotes.
@@ -222,6 +223,13 @@ def main() -> int:
         start_from_env(stop)
     except Exception:  # o sync e extra: nunca impede o coletor de subir
         logger.exception("Nao foi possivel iniciar o sync de sites")
+    # Auditoria do RustDesk (SFTP do VPS): tambem extra, na sua propria thread.
+    try:
+        from .rustdesk_sync import start_from_env as start_rustdesk
+
+        start_rustdesk(stop)
+    except Exception:
+        logger.exception("Nao foi possivel iniciar a auditoria do RustDesk")
     logger.info("Escutando UDP %s:%d (origens permitidas: %s)", host, port, ", ".join(allowed))
     last_stats = time.monotonic()
     try:

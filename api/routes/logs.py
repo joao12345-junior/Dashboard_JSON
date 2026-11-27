@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from db import get_connection, release_connection
 from routes.auth import require_auth, require_sync_key
 import program_registry
+import rustdesk_queries
 
 logs_bp = Blueprint("logs", __name__)
 
@@ -102,6 +103,9 @@ def cleanup_logs():
             )
             deleted_network = cur.rowcount
 
+            # Auditoria do RustDesk (IPs e nomes de pessoas): retencao propria.
+            deleted_rustdesk = rustdesk_queries.cleanup(cur)
+
             conn.commit()
         return jsonify({
             "deleted": {
@@ -109,12 +113,14 @@ def cleanup_logs():
                 "windows": deleted_windows_event,
                 "app": deleted_app,
                 "network": deleted_network,
+                "rustdesk": deleted_rustdesk,
             },
             "retention_days":{
                 "process": PROCESS_LOGS_RETENTION_DAYS,
                 "windows": WINDOWS_EVENT_LOGS_RETENTION_DAYS,
                 "app": APP_LOGS_RETENTION_DAYS,
                 "network": NETWORK_EVENTS_RETENTION_DAYS,
+                "rustdesk": rustdesk_queries.RUSTDESK_RETENTION_DAYS,
             },
         }), 200
     except Exception as e:

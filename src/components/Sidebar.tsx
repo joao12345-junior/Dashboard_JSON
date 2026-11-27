@@ -7,6 +7,7 @@ import {
 	AppWindow,
 	Network,
 	MonitorCheck,
+	MonitorSmartphone,
 	Router,
 	Share2,
 	Users,
@@ -105,6 +106,11 @@ const NAV_SECTIONS = [
 			{ page: "network-topology" as Page, label: "Topologia", icon: Share2 },
 			{ page: "network-events" as Page, label: "Eventos", icon: List },
 		],
+	},
+	{
+		label: "Acesso remoto",
+		icon: MonitorSmartphone,
+		items: [{ page: "remote-access" as Page, label: "RustDesk", icon: MonitorSmartphone }],
 	},
 	{
 		label: "Configurações",

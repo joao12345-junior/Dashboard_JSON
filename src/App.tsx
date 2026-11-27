@@ -25,6 +25,7 @@ import { NetworkClientsPage } from "./features/network/NetworkClientsPage";
 import { NetworkDevicesPage } from "./features/network/NetworkDevicesPage";
 import { NetworkTopologyPage } from "./features/network/NetworkTopologyPage";
 import { NetworkDashboardPage } from "./features/network/NetworkDashboardPage";
+import { RemoteAccessPage } from "./features/remote-access/RemoteAccessPage";
 import { AppDashboard } from "./features/app-logs/AppDashboard";
 import { AppList } from "./features/app-logs/AppList";
 import { useAppPrograms, type AppProgramsState } from "./features/app-logs/useAppPrograms";
@@ -58,6 +59,7 @@ export type Page =
 	| "network-clients"
 	| "network-devices"
 	| "network-topology"
+	| "remote-access"
 	| "settings";
 
 // ── Persistencia da pagina atual ─────────────────────────────────────────────
@@ -85,6 +87,7 @@ const VALID_PAGES: readonly Page[] = [
 	"network-clients",
 	"network-devices",
 	"network-topology",
+	"remote-access",
 	"settings",
 ];
 
@@ -369,6 +372,8 @@ function AppContent() {
 				return <NetworkClientsPage {...sharedProps} />;
 			case "network-devices":
 				return <NetworkDevicesPage {...sharedProps} />;
+			case "remote-access":
+				return <RemoteAccessPage {...sharedProps} />;
 			case "network-topology":
 				return <NetworkTopologyPage {...sharedProps} />;
 			case "settings":

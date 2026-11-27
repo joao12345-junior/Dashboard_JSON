@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict rloT1Doh8YRV8vhLe4BniOkjoZ78InQVmoVwYxhf13Zo8LL63PxGUbTXT0Wdh1S
+\restrict ckrrZ4WQcTmKhegeyz2joiv7LKod0aqXXQ1RbpyCF2CGQhgR13OX82Fd8BDqOW0
 
 -- Dumped from database version 13.23
 -- Dumped by pg_dump version 18.6
@@ -678,6 +678,143 @@ ALTER SEQUENCE optsislog.refresh_tokens_id_seq OWNED BY optsislog.refresh_tokens
 
 
 --
+-- Name: rustdesk_audit_raw; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.rustdesk_audit_raw (
+    line_hash text NOT NULL,
+    received_at timestamp with time zone NOT NULL,
+    source_ip text,
+    path text NOT NULL,
+    kind text NOT NULL,
+    machine_id text,
+    conn_id integer,
+    action text,
+    peer_id text,
+    peer_name text,
+    peer_ip text,
+    primary_auth smallint,
+    conn_type smallint,
+    session_id numeric(20,0),
+    alarm_type smallint,
+    body jsonb NOT NULL,
+    collected_at timestamp with time zone DEFAULT now() NOT NULL
+);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN line_hash SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN received_at SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN source_ip SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN path SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN kind SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN machine_id SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN conn_id SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN action SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN peer_id SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN peer_name SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN peer_ip SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN primary_auth SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN conn_type SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN session_id SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN alarm_type SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN body SET (pg_attver=36899214506336);
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw ALTER COLUMN collected_at SET (pg_attver=36899214506336);
+
+
+ALTER TABLE optsislog.rustdesk_audit_raw OWNER TO optare3;
+
+--
+-- Name: rustdesk_file_state; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.rustdesk_file_state (
+    file_name text NOT NULL,
+    read_offset bigint NOT NULL,
+    head_hash text,
+    head_len integer DEFAULT 0 NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+ALTER TABLE ONLY optsislog.rustdesk_file_state ALTER COLUMN file_name SET (pg_attver=36899214718736);
+ALTER TABLE ONLY optsislog.rustdesk_file_state ALTER COLUMN read_offset SET (pg_attver=36899214718736);
+ALTER TABLE ONLY optsislog.rustdesk_file_state ALTER COLUMN head_hash SET (pg_attver=36899214718736);
+ALTER TABLE ONLY optsislog.rustdesk_file_state ALTER COLUMN head_len SET (pg_attver=36899214718736);
+ALTER TABLE ONLY optsislog.rustdesk_file_state ALTER COLUMN updated_at SET (pg_attver=36899214718736);
+
+
+ALTER TABLE optsislog.rustdesk_file_state OWNER TO optare3;
+
+--
+-- Name: rustdesk_machines; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.rustdesk_machines (
+    machine_id text NOT NULL,
+    hostname text,
+    username text,
+    last_username text,
+    os text,
+    version text,
+    cpu text,
+    memory text,
+    uuid text,
+    source_ip text,
+    is_test boolean DEFAULT false NOT NULL,
+    first_seen_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_sysinfo_at timestamp with time zone
+);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN machine_id SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN hostname SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN username SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN last_username SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN os SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN version SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN cpu SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN memory SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN uuid SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN source_ip SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN is_test SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN first_seen_at SET (pg_attver=36899214697800);
+ALTER TABLE ONLY optsislog.rustdesk_machines ALTER COLUMN last_sysinfo_at SET (pg_attver=36899214697800);
+
+
+ALTER TABLE optsislog.rustdesk_machines OWNER TO optare3;
+
+--
+-- Name: rustdesk_sessions; Type: TABLE; Schema: optsislog; Owner: optare3
+--
+
+CREATE TABLE optsislog.rustdesk_sessions (
+    machine_id text NOT NULL,
+    conn_id integer NOT NULL,
+    started_at timestamp with time zone NOT NULL,
+    authenticated_at timestamp with time zone,
+    ended_at timestamp with time zone,
+    peer_id text,
+    peer_name text,
+    peer_ip text,
+    primary_auth smallint,
+    conn_type smallint,
+    session_id numeric(20,0),
+    alarm_type smallint,
+    status text NOT NULL,
+    CONSTRAINT rustdesk_sessions_status_check CHECK ((status = ANY (ARRAY['concluida'::text, 'aberta'::text, 'bloqueada'::text, 'tentativa'::text])))
+);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN machine_id SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN conn_id SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN started_at SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN authenticated_at SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN ended_at SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN peer_id SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN peer_name SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN peer_ip SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN primary_auth SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN conn_type SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN session_id SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN alarm_type SET (pg_attver=36899214674712);
+ALTER TABLE ONLY optsislog.rustdesk_sessions ALTER COLUMN status SET (pg_attver=36899214674712);
+
+
+ALTER TABLE optsislog.rustdesk_sessions OWNER TO optare3;
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: optsislog; Owner: optare3
 --
 
@@ -1098,6 +1235,38 @@ ALTER TABLE ONLY optsislog.refresh_tokens
 
 
 --
+-- Name: rustdesk_audit_raw rustdesk_audit_raw_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.rustdesk_audit_raw
+    ADD CONSTRAINT rustdesk_audit_raw_pkey PRIMARY KEY (line_hash);
+
+
+--
+-- Name: rustdesk_file_state rustdesk_file_state_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.rustdesk_file_state
+    ADD CONSTRAINT rustdesk_file_state_pkey PRIMARY KEY (file_name);
+
+
+--
+-- Name: rustdesk_machines rustdesk_machines_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.rustdesk_machines
+    ADD CONSTRAINT rustdesk_machines_pkey PRIMARY KEY (machine_id);
+
+
+--
+-- Name: rustdesk_sessions rustdesk_sessions_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
+--
+
+ALTER TABLE ONLY optsislog.rustdesk_sessions
+    ADD CONSTRAINT rustdesk_sessions_pkey PRIMARY KEY (machine_id, conn_id, started_at);
+
+
+--
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: optsislog; Owner: optare3
 --
 
@@ -1249,6 +1418,27 @@ CREATE INDEX idx_process_logs_source_name ON optsislog.process_logs USING btree 
 
 
 --
+-- Name: idx_rustdesk_raw_machine; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX idx_rustdesk_raw_machine ON optsislog.rustdesk_audit_raw USING btree (machine_id, received_at);
+
+
+--
+-- Name: idx_rustdesk_raw_received; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX idx_rustdesk_raw_received ON optsislog.rustdesk_audit_raw USING btree (received_at);
+
+
+--
+-- Name: idx_rustdesk_sessions_started; Type: INDEX; Schema: optsislog; Owner: optare3
+--
+
+CREATE INDEX idx_rustdesk_sessions_started ON optsislog.rustdesk_sessions USING btree (started_at DESC);
+
+
+--
 -- Name: idx_site_availability_checked_at; Type: INDEX; Schema: optsislog; Owner: optare3
 --
 
@@ -1367,5 +1557,5 @@ ALTER TABLE ONLY optsislog.tokens_renovacao
 -- PostgreSQL database dump complete
 --
 
-\unrestrict rloT1Doh8YRV8vhLe4BniOkjoZ78InQVmoVwYxhf13Zo8LL63PxGUbTXT0Wdh1S
+\unrestrict ckrrZ4WQcTmKhegeyz2joiv7LKod0aqXXQ1RbpyCF2CGQhgR13OX82Fd8BDqOW0
 
